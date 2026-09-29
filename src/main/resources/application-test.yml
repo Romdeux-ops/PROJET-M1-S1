@@ -1,0 +1,17 @@
+spring:
+  # Base dediee aux tests, distincte de la base de developpement, pour qu'un
+  # ./gradlew test ne detruise jamais les donnees en cours de manipulation.
+  datasource:
+    url: ${TEST_DB_URL:jdbc:postgresql://localhost:5432/fitcoach_test}
+    username: ${DB_USER:fitcoach}
+    password: ${DB_PASSWORD:fitcoach}
+
+  jpa:
+    show-sql: false
+
+  flyway:
+    clean-disabled: false
+
+logging:
+  level:
+    com.fitcoach: DEBUG

@@ -1,0 +1,56 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.1.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.fitcoach'
+version = '0.1.0-SNAPSHOT'
+description = 'Backend de l\'application fitness athletes / coachs'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    springdocVersion = '3.1.1'
+}
+
+dependencies {
+    // Web. Depuis Spring Boot 4, spring-boot-starter-web est renomme spring-boot-starter-webmvc.
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // Persistance. Flyway exige un starter dedie depuis Spring Boot 4.
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql'
+    runtimeOnly 'org.postgresql:postgresql'
+
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // springdoc 3.x est la ligne compatible Spring Boot 4 (la 2.x cible Boot 3).
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
