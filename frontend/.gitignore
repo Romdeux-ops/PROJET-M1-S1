@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Le projet utilise npm : seul package-lock.json fait foi
+bun.lock
+bun.lockb
+yarn.lock
+pnpm-lock.yaml
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
