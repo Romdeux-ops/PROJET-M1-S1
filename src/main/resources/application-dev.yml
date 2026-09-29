@@ -1,0 +1,15 @@
+spring:
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    # Autorise ./gradlew flywayClean en local pour repartir d'une base vierge.
+    clean-disabled: false
+
+logging:
+  level:
+    com.fitcoach: DEBUG
+    org.flywaydb: INFO

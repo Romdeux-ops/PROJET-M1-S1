@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: fitcoach-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-fitcoach}
+      POSTGRES_USER: ${DB_USER:-fitcoach}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-fitcoach}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # Joue uniquement a la creation du volume : cree la base de test.
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-fitcoach} -d ${DB_NAME:-fitcoach}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: fitcoach-pgadmin
+    restart: unless-stopped
+    environment:
+      # pgAdmin valide le domaine et rejette les TLD reserves comme .local.
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@fitcoach.dev}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
