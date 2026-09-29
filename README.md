@@ -15,7 +15,7 @@ reservation de creneaux, messagerie et generation de programmes par IA.
 | Flyway | starter Spring Boot | seule source de verite du schema |
 | springdoc-openapi | 3.1.1 | la ligne 3.x est celle compatible Boot 4 |
 
-Le frontend React / TypeScript / Tailwind vit dans un depot separe.
+Le frontend React / TypeScript / Tailwind vit dans [`frontend/`](frontend/README.md).
 
 ## Demarrer en local
 
@@ -36,6 +36,20 @@ entites correspondent au schema obtenu.
 | Swagger UI | http://localhost:8080/swagger-ui.html |
 | Etat de l'application | http://localhost:8080/actuator/health |
 | pgAdmin | http://localhost:5050 |
+
+### Frontend
+
+Prerequis : Node.js 22 ou plus.
+
+```bash
+cd frontend
+npm install
+npm run dev:mock   # sans backend : API simulee (comptes de demo sur la page de connexion)
+npm run dev        # avec le backend lance : /api est proxifie vers localhost:8080
+```
+
+L'application est servie sur http://localhost:5173. Le detail (architecture,
+ajout d'une fonctionnalite, conventions) est dans [frontend/README.md](frontend/README.md).
 
 ## Tests
 

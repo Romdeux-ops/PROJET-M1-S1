@@ -10,6 +10,12 @@ build/
 *.log
 hs_err_pid*
 
+# Node / front (voir aussi frontend/.gitignore)
+node_modules/
+dist/
+*.tsbuildinfo
+npm-debug.log*
+
 # IDE
 .idea/
 *.iml
