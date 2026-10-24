@@ -1,43 +1,65 @@
 import { z } from 'zod'
 
-export const SESSION_TYPES = ['STRENGTH', 'CARDIO', 'HIIT', 'MOBILITY'] as const
-export type SessionType = (typeof SESSION_TYPES)[number]
-
-export const SESSION_TYPE_LABELS: Record<SessionType, string> = {
-  STRENGTH: 'Force',
-  CARDIO: 'Cardio',
-  HIIT: 'HIIT',
-  MOBILITY: 'Mobilité',
+export interface SessionSetEntry {
+  id: string
+  exerciseId: string
+  exerciseName: string
+  position: number
+  setNumber: number
+  reps: number
+  weightKg: number
+  rpe: number | null
+  restSeconds: number | null
+  volume: number
+  isPersonalRecord: boolean
 }
 
 /** Seance telle que renvoyee par GET /api/training/sessions. */
 export interface TrainingSession {
   id: string
   title: string
-  type: SessionType
-  /** Date au format ISO `yyyy-mm-dd`. */
-  date: string
-  durationMinutes: number
-  /** Ressenti de l'effort (RPE) de 1 a 10. */
-  perceivedEffort: number
-  exerciseCount: number
+  /** Date-heure ISO. */
+  performedAt: string
+  durationMinutes: number | null
   notes?: string | null
+  programId?: string | null
+  programDayId?: string | null
+  sets: SessionSetEntry[]
+  totalVolume: number
 }
 
 export const createSessionSchema = z.object({
   title: z.string().trim().min(2, '2 caractères minimum').max(80, '80 caractères maximum'),
-  type: z.enum(SESSION_TYPES),
-  date: z.string().min(1, 'Date requise'),
-  durationMinutes: z
-    .number({ error: 'Durée requise' })
-    .int()
-    .min(5, '5 minutes minimum')
-    .max(600, '10 heures maximum'),
-  perceivedEffort: z.number().int().min(1).max(10),
-  notes: z.string().trim().max(500, '500 caractères maximum').optional(),
+  performedAt: z.string().min(1, 'Date requise'),
+  durationMinutes: z.number().int().min(0).max(600).optional(),
+  notes: z.string().trim().max(2000, '2000 caractères maximum').optional(),
 })
 export type CreateSessionInput = z.infer<typeof createSessionSchema>
 
-export interface SessionFilters {
-  type?: SessionType
+export interface SessionFilters {}
+
+export const addSetSchema = z.object({
+  exerciseId: z.string().min(1, 'Choisissez un exercice'),
+  setNumber: z.number().int().min(1),
+  reps: z.number().int().min(1).max(200),
+  weightKg: z.number().min(0),
+  rpe: z.number().min(1).max(10).optional(),
+  restSeconds: z.number().int().min(0).max(1200).optional(),
+})
+export type AddSetInput = z.infer<typeof addSetSchema>
+
+export const personalRecordMetrics = ['MAX_WEIGHT', 'ESTIMATED_1RM'] as const
+export type PersonalRecordMetric = (typeof personalRecordMetrics)[number]
+
+export const METRIC_LABELS: Record<PersonalRecordMetric, string> = {
+  MAX_WEIGHT: 'Charge max',
+  ESTIMATED_1RM: '1RM estimé',
+}
+
+export interface PersonalRecord {
+  exerciseId: string
+  exerciseName: string
+  metric: PersonalRecordMetric
+  value: number
+  achievedAt: string
 }

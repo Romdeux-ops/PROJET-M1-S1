@@ -24,7 +24,6 @@ describe('TrainingPage', () => {
     await user.click(screen.getByRole('button', { name: /nouvelle séance/i }))
     const dialog = await screen.findByRole('dialog')
     await user.type(within(dialog).getByLabelText('Intitulé'), 'Sortie vélo')
-    await user.click(within(dialog).getByRole('radio', { name: /cardio/i }))
     await user.click(within(dialog).getByRole('button', { name: 'Enregistrer' }))
 
     expect(await screen.findByText('Sortie vélo')).toBeInTheDocument()

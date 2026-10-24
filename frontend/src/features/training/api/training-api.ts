@@ -1,20 +1,34 @@
 import { http } from '@/lib/api/client'
 
-import type { CreateSessionInput, SessionFilters, TrainingSession } from '../schemas'
+import type { AddSetInput, CreateSessionInput, PersonalRecord, TrainingSession } from '../schemas'
+
+function toSessionBody(input: CreateSessionInput) {
+  return {
+    title: input.title,
+    performedAt: new Date(input.performedAt).toISOString(),
+    durationMinutes: input.durationMinutes,
+    notes: input.notes || undefined,
+  }
+}
 
 /**
- * Contrat attendu du module training (backend) :
- *   GET    /api/training/sessions?type=STRENGTH  -> TrainingSession[] (tri date desc)
- *   POST   /api/training/sessions                -> TrainingSession (201)
- *   DELETE /api/training/sessions/{id}           -> 204
- *
- * Quand le backend expose ces endpoints : `npm run gen:api`, puis remplacer `http`
- * par le client type `api` (voir src/lib/api/client.ts).
+ * Contrat du module training (backend) :
+ *   GET    /api/training/sessions                   -> TrainingSession[] (tri date desc)
+ *   GET    /api/training/sessions/{id}               -> TrainingSession
+ *   POST   /api/training/sessions                    -> TrainingSession (201)
+ *   DELETE /api/training/sessions/{id}               -> 204
+ *   POST   /api/training/sessions/{id}/sets          -> TrainingSession (ajoute une serie, met a jour les records)
+ *   DELETE /api/training/sessions/{id}/sets/{setId}  -> TrainingSession
+ *   GET    /api/training/personal-records            -> PersonalRecord[]
  */
 export const trainingApi = {
-  list: (filters: SessionFilters = {}) =>
-    http.get<TrainingSession[]>('/api/training/sessions', { query: { ...filters } }),
-  create: (input: CreateSessionInput) =>
-    http.post<TrainingSession>('/api/training/sessions', input),
+  list: () => http.get<TrainingSession[]>('/api/training/sessions'),
+  get: (sessionId: string) => http.get<TrainingSession>(`/api/training/sessions/${sessionId}`),
+  create: (input: CreateSessionInput) => http.post<TrainingSession>('/api/training/sessions', toSessionBody(input)),
   remove: (id: string) => http.delete(`/api/training/sessions/${id}`),
+  addSet: (sessionId: string, input: AddSetInput) =>
+    http.post<TrainingSession>(`/api/training/sessions/${sessionId}/sets`, input),
+  removeSet: (sessionId: string, setId: string) =>
+    http.delete<TrainingSession>(`/api/training/sessions/${sessionId}/sets/${setId}`),
+  personalRecords: () => http.get<PersonalRecord[]>('/api/training/personal-records'),
 }

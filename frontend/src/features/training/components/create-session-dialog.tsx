@@ -13,34 +13,23 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { todayIso } from '@/lib/format'
-import { cn } from '@/lib/utils'
 
 import { useCreateSession } from '../hooks/use-sessions'
-import {
-  type CreateSessionInput,
-  createSessionSchema,
-  SESSION_TYPE_LABELS,
-  SESSION_TYPES,
-} from '../schemas'
-import { SESSION_TYPE_STYLES } from './session-type-styles'
+import { type CreateSessionInput, createSessionSchema } from '../schemas'
+
+function nowLocal() {
+  const date = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
 
 const defaultValues = (): CreateSessionInput => ({
   title: '',
-  type: 'STRENGTH',
-  date: todayIso(),
+  performedAt: nowLocal(),
   durationMinutes: 60,
-  perceivedEffort: 7,
   notes: '',
 })
 
@@ -92,49 +81,15 @@ export function CreateSessionDialog({ trigger }: { trigger?: ReactElement }) {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Type</FormLabel>
-                  <div role="radiogroup" aria-label="Type" className="grid grid-cols-4 gap-2">
-                    {SESSION_TYPES.map((type) => {
-                      const { icon: Icon } = SESSION_TYPE_STYLES[type]
-                      const selected = field.value === type
-                      return (
-                        <button
-                          key={type}
-                          type="button"
-                          role="radio"
-                          aria-checked={selected}
-                          onClick={() => field.onChange(type)}
-                          className={cn(
-                            'flex flex-col items-center gap-1 rounded-lg border px-2 py-2.5 text-xs font-medium transition-all',
-                            'outline-none hover:border-primary/50 focus-visible:ring-[3px] focus-visible:ring-ring/50',
-                            selected &&
-                              'border-primary bg-primary/5 text-primary ring-2 ring-primary/20',
-                          )}
-                        >
-                          <Icon className="size-4" />
-                          {SESSION_TYPE_LABELS[type]}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </FormItem>
-              )}
-            />
-
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="date"
+                name="performedAt"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Date</FormLabel>
+                    <FormLabel>Date et heure</FormLabel>
                     <FormControl>
-                      <Input type="date" max={todayIso()} {...field} />
+                      <Input type="datetime-local" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -150,11 +105,10 @@ export function CreateSessionDialog({ trigger }: { trigger?: ReactElement }) {
                       <Input
                         type="number"
                         inputMode="numeric"
-                        min={5}
+                        min={0}
                         step={5}
-                        {...field}
-                        value={Number.isNaN(field.value) ? '' : field.value}
-                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                        value={field.value ?? ''}
+                        onChange={(e) => field.onChange(e.target.value ? e.target.valueAsNumber : undefined)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -162,35 +116,6 @@ export function CreateSessionDialog({ trigger }: { trigger?: ReactElement }) {
                 )}
               />
             </div>
-
-            <FormField
-              control={form.control}
-              name="perceivedEffort"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex items-center justify-between">
-                    <FormLabel>Effort ressenti</FormLabel>
-                    <span className="text-sm font-semibold text-primary tabular-nums">
-                      {field.value}/10
-                    </span>
-                  </div>
-                  <FormControl>
-                    <input
-                      type="range"
-                      min={1}
-                      max={10}
-                      step={1}
-                      className="w-full accent-primary"
-                      name={field.name}
-                      ref={field.ref}
-                      value={field.value}
-                      onBlur={field.onBlur}
-                      onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
 
             <FormField
               control={form.control}

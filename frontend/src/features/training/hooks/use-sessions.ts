@@ -1,22 +1,36 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { trainingApi } from '../api/training-api'
-import type { SessionFilters } from '../schemas'
+import type { AddSetInput } from '../schemas'
 
 /** Cles de cache centralisees : toute invalidation passe par ici. */
 export const trainingKeys = {
   all: ['training'] as const,
-  sessions: (filters: SessionFilters = {}) => [...trainingKeys.all, 'sessions', filters] as const,
+  sessions: () => [...trainingKeys.all, 'sessions'] as const,
+  session: (id: string) => [...trainingKeys.all, 'session', id] as const,
+  personalRecords: () => [...trainingKeys.all, 'personal-records'] as const,
 }
 
-export const sessionsQuery = (filters: SessionFilters = {}) =>
+export const sessionsQuery = () =>
+  queryOptions({ queryKey: trainingKeys.sessions(), queryFn: trainingApi.list })
+
+export function useSessions() {
+  return useQuery(sessionsQuery())
+}
+
+export const sessionQuery = (sessionId: string) =>
   queryOptions({
-    queryKey: trainingKeys.sessions(filters),
-    queryFn: () => trainingApi.list(filters),
+    queryKey: trainingKeys.session(sessionId),
+    queryFn: () => trainingApi.get(sessionId),
+    enabled: Boolean(sessionId),
   })
 
-export function useSessions(filters: SessionFilters = {}) {
-  return useQuery(sessionsQuery(filters))
+export function useSessionDetail(sessionId: string) {
+  return useQuery(sessionQuery(sessionId))
+}
+
+export function usePersonalRecords() {
+  return useQuery({ queryKey: trainingKeys.personalRecords(), queryFn: trainingApi.personalRecords })
 }
 
 export function useCreateSession() {
@@ -42,5 +56,32 @@ export function useDeleteSession() {
         queryClient.invalidateQueries({ queryKey: trainingKeys.all }),
         queryClient.invalidateQueries({ queryKey: ['stats'] }),
       ]),
+  })
+}
+
+function useSessionMutator(sessionId: string) {
+  const queryClient = useQueryClient()
+  return (session: Awaited<ReturnType<typeof trainingApi.get>>) => {
+    queryClient.setQueryData(trainingKeys.session(sessionId), session)
+    queryClient.invalidateQueries({ queryKey: trainingKeys.sessions() })
+    queryClient.invalidateQueries({ queryKey: trainingKeys.personalRecords() })
+  }
+}
+
+export function useAddSet(sessionId: string) {
+  const onSuccess = useSessionMutator(sessionId)
+  return useMutation({
+    mutationFn: (input: AddSetInput) => trainingApi.addSet(sessionId, input),
+    meta: { successMessage: 'Série ajoutée' },
+    onSuccess,
+  })
+}
+
+export function useDeleteSet(sessionId: string) {
+  const onSuccess = useSessionMutator(sessionId)
+  return useMutation({
+    mutationFn: (setId: string) => trainingApi.removeSet(sessionId, setId),
+    meta: { successMessage: 'Série supprimée' },
+    onSuccess,
   })
 }
