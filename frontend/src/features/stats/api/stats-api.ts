@@ -38,6 +38,8 @@ export interface WeeklyAdherencePoint {
   planned: number
   done: number
   skipped: number
+  /** Terminees, en attente de validation par le coach. */
+  pending: number
 }
 
 export interface MuscleVolumeShare {

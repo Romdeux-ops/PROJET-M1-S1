@@ -86,6 +86,7 @@ export const statsHandlers = [
       planned: 0,
       done: 0,
       skipped: 0,
+      pending: 0,
     }))
     return HttpResponse.json(weeklyAdherence)
   }),

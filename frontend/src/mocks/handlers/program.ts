@@ -10,11 +10,6 @@ import type {
 import { db, userFromRequest } from '../db'
 import { networkDelay, problem } from '../utils'
 
-interface PositionUpdate {
-  id: string
-  position: number
-}
-
 export const programHandlers = [
   http.get('*/api/programs', async ({ request }) => {
     await networkDelay()
@@ -178,7 +173,7 @@ export const programHandlers = [
     },
   ),
 
-  http.patch<{ id: string }, PositionUpdate[]>(
+  http.patch<{ id: string }, { orderedIds: string[] }>(
     '*/api/programs/:id/days/positions',
     async ({ request, params }) => {
       await networkDelay()
@@ -187,11 +182,18 @@ export const programHandlers = [
       const program = db.programs.find((p) => p.id === params.id)
       if (!program) return problem(404, 'Programme introuvable.')
       if (program.ownerId !== user.id) return problem(403, 'Réservé au propriétaire.')
-      const updates = await request.json()
-      for (const u of updates) {
-        const day = program.days.find((d) => d.id === u.id)
-        if (day) day.position = u.position
-      }
+      const { orderedIds } = await request.json()
+      const isPermutation =
+        orderedIds.length === program.days.length &&
+        new Set(orderedIds).size === orderedIds.length &&
+        program.days.every((d) => orderedIds.includes(d.id))
+      if (!isPermutation)
+        return problem(
+          400,
+          "L'ordre fourni doit contenir exactement une fois chaque element de la liste.",
+        )
+      for (const day of program.days) day.position = orderedIds.indexOf(day.id)
+      program.days.sort((a, b) => a.position - b.position)
       return HttpResponse.json(program)
     },
   ),

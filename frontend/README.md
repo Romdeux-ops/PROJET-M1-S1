@@ -98,14 +98,18 @@ Exemple : la liste des programmes dans `features/program`.
 
 1. **Contrat et types**, dans `schemas.ts` : l'interface renvoyee par l'API et
    le schema zod des formulaires.
-2. **Appels API**, dans `api/program-api.ts`, en ecrivant en commentaire le
-   contrat attendu (methode, URL, corps, reponse) pour le binome backend :
+2. **Appels API**, dans `api/program-api.ts`, avec le client type `api` (voir
+   « Brancher le vrai backend ») et le contrat en commentaire :
 
    ```ts
    export const programApi = {
-     list: () => http.get<Program[]>('/api/programs'),
+     list: () => unwrap(api.GET('/api/programs')) as Promise<Program[]>,
    }
    ```
+
+   Si l'endpoint n'existe pas encore cote backend, le declarer d'abord dans le
+   controleur Spring (meme vide) puis `npm run gen:api` : le contrat reste la
+   source de verite partagee.
 
 3. **Hooks**, dans `hooks/use-programs.ts` : une fabrique de cles
    (`programKeys`), `useQuery` pour lire, `useMutation` pour ecrire, et
@@ -128,16 +132,14 @@ automatiquement par `npm run dev`. Pour une **page reservee** :
 Quand un endpoint est livre cote Spring :
 
 1. backend lance, `npm run gen:api` met a jour `src/lib/api/schema.d.ts` ;
-2. dans `api/*.ts`, remplacer `http` par le client type `api` :
+2. `npm run typecheck` signale chaque appel `api.*` devenu incompatible (URL,
+   parametres, corps) ;
+3. aligner le handler MSW : il sert toujours aux tests et au mode demo.
 
-   ```ts
-   list: () => unwrap(api.GET('/api/programs')),
-   ```
-
-   URL, parametres et reponses sont alors verifies par TypeScript contre le
-   contrat OpenAPI ;
-
-3. garder le handler MSW : il sert toujours aux tests et au mode demo.
+Deux exceptions au client `api`, toutes deux dans `lib/api/client.ts` :
+`postMultipart` pour les uploads (openapi-fetch serialise en JSON) et
+`fetchBlob` pour les binaires proteges. Une image privee s'affiche avec
+`<AuthorizedImage>` : un `<img src>` n'envoie pas le JWT.
 
 L'authentification est centralisee : le JWT est ajoute a chaque requete, et un
 401 deconnecte l'utilisateur et le renvoie vers `/login`.
@@ -168,7 +170,7 @@ Contrats consommes par le front a ce jour :
 | POST    | `/api/programs/{id}/duplicate`                    | `Program` (201)                                                    |
 | POST    | `/api/programs/{id}/days`                         | `Program` (proprietaire)                                           |
 | DELETE  | `/api/programs/{id}/days/{dayId}`                 | `Program` (proprietaire)                                           |
-| PATCH   | `/api/programs/{id}/days/positions`               | `Program` (proprietaire)                                           |
+| PATCH   | `/api/programs/{id}/days/positions`               | `Program` (corps `{ orderedIds }` : tous les jours, une fois)      |
 | POST    | `/api/programs/{id}/days/{dayId}/exercises`       | `Program` (proprietaire)                                           |
 | DELETE  | `/api/programs/{id}/days/{dayId}/exercises/{eid}` | `Program` (proprietaire)                                           |
 | POST    | `/api/programs/{id}/ratings`                      | `Program` (non-proprietaire, programme public)                     |
@@ -199,16 +201,16 @@ Contrats consommes par le front a ce jour :
 | GET     | `/api/coaching/athletes`                          | `SessionUser[]` (role COACH)                                       |
 | GET     | `/api/coaching/coaches`                           | `SessionUser[]` (role ATHLETE)                                     |
 | POST    | `/api/coaching/posts`                             | `CoachPost` (201, role COACH)                                      |
-| POST    | `/api/coaching/posts/images`                      | `{ imageUrl }` (role COACH)                                        |
+| POST    | `/api/coaching/posts/images`                      | `{ imageUrl }` chemin relatif a passer a la creation (role COACH)  |
+| GET     | `/api/coaching/posts/images/{coachId}/{fichier}`  | image (le coach ou ses clients actifs, via `AuthorizedImage`)      |
 | GET     | `/api/coaching/posts/{coachId}`                   | `CoachPost[]` (le coach ou ses clients actifs)                     |
 | DELETE  | `/api/coaching/posts/{postId}`                    | 204 (auteur uniquement)                                            |
 
 Les erreurs sont attendues au format `ProblemDetail` de Spring : `detail` est
 affiche tel quel a l'utilisateur.
 
-Les features `catalog`, `program`, `planning` et `stats` consomment le client
-type `api` (genere par `npm run gen:api` depuis `/v3/api-docs`) plutot que le
-client `http` generique. Le schema OpenAPI de springdoc ne declare pas les
+Toutes les features consomment le client type `api` (genere par
+`npm run gen:api` depuis `/v3/api-docs`). Le schema OpenAPI de springdoc ne declare pas les
 champs `required` : les reponses sont donc recastees vers le contrat strict de
 chaque `schemas.ts` au niveau de la fonction d'appel API, pour eviter de
 propager des `| undefined` partout dans les composants.

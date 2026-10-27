@@ -8,11 +8,6 @@ import type {
   ProgramSearchFilters,
 } from '../schemas'
 
-interface PositionUpdate {
-  id: string
-  position: number
-}
-
 function toProgramBody(input: ProgramFormInput) {
   return {
     title: input.title,
@@ -91,11 +86,12 @@ export const programApi = {
         params: { path: { programId, dayId } },
       }),
     ) as Promise<Program>,
-  reorderDays: (programId: string, updates: PositionUpdate[]) =>
+  /** `orderedIds` : tous les jours du programme, chacun une fois, dans le nouvel ordre. */
+  reorderDays: (programId: string, orderedIds: string[]) =>
     unwrap(
       api.PATCH('/api/programs/{programId}/days/positions', {
         params: { path: { programId } },
-        body: updates,
+        body: { orderedIds },
       }),
     ) as Promise<Program>,
   addExercise: (programId: string, dayId: string, input: ExerciseEntryFormInput) =>

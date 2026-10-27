@@ -1010,7 +1010,7 @@ export interface components {
             /** Format: email */
             athleteEmail: string;
         };
-        UserResponse: {
+        UserSummary: {
             /** Format: uuid */
             id?: string;
             email?: string;
@@ -1030,7 +1030,7 @@ export interface components {
         };
         AuthResponse: {
             accessToken?: string;
-            user?: components["schemas"]["UserResponse"];
+            user?: components["schemas"]["UserSummary"];
         };
         LoginRequest: {
             /** Format: email */
@@ -1068,11 +1068,8 @@ export interface components {
             locale?: string;
             notificationsEnabled?: boolean;
         };
-        PositionUpdate: {
-            /** Format: uuid */
-            id: string;
-            /** Format: int32 */
-            position?: number;
+        ReorderRequest: {
+            orderedIds: string[];
         };
         RescheduleRequest: {
             /** Format: date */
@@ -1160,6 +1157,8 @@ export interface components {
             done?: number;
             /** Format: int32 */
             skipped?: number;
+            /** Format: int32 */
+            pending?: number;
         };
         PageResponseProgramResponse: {
             content?: components["schemas"]["ProgramResponse"][];
@@ -1766,7 +1765,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["UserResponse"][];
+                    "*/*": components["schemas"]["UserSummary"][];
                 };
             };
         };
@@ -1790,7 +1789,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["UserResponse"];
+                    "*/*": components["schemas"]["UserSummary"];
                 };
             };
         };
@@ -1950,7 +1949,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PositionUpdate"][];
+                "application/json": components["schemas"]["ReorderRequest"];
             };
         };
         responses: {
@@ -1976,7 +1975,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PositionUpdate"][];
+                "application/json": components["schemas"]["ReorderRequest"];
             };
         };
         responses: {
@@ -2102,7 +2101,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["UserResponse"];
+                    "*/*": components["schemas"]["UserSummary"];
                 };
             };
         };
@@ -2397,7 +2396,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["UserResponse"][];
+                    "*/*": components["schemas"]["UserSummary"][];
                 };
             };
         };

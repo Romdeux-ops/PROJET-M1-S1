@@ -64,8 +64,12 @@ export const planningHandlers = [
       if (!userFromRequest(request)) return problem(401, 'Session invalide.')
       const session = db.scheduledSessions.find((s) => s.id === params.id)
       if (!session) return problem(404, 'Séance planifiée introuvable.')
+      if (session.status === 'DONE' || session.status === 'PENDING_VALIDATION') {
+        return problem(409, 'Une séance réalisée ne peut plus être déplacée.')
+      }
       const body = await request.json()
       session.scheduledDate = body.scheduledDate
+      session.status = 'PLANNED'
       return HttpResponse.json(session)
     },
   ),
@@ -75,6 +79,8 @@ export const planningHandlers = [
     if (!userFromRequest(request)) return problem(401, 'Session invalide.')
     const session = db.scheduledSessions.find((s) => s.id === params.id)
     if (!session) return problem(404, 'Séance planifiée introuvable.')
+    if (session.status !== 'PLANNED')
+      return problem(409, 'Seule une séance planifiée peut être sautée.')
     session.status = 'SKIPPED'
     return HttpResponse.json(session)
   }),
