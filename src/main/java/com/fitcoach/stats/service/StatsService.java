@@ -1,13 +1,5 @@
 package com.fitcoach.stats.service;
 
-import com.fitcoach.catalog.domain.ExerciseMuscle;
-import com.fitcoach.catalog.domain.MuscleGroup;
-import com.fitcoach.catalog.domain.MuscleRole;
-import com.fitcoach.catalog.repository.ExerciseMuscleRepository;
-import com.fitcoach.catalog.repository.MuscleGroupRepository;
-import com.fitcoach.planning.domain.ScheduledSession;
-import com.fitcoach.planning.domain.ScheduledSessionStatus;
-import com.fitcoach.planning.repository.ScheduledSessionRepository;
 import com.fitcoach.stats.dto.ExerciseProgressionPoint;
 import com.fitcoach.stats.dto.MuscleVolumeShare;
 import com.fitcoach.stats.dto.ProgressionScoreResponse;
@@ -16,261 +8,143 @@ import com.fitcoach.stats.dto.StreakResponse;
 import com.fitcoach.stats.dto.WeeklyActivityPoint;
 import com.fitcoach.stats.dto.WeeklyAdherencePoint;
 import com.fitcoach.stats.dto.WeeklyVolumePoint;
-import com.fitcoach.training.domain.SessionSet;
-import com.fitcoach.training.domain.WorkoutSession;
-import com.fitcoach.training.repository.SessionSetRepository;
-import com.fitcoach.training.repository.WorkoutSessionRepository;
+import com.fitcoach.stats.repository.StatsQueries;
+import com.fitcoach.stats.repository.StatsQueries.DailyActivity;
+import com.fitcoach.stats.repository.StatsQueries.VolumeComparison;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Clock;
 import java.time.DayOfWeek;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
-import java.util.Comparator;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
 public class StatsService {
 
-    private final WorkoutSessionRepository workoutSessionRepository;
-    private final SessionSetRepository sessionSetRepository;
-    private final ScheduledSessionRepository scheduledSessionRepository;
-    private final ExerciseMuscleRepository exerciseMuscleRepository;
-    private final MuscleGroupRepository muscleGroupRepository;
+    private static final int MAX_WEEKS = 104;
+    private static final int MAX_DAYS = 365;
+    private static final int ACTIVITY_DAYS = 7;
+    private static final int SCORE_WINDOW_DAYS = 30;
+    /** Au-dela, une serie ininterrompue est de toute facon hors de l'echelle affichee. */
+    private static final int STREAK_LOOKUP_DAYS = 400;
 
-    public StatsService(
-            WorkoutSessionRepository workoutSessionRepository,
-            SessionSetRepository sessionSetRepository,
-            ScheduledSessionRepository scheduledSessionRepository,
-            ExerciseMuscleRepository exerciseMuscleRepository,
-            MuscleGroupRepository muscleGroupRepository) {
-        this.workoutSessionRepository = workoutSessionRepository;
-        this.sessionSetRepository = sessionSetRepository;
-        this.scheduledSessionRepository = scheduledSessionRepository;
-        this.exerciseMuscleRepository = exerciseMuscleRepository;
-        this.muscleGroupRepository = muscleGroupRepository;
+    private final StatsQueries statsQueries;
+    private final Clock clock;
+
+    public StatsService(StatsQueries statsQueries, Clock clock) {
+        this.statsQueries = statsQueries;
+        this.clock = clock;
     }
 
     public StatsOverviewResponse overview(UUID athleteId) {
-        LocalDate today = LocalDate.now();
-        LocalDate weekStart = weekStartOf(today);
+        ZoneId zone = clock.getZone();
+        LocalDate today = LocalDate.now(clock);
+        LocalDate weekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate previousWeekStart = weekStart.minusWeeks(1);
+        LocalDate activityStart = today.minusDays(ACTIVITY_DAYS - 1L);
+        LocalDate from = previousWeekStart.isBefore(activityStart) ? previousWeekStart : activityStart;
 
-        List<WorkoutSession> sessions = workoutSessionRepository.findByAthleteIdOrderByPerformedAtDesc(athleteId);
+        Map<LocalDate, DailyActivity> byDay = statsQueries.dailyActivity(athleteId, zone, from, today).stream()
+                .collect(Collectors.toMap(DailyActivity::date, d -> d));
+        Collection<DailyActivity> days = byDay.values();
 
-        List<WorkoutSession> thisWeek =
-                sessions.stream().filter(s -> !toLocalDate(s.getPerformedAt()).isBefore(weekStart)).toList();
-        List<WorkoutSession> lastWeek = sessions.stream()
-                .filter(s -> {
-                    LocalDate d = toLocalDate(s.getPerformedAt());
-                    return !d.isBefore(previousWeekStart) && d.isBefore(weekStart);
-                })
-                .toList();
+        int sessionsThisWeek = sum(days, weekStart, today, DailyActivity::sessions);
+        int sessionsLastWeek = sum(days, previousWeekStart, weekStart.minusDays(1), DailyActivity::sessions);
+        int minutesThisWeek = sum(days, weekStart, today, DailyActivity::minutes);
+        int minutesLastWeek = sum(days, previousWeekStart, weekStart.minusDays(1), DailyActivity::minutes);
 
-        int minutesThisWeek = thisWeek.stream().mapToInt(s -> s.getDurationMinutes() == null ? 0 : s.getDurationMinutes()).sum();
-        int minutesLastWeek = lastWeek.stream().mapToInt(s -> s.getDurationMinutes() == null ? 0 : s.getDurationMinutes()).sum();
-
-        List<UUID> thisWeekSessionIds = thisWeek.stream().map(WorkoutSession::getId).toList();
-        List<SessionSet> thisWeekSets = sessionSetRepository.findBySessionIdIn(thisWeekSessionIds);
-        double averageEffort = thisWeekSets.stream()
-                .map(SessionSet::getRpe)
-                .filter(java.util.Objects::nonNull)
-                .mapToDouble(BigDecimal::doubleValue)
-                .average()
-                .orElse(0.0);
-
-        List<WeeklyActivityPoint> weeklyActivity = java.util.stream.IntStream.rangeClosed(0, 6)
-                .mapToObj(i -> today.minusDays(6L - i))
+        List<WeeklyActivityPoint> weeklyActivity = activityStart
+                .datesUntil(today.plusDays(1))
                 .map(date -> new WeeklyActivityPoint(
-                        date,
-                        sessions.stream()
-                                .filter(s -> toLocalDate(s.getPerformedAt()).equals(date))
-                                .mapToInt(s -> s.getDurationMinutes() == null ? 0 : s.getDurationMinutes())
-                                .sum()))
+                        date, byDay.containsKey(date) ? byDay.get(date).minutes() : 0))
                 .toList();
 
         return new StatsOverviewResponse(
-                thisWeek.size(),
-                trendPercent(thisWeek.size(), lastWeek.size()),
+                sessionsThisWeek,
+                trendPercent(sessionsThisWeek, sessionsLastWeek),
                 minutesThisWeek,
                 trendPercent(minutesThisWeek, minutesLastWeek),
                 streak(athleteId).currentStreakDays(),
-                averageEffort,
+                statsQueries.averageRpe(athleteId, zone, weekStart, today),
                 weeklyActivity);
     }
 
-    private int trendPercent(int current, int previous) {
-        if (previous == 0) {
-            return current > 0 ? 100 : 0;
-        }
-        return (int) Math.round(((current - previous) / (double) previous) * 100);
-    }
-
     public List<ExerciseProgressionPoint> exerciseProgression(UUID athleteId, UUID exerciseId) {
-        Map<UUID, LocalDate> dateBySessionId = sessionDatesOf(athleteId);
-        List<SessionSet> sets = sessionSetRepository.findByExerciseIdAndSessionIdIn(
-                exerciseId, List.copyOf(dateBySessionId.keySet()));
-
-        Map<LocalDate, List<SessionSet>> byDate =
-                sets.stream().collect(Collectors.groupingBy(s -> dateBySessionId.get(s.getSessionId())));
-
-        return byDate.entrySet().stream()
-                .map(entry -> {
-                    BigDecimal maxWeight = entry.getValue().stream()
-                            .map(SessionSet::getWeightKg)
-                            .max(BigDecimal::compareTo)
-                            .orElse(BigDecimal.ZERO);
-                    BigDecimal maxEst1Rm = entry.getValue().stream()
-                            .map(SessionSet::getEstimated1Rm)
-                            .max(BigDecimal::compareTo)
-                            .orElse(BigDecimal.ZERO);
-                    return new ExerciseProgressionPoint(entry.getKey(), maxWeight, maxEst1Rm);
-                })
-                .sorted(Comparator.comparing(ExerciseProgressionPoint::date))
-                .toList();
+        return statsQueries.exerciseProgression(athleteId, exerciseId, clock.getZone());
     }
 
     public List<WeeklyVolumePoint> weeklyVolume(UUID athleteId, int weeks) {
-        Instant cutoff = LocalDate.now().minusWeeks(weeks).atStartOfDay(ZoneOffset.UTC).toInstant();
-        return sessionSetRepository.aggregateWeeklyVolume(athleteId, cutoff).stream()
-                .map(row -> new WeeklyVolumePoint(row.getWeekStart(), row.getVolume()))
-                .sorted(Comparator.comparing(WeeklyVolumePoint::weekStart))
-                .toList();
+        LocalDate today = LocalDate.now(clock);
+        LocalDate from = today.minusWeeks(Math.clamp(weeks, 1, MAX_WEEKS));
+        return statsQueries.weeklyVolume(athleteId, clock.getZone(), from, today);
     }
 
     public StreakResponse streak(UUID athleteId) {
-        List<LocalDate> dates = workoutSessionRepository.findByAthleteIdOrderByPerformedAtDesc(athleteId).stream()
-                .map(s -> toLocalDate(s.getPerformedAt()))
-                .distinct()
-                .sorted(Comparator.reverseOrder())
-                .toList();
-
-        if (dates.isEmpty()) {
-            return new StreakResponse(0);
-        }
-
-        LocalDate today = LocalDate.now();
-        LocalDate expected = dates.get(0).equals(today) ? today : today.minusDays(1);
-        if (!dates.get(0).equals(expected)) {
-            return new StreakResponse(0);
-        }
-
+        List<LocalDate> days = statsQueries.recentTrainingDays(athleteId, clock.getZone(), STREAK_LOOKUP_DAYS);
+        LocalDate today = LocalDate.now(clock);
+        // La serie reste en cours tant que la veille est couverte.
+        LocalDate expected = !days.isEmpty() && days.get(0).equals(today) ? today : today.minusDays(1);
         int streak = 0;
-        for (LocalDate date : dates) {
-            if (date.equals(expected)) {
-                streak++;
-                expected = expected.minusDays(1);
-            } else {
+        for (LocalDate day : days) {
+            if (!day.equals(expected)) {
                 break;
             }
+            streak++;
+            expected = expected.minusDays(1);
         }
         return new StreakResponse(streak);
     }
 
     public List<WeeklyAdherencePoint> weeklyAdherence(UUID athleteId, int weeks) {
-        LocalDate cutoff = LocalDate.now().minusWeeks(weeks);
-        List<ScheduledSession> sessions = scheduledSessionRepository
-                .findByAthleteIdAndScheduledDateBetweenOrderByScheduledDate(athleteId, cutoff, LocalDate.now());
-
-        Map<LocalDate, List<ScheduledSession>> byWeek =
-                sessions.stream().collect(Collectors.groupingBy(s -> weekStartOf(s.getScheduledDate())));
-
-        return byWeek.entrySet().stream()
-                .map(e -> new WeeklyAdherencePoint(
-                        e.getKey(),
-                        e.getValue().size(),
-                        (int) e.getValue().stream().filter(s -> s.getStatus() == ScheduledSessionStatus.DONE).count(),
-                        (int) e.getValue().stream()
-                                .filter(s -> s.getStatus() == ScheduledSessionStatus.SKIPPED)
-                                .count()))
-                .sorted(Comparator.comparing(WeeklyAdherencePoint::weekStart))
-                .toList();
+        LocalDate today = LocalDate.now(clock);
+        return statsQueries.weeklyAdherence(athleteId, today.minusWeeks(Math.clamp(weeks, 1, MAX_WEEKS)), today);
     }
 
     public List<MuscleVolumeShare> muscleDistribution(UUID athleteId, int days) {
-        LocalDate cutoff = LocalDate.now().minusDays(days);
-        Map<UUID, LocalDate> dateBySessionId = sessionDatesOf(athleteId);
-        List<UUID> recentSessionIds =
-                dateBySessionId.entrySet().stream().filter(e -> !e.getValue().isBefore(cutoff)).map(Map.Entry::getKey).toList();
-        List<SessionSet> sets = sessionSetRepository.findBySessionIdIn(recentSessionIds);
-
-        Map<UUID, MuscleGroup> muscleGroupsById =
-                muscleGroupRepository.findAll().stream().collect(Collectors.toMap(MuscleGroup::getId, m -> m));
-
-        List<UUID> exerciseIds = sets.stream().map(SessionSet::getExerciseId).distinct().toList();
-        Map<UUID, List<ExerciseMuscle>> musclesByExercise = exerciseMuscleRepository
-                .findByExerciseIdIn(exerciseIds)
-                .stream()
-                .collect(Collectors.groupingBy(ExerciseMuscle::getExerciseId));
-
-        Map<UUID, BigDecimal> volumeByMuscleGroup = new java.util.HashMap<>();
-        for (SessionSet set : sets) {
-            List<ExerciseMuscle> muscles = musclesByExercise.getOrDefault(set.getExerciseId(), List.of());
-            for (ExerciseMuscle muscle : muscles) {
-                if (muscle.getRole() != MuscleRole.PRIMARY) {
-                    continue;
-                }
-                volumeByMuscleGroup.merge(muscle.getMuscleGroupId(), set.volume(), BigDecimal::add);
-            }
-        }
-
-        return volumeByMuscleGroup.entrySet().stream()
-                .map(e -> {
-                    MuscleGroup group = muscleGroupsById.get(e.getKey());
-                    return new MuscleVolumeShare(group.getId(), group.getCode(), group.getName(), e.getValue());
-                })
-                .sorted(Comparator.comparing(MuscleVolumeShare::volume).reversed())
-                .toList();
+        LocalDate today = LocalDate.now(clock);
+        return statsQueries.primaryMuscleVolume(
+                athleteId, clock.getZone(), today.minusDays(Math.clamp(days, 1, MAX_DAYS)), today);
     }
 
+    /** Volume des 30 derniers jours (aujourd'hui inclus) contre les 30 jours precedents. */
     public ProgressionScoreResponse progressionScore(UUID athleteId) {
-        Map<UUID, LocalDate> dateBySessionId = sessionDatesOf(athleteId);
-        List<SessionSet> sets = sessionSetRepository.findBySessionIdIn(List.copyOf(dateBySessionId.keySet()));
-
-        LocalDate today = LocalDate.now();
-        LocalDate thirtyDaysAgo = today.minusDays(30);
-        LocalDate sixtyDaysAgo = today.minusDays(60);
-
-        BigDecimal last30 = sumVolume(sets, dateBySessionId, thirtyDaysAgo, today);
-        BigDecimal previous30 = sumVolume(sets, dateBySessionId, sixtyDaysAgo, thirtyDaysAgo.minusDays(1));
+        LocalDate today = LocalDate.now(clock);
+        LocalDate recentFrom = today.minusDays(SCORE_WINDOW_DAYS);
+        LocalDate previousFrom = recentFrom.minusDays(SCORE_WINDOW_DAYS);
+        VolumeComparison volumes =
+                statsQueries.volumeComparison(athleteId, clock.getZone(), previousFrom, recentFrom, today);
 
         BigDecimal changePercent;
-        if (previous30.compareTo(BigDecimal.ZERO) == 0) {
-            changePercent = last30.compareTo(BigDecimal.ZERO) > 0 ? BigDecimal.valueOf(100) : BigDecimal.ZERO;
+        if (volumes.previous().signum() == 0) {
+            changePercent = volumes.recent().signum() > 0 ? BigDecimal.valueOf(100) : BigDecimal.ZERO;
         } else {
-            changePercent = last30.subtract(previous30)
-                    .divide(previous30, 4, RoundingMode.HALF_UP)
+            changePercent = volumes.recent()
+                    .subtract(volumes.previous())
+                    .divide(volumes.previous(), 4, RoundingMode.HALF_UP)
                     .multiply(BigDecimal.valueOf(100));
         }
-
-        return new ProgressionScoreResponse(last30, previous30, changePercent);
+        return new ProgressionScoreResponse(volumes.recent(), volumes.previous(), changePercent);
     }
 
-    private BigDecimal sumVolume(List<SessionSet> sets, Map<UUID, LocalDate> dateBySessionId, LocalDate from, LocalDate to) {
-        return sets.stream()
-                .filter(s -> {
-                    LocalDate date = dateBySessionId.get(s.getSessionId());
-                    return !date.isBefore(from) && !date.isAfter(to);
-                })
-                .map(SessionSet::volume)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    private static int sum(Collection<DailyActivity> days, LocalDate from, LocalDate to, ToIntFunction<DailyActivity> value) {
+        return days.stream()
+                .filter(d -> !d.date().isBefore(from) && !d.date().isAfter(to))
+                .mapToInt(value)
+                .sum();
     }
 
-    private Map<UUID, LocalDate> sessionDatesOf(UUID athleteId) {
-        return workoutSessionRepository.findByAthleteIdOrderByPerformedAtDesc(athleteId).stream()
-                .collect(Collectors.toMap(WorkoutSession::getId, s -> toLocalDate(s.getPerformedAt())));
-    }
-
-    private LocalDate toLocalDate(Instant instant) {
-        return instant.atZone(ZoneOffset.UTC).toLocalDate();
-    }
-
-    private LocalDate weekStartOf(LocalDate date) {
-        return date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+    private static int trendPercent(int current, int previous) {
+        if (previous == 0) {
+            return current > 0 ? 100 : 0;
+        }
+        return (int) Math.round(((current - previous) / (double) previous) * 100);
     }
 }
