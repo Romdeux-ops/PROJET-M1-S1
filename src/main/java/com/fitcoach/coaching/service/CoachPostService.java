@@ -8,12 +8,12 @@ import com.fitcoach.coaching.exception.InvalidPostImageException;
 import com.fitcoach.coaching.exception.NotCoachClientException;
 import com.fitcoach.coaching.exception.NotPostAuthorException;
 import com.fitcoach.coaching.repository.CoachPostRepository;
-import com.fitcoach.identity.domain.User;
-import com.fitcoach.identity.repository.UserRepository;
+import com.fitcoach.identity.api.UserDirectory;
+import com.fitcoach.identity.api.UserNotFoundException;
+import com.fitcoach.identity.api.UserSummary;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,13 +31,13 @@ public class CoachPostService {
             Pattern.compile("^posts/[0-9a-fA-F-]{36}/[0-9a-fA-F-]{36}\\.(png|jpg|webp)$");
 
     private final CoachPostRepository coachPostRepository;
-    private final UserRepository userRepository;
+    private final UserDirectory userDirectory;
     private final CoachingService coachingService;
 
     public CoachPostService(
-            CoachPostRepository coachPostRepository, UserRepository userRepository, CoachingService coachingService) {
+            CoachPostRepository coachPostRepository, UserDirectory userDirectory, CoachingService coachingService) {
         this.coachPostRepository = coachPostRepository;
-        this.userRepository = userRepository;
+        this.userDirectory = userDirectory;
         this.coachingService = coachingService;
     }
 
@@ -61,7 +61,7 @@ public class CoachPostService {
         if (!viewerId.equals(coachId) && !coachingService.isActiveClient(coachId, viewerId)) {
             throw new NotCoachClientException();
         }
-        User coach = findUser(coachId);
+        UserSummary coach = findUser(coachId);
         return coachPostRepository.findByCoachIdOrderByCreatedAtDesc(coachId).stream()
                 .map(post -> PostResponse.from(post, coach))
                 .toList();
@@ -76,7 +76,7 @@ public class CoachPostService {
         coachPostRepository.delete(post);
     }
 
-    private User findUser(UUID userId) {
-        return userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException(userId.toString()));
+    private UserSummary findUser(UUID userId) {
+        return userDirectory.findById(userId).orElseThrow(UserNotFoundException::new);
     }
 }

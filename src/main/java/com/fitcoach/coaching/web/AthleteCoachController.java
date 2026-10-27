@@ -2,7 +2,7 @@ package com.fitcoach.coaching.web;
 
 import com.fitcoach.common.security.AuthenticatedUsers;
 import com.fitcoach.coaching.service.CoachingService;
-import com.fitcoach.identity.dto.UserResponse;
+import com.fitcoach.identity.api.UserSummary;
 import java.util.List;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,7 +21,7 @@ public class AthleteCoachController {
     }
 
     @GetMapping
-    public List<UserResponse> list(Authentication authentication) {
+    public List<UserSummary> list(Authentication authentication) {
         return coachingService.listCoaches(AuthenticatedUsers.id(authentication));
     }
 }

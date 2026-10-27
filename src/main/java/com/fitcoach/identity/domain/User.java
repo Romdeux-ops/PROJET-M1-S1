@@ -1,6 +1,7 @@
 package com.fitcoach.identity.domain;
 
 import com.fitcoach.common.security.RoleCode;
+import com.fitcoach.identity.api.UserSummary;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -219,5 +220,9 @@ public class User {
 
     public boolean isActive() {
         return "ACTIVE".equals(status);
+    }
+
+    public UserSummary toSummary() {
+        return new UserSummary(id, email, firstName, lastName, roles.stream().sorted().toList(), avatarUrl);
     }
 }

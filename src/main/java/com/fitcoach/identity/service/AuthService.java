@@ -6,7 +6,6 @@ import com.fitcoach.identity.domain.User;
 import com.fitcoach.identity.dto.AuthResponse;
 import com.fitcoach.identity.dto.LoginRequest;
 import com.fitcoach.identity.dto.RegisterRequest;
-import com.fitcoach.identity.dto.UserResponse;
 import com.fitcoach.identity.exception.AccountDisabledException;
 import com.fitcoach.identity.exception.EmailAlreadyUsedException;
 import com.fitcoach.identity.exception.InvalidCredentialsException;
@@ -41,7 +40,7 @@ public class AuthService {
         user.addRole(role);
         userRepository.save(user);
 
-        return new AuthResponse(issueToken(user), UserResponse.from(user));
+        return new AuthResponse(issueToken(user), user.toSummary());
     }
 
     @Transactional(readOnly = true)
@@ -53,7 +52,7 @@ public class AuthService {
         if (!user.isActive()) {
             throw new AccountDisabledException();
         }
-        return new AuthResponse(issueToken(user), UserResponse.from(user));
+        return new AuthResponse(issueToken(user), user.toSummary());
     }
 
     private String issueToken(User user) {

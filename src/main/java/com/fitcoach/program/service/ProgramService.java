@@ -1,8 +1,8 @@
 package com.fitcoach.program.service;
 
-import com.fitcoach.catalog.repository.ExerciseRepository;
-import com.fitcoach.identity.domain.User;
-import com.fitcoach.identity.repository.UserRepository;
+import com.fitcoach.catalog.api.ExerciseCatalog;
+import com.fitcoach.identity.api.UserDirectory;
+import com.fitcoach.identity.api.UserSummary;
 import com.fitcoach.program.domain.Program;
 import com.fitcoach.program.domain.ProgramCategory;
 import com.fitcoach.program.domain.ProgramDay;
@@ -42,22 +42,22 @@ public class ProgramService {
     private final ProgramDayRepository programDayRepository;
     private final ProgramExerciseRepository programExerciseRepository;
     private final ProgramRatingRepository programRatingRepository;
-    private final ExerciseRepository exerciseRepository;
-    private final UserRepository userRepository;
+    private final ExerciseCatalog exerciseCatalog;
+    private final UserDirectory userDirectory;
 
     public ProgramService(
             ProgramRepository programRepository,
             ProgramDayRepository programDayRepository,
             ProgramExerciseRepository programExerciseRepository,
             ProgramRatingRepository programRatingRepository,
-            ExerciseRepository exerciseRepository,
-            UserRepository userRepository) {
+            ExerciseCatalog exerciseCatalog,
+            UserDirectory userDirectory) {
         this.programRepository = programRepository;
         this.programDayRepository = programDayRepository;
         this.programExerciseRepository = programExerciseRepository;
         this.programRatingRepository = programRatingRepository;
-        this.exerciseRepository = exerciseRepository;
-        this.userRepository = userRepository;
+        this.exerciseCatalog = exerciseCatalog;
+        this.userDirectory = userDirectory;
     }
 
     public List<ProgramResponse> search(UUID viewerId, boolean mineOnly, ProgramCategory category, ProgramLevel level) {
@@ -163,7 +163,7 @@ public class ProgramService {
     public ProgramResponse addExercise(UUID programId, UUID dayId, UUID ownerId, ProgramExerciseRequest request) {
         Program program = findOwnedOrThrow(programId, ownerId);
         ProgramDay day = findDayOrThrow(dayId, program.getId());
-        if (!exerciseRepository.existsById(request.exerciseId())) {
+        if (!exerciseCatalog.exists(request.exerciseId())) {
             throw new ProgramExerciseNotFoundException();
         }
         int position = programExerciseRepository.findMaxPositionByProgramDayId(day.getId()).orElse(-1) + 1;
@@ -261,10 +261,8 @@ public class ProgramService {
         }
         List<UUID> programIds = programs.stream().map(Program::getId).toList();
 
-        Map<UUID, User> owners = userRepository
-                .findAllById(programs.stream().map(Program::getOwnerId).distinct().toList())
-                .stream()
-                .collect(Collectors.toMap(User::getId, u -> u));
+        Map<UUID, UserSummary> owners = userDirectory.findAllById(
+                programs.stream().map(Program::getOwnerId).distinct().toList());
 
         Map<UUID, ProgramRatingRepository.ProgramRatingAggregate> ratingAggregates = programRatingRepository
                 .aggregateByProgramIdIn(programIds)
@@ -281,15 +279,13 @@ public class ProgramService {
         Map<UUID, List<ProgramExercise>> exercisesByDay =
                 allExercises.stream().collect(Collectors.groupingBy(ProgramExercise::getProgramDayId));
 
-        Map<UUID, String> exerciseNames = exerciseRepository
-                .findAllById(allExercises.stream().map(ProgramExercise::getExerciseId).distinct().toList())
-                .stream()
-                .collect(Collectors.toMap(e -> e.getId(), e -> e.getName()));
+        Map<UUID, String> exerciseNames = exerciseCatalog.namesOf(
+                allExercises.stream().map(ProgramExercise::getExerciseId).distinct().toList());
 
         List<ProgramResponse> result = new java.util.ArrayList<>(programs.size());
         for (Program program : programs) {
-            User owner = owners.get(program.getOwnerId());
-            String ownerName = owner == null ? "" : owner.getFirstName() + " " + owner.getLastName();
+            UserSummary owner = owners.get(program.getOwnerId());
+            String ownerName = owner == null ? "" : owner.displayName();
 
             ProgramRatingRepository.ProgramRatingAggregate aggregate = ratingAggregates.get(program.getId());
             double average = aggregate == null || aggregate.getAverage() == null ? 0.0 : aggregate.getAverage();

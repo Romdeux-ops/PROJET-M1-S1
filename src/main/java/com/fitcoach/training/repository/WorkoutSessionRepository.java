@@ -11,4 +11,6 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
     List<WorkoutSession> findByAthleteIdOrderByPerformedAtDesc(UUID athleteId);
 
     Page<WorkoutSession> findByAthleteIdOrderByPerformedAtDesc(UUID athleteId, Pageable pageable);
+
+    boolean existsByIdAndAthleteId(UUID id, UUID athleteId);
 }

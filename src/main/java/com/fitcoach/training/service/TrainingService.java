@@ -1,7 +1,6 @@
 package com.fitcoach.training.service;
 
-import com.fitcoach.catalog.domain.Exercise;
-import com.fitcoach.catalog.repository.ExerciseRepository;
+import com.fitcoach.catalog.api.ExerciseCatalog;
 import com.fitcoach.training.domain.PersonalRecord;
 import com.fitcoach.training.domain.PersonalRecordMetric;
 import com.fitcoach.training.domain.SessionSet;
@@ -33,17 +32,17 @@ public class TrainingService {
     private final WorkoutSessionRepository sessionRepository;
     private final SessionSetRepository sessionSetRepository;
     private final PersonalRecordRepository personalRecordRepository;
-    private final ExerciseRepository exerciseRepository;
+    private final ExerciseCatalog exerciseCatalog;
 
     public TrainingService(
             WorkoutSessionRepository sessionRepository,
             SessionSetRepository sessionSetRepository,
             PersonalRecordRepository personalRecordRepository,
-            ExerciseRepository exerciseRepository) {
+            ExerciseCatalog exerciseCatalog) {
         this.sessionRepository = sessionRepository;
         this.sessionSetRepository = sessionSetRepository;
         this.personalRecordRepository = personalRecordRepository;
-        this.exerciseRepository = exerciseRepository;
+        this.exerciseCatalog = exerciseCatalog;
     }
 
     public List<SessionResponse> listSessions(UUID athleteId) {
@@ -85,12 +84,13 @@ public class TrainingService {
     @Transactional
     public SessionResponse addSet(UUID sessionId, UUID athleteId, SessionSetRequest request) {
         WorkoutSession session = findOwnedOrThrow(sessionId, athleteId);
-        Exercise exercise = exerciseRepository.findById(request.exerciseId())
-                .orElseThrow(InvalidSessionExerciseException::new);
+        if (!exerciseCatalog.exists(request.exerciseId())) {
+            throw new InvalidSessionExerciseException();
+        }
 
         int position = sessionSetRepository.findMaxPositionBySessionId(session.getId()).orElse(-1) + 1;
         SessionSet set = new SessionSet(
-                session.getId(), exercise.getId(), position, request.setNumber(), request.reps(), request.weightKg());
+                session.getId(), request.exerciseId(), position, request.setNumber(), request.reps(), request.weightKg());
         set.setRpe(request.rpe());
         set.setRestSeconds(request.restSeconds());
         set = sessionSetRepository.save(set);
@@ -219,10 +219,6 @@ public class TrainingService {
     }
 
     private Map<UUID, String> exerciseNamesFor(Set<UUID> exerciseIds) {
-        if (exerciseIds.isEmpty()) {
-            return Map.of();
-        }
-        return exerciseRepository.findAllById(exerciseIds).stream()
-                .collect(Collectors.toMap(Exercise::getId, Exercise::getName));
+        return exerciseCatalog.namesOf(exerciseIds);
     }
 }

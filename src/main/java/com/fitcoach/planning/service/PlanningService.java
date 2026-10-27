@@ -1,8 +1,8 @@
 package com.fitcoach.planning.service;
 
-import com.fitcoach.coaching.service.CoachingService;
-import com.fitcoach.identity.dto.UserResponse;
-import com.fitcoach.identity.repository.UserRepository;
+import com.fitcoach.coaching.api.CoachRelations;
+import com.fitcoach.identity.api.UserDirectory;
+import com.fitcoach.identity.api.UserSummary;
 import com.fitcoach.planning.domain.ScheduledSession;
 import com.fitcoach.planning.domain.ScheduledSessionStatus;
 import com.fitcoach.planning.dto.CompleteRequest;
@@ -12,10 +12,9 @@ import com.fitcoach.planning.dto.ScheduledSessionResponse;
 import com.fitcoach.planning.exception.InvalidScheduledSessionStatusException;
 import com.fitcoach.planning.exception.NotValidatingCoachException;
 import com.fitcoach.planning.exception.ScheduledSessionNotFoundException;
+import com.fitcoach.planning.exception.UnknownWorkoutSessionException;
 import com.fitcoach.planning.repository.ScheduledSessionRepository;
-import com.fitcoach.training.domain.WorkoutSession;
-import com.fitcoach.training.exception.SessionNotFoundException;
-import com.fitcoach.training.repository.WorkoutSessionRepository;
+import com.fitcoach.training.api.WorkoutSessions;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -26,19 +25,19 @@ import org.springframework.transaction.annotation.Transactional;
 public class PlanningService {
 
     private final ScheduledSessionRepository scheduledSessionRepository;
-    private final CoachingService coachingService;
-    private final UserRepository userRepository;
-    private final WorkoutSessionRepository workoutSessionRepository;
+    private final CoachRelations coachRelations;
+    private final UserDirectory userDirectory;
+    private final WorkoutSessions workoutSessions;
 
     public PlanningService(
             ScheduledSessionRepository scheduledSessionRepository,
-            CoachingService coachingService,
-            UserRepository userRepository,
-            WorkoutSessionRepository workoutSessionRepository) {
+            CoachRelations coachRelations,
+            UserDirectory userDirectory,
+            WorkoutSessions workoutSessions) {
         this.scheduledSessionRepository = scheduledSessionRepository;
-        this.coachingService = coachingService;
-        this.userRepository = userRepository;
-        this.workoutSessionRepository = workoutSessionRepository;
+        this.coachRelations = coachRelations;
+        this.userDirectory = userDirectory;
+        this.workoutSessions = workoutSessions;
     }
 
     public List<ScheduledSessionResponse> listBetween(UUID athleteId, LocalDate from, LocalDate to) {
@@ -90,23 +89,17 @@ public class PlanningService {
             throw new InvalidScheduledSessionStatusException(
                     "Seule une seance PLANIFIEE peut etre marquee comme terminee.");
         }
-        if (request.workoutSessionId() != null) {
-            WorkoutSession workoutSession = workoutSessionRepository
-                    .findById(request.workoutSessionId())
-                    .orElseThrow(SessionNotFoundException::new);
-            if (!workoutSession.getAthleteId().equals(athleteId)) {
-                throw new SessionNotFoundException();
-            }
+        if (request.workoutSessionId() != null && !workoutSessions.isOwnedBy(request.workoutSessionId(), athleteId)) {
+            throw new UnknownWorkoutSessionException();
         }
         session.setWorkoutSessionId(request.workoutSessionId());
-        boolean hasActiveCoach = !coachingService.listCoaches(athleteId).isEmpty();
+        boolean hasActiveCoach = coachRelations.hasActiveCoach(athleteId);
         session.setStatus(hasActiveCoach ? ScheduledSessionStatus.PENDING_VALIDATION : ScheduledSessionStatus.DONE);
         return ScheduledSessionResponse.from(session);
     }
 
     public List<ScheduledSessionResponse> listPendingValidations(UUID coachId) {
-        List<UUID> athleteIds =
-                coachingService.listAthletes(coachId).stream().map(UserResponse::id).toList();
+        List<UUID> athleteIds = coachRelations.activeAthleteIds(coachId);
         if (athleteIds.isEmpty()) {
             return List.of();
         }
@@ -122,7 +115,7 @@ public class PlanningService {
         ScheduledSession session = scheduledSessionRepository
                 .findById(scheduledSessionId)
                 .orElseThrow(ScheduledSessionNotFoundException::new);
-        if (!coachingService.isActiveClient(coachId, session.getAthleteId())) {
+        if (!coachRelations.isActiveClient(coachId, session.getAthleteId())) {
             throw new NotValidatingCoachException();
         }
         if (session.getStatus() != ScheduledSessionStatus.PENDING_VALIDATION) {
@@ -139,10 +132,7 @@ public class PlanningService {
     }
 
     private String athleteNameOf(UUID athleteId) {
-        return userRepository
-                .findById(athleteId)
-                .map(user -> user.getFirstName() + " " + user.getLastName())
-                .orElse("");
+        return userDirectory.findById(athleteId).map(UserSummary::displayName).orElse("");
     }
 
     private ScheduledSession findOwnedOrThrow(UUID scheduledSessionId, UUID athleteId) {
