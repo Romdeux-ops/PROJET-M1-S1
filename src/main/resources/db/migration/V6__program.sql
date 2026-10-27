@@ -27,7 +27,8 @@ CREATE TABLE program_days (
     is_rest_day     boolean NOT NULL DEFAULT false,
     created_at      timestamptz NOT NULL DEFAULT now(),
     updated_at      timestamptz NOT NULL DEFAULT now(),
-    UNIQUE (program_id, position)
+    -- Differee pour permettre un reordonnancement en une transaction.
+    UNIQUE (program_id, position) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TRIGGER program_days_set_updated_at
@@ -46,7 +47,8 @@ CREATE TABLE program_exercises (
     notes           text CHECK (notes IS NULL OR char_length(notes) <= 1000),
     created_at      timestamptz NOT NULL DEFAULT now(),
     updated_at      timestamptz NOT NULL DEFAULT now(),
-    UNIQUE (program_day_id, position)
+    -- Differee pour permettre un reordonnancement en une transaction.
+    UNIQUE (program_day_id, position) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TRIGGER program_exercises_set_updated_at

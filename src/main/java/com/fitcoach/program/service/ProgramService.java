@@ -1,6 +1,7 @@
 package com.fitcoach.program.service;
 
 import com.fitcoach.catalog.api.ExerciseCatalog;
+import com.fitcoach.common.domain.Positions;
 import com.fitcoach.identity.api.UserDirectory;
 import com.fitcoach.identity.api.UserSummary;
 import com.fitcoach.program.domain.Program;
@@ -10,7 +11,6 @@ import com.fitcoach.program.domain.ProgramExercise;
 import com.fitcoach.program.domain.ProgramLevel;
 import com.fitcoach.program.domain.ProgramRating;
 import com.fitcoach.program.domain.ProgramVisibility;
-import com.fitcoach.program.dto.PositionUpdate;
 import com.fitcoach.program.dto.ProgramDayRequest;
 import com.fitcoach.program.dto.ProgramDayResponse;
 import com.fitcoach.program.dto.ProgramExerciseRequest;
@@ -18,6 +18,7 @@ import com.fitcoach.program.dto.ProgramExerciseResponse;
 import com.fitcoach.program.dto.ProgramRequest;
 import com.fitcoach.program.dto.ProgramResponse;
 import com.fitcoach.program.dto.RatingRequest;
+import com.fitcoach.program.dto.ReorderRequest;
 import com.fitcoach.program.exception.CannotRateOwnProgramException;
 import com.fitcoach.program.exception.NotProgramOwnerException;
 import com.fitcoach.program.exception.ProgramDayNotFoundException;
@@ -28,10 +29,14 @@ import com.fitcoach.program.repository.ProgramDayRepository;
 import com.fitcoach.program.repository.ProgramExerciseRepository;
 import com.fitcoach.program.repository.ProgramRatingRepository;
 import com.fitcoach.program.repository.ProgramRepository;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,21 +65,11 @@ public class ProgramService {
         this.userDirectory = userDirectory;
     }
 
-    public List<ProgramResponse> search(UUID viewerId, boolean mineOnly, ProgramCategory category, ProgramLevel level) {
-        List<Program> programs = programRepository.search(viewerId, mineOnly, category, level);
-        return toResponseList(programs, viewerId);
-    }
-
-    public org.springframework.data.domain.Page<ProgramResponse> search(
-            UUID viewerId,
-            boolean mineOnly,
-            ProgramCategory category,
-            ProgramLevel level,
-            org.springframework.data.domain.Pageable pageable) {
-        org.springframework.data.domain.Page<Program> page =
-                programRepository.search(viewerId, mineOnly, category, level, pageable);
+    public Page<ProgramResponse> search(
+            UUID viewerId, boolean mineOnly, ProgramCategory category, ProgramLevel level, Pageable pageable) {
+        Page<Program> page = programRepository.search(viewerId, mineOnly, category, level, pageable);
         List<ProgramResponse> content = toResponseList(page.getContent(), viewerId);
-        return new org.springframework.data.domain.PageImpl<>(content, pageable, page.getTotalElements());
+        return new PageImpl<>(content, pageable, page.getTotalElements());
     }
 
     public ProgramResponse get(UUID programId, UUID viewerId) {
@@ -146,16 +141,14 @@ public class ProgramService {
         Program program = findOwnedOrThrow(programId, ownerId);
         ProgramDay day = findDayOrThrow(dayId, program.getId());
         programDayRepository.delete(day);
+        Positions.compact(programDayRepository.findByProgramIdOrderByPosition(program.getId()));
         return toResponse(program, ownerId);
     }
 
     @Transactional
-    public ProgramResponse reorderDays(UUID programId, UUID ownerId, List<PositionUpdate> updates) {
+    public ProgramResponse reorderDays(UUID programId, UUID ownerId, ReorderRequest request) {
         Program program = findOwnedOrThrow(programId, ownerId);
-        for (PositionUpdate update : updates) {
-            ProgramDay day = findDayOrThrow(update.id(), program.getId());
-            day.setPosition(update.position());
-        }
+        Positions.applyOrder(programDayRepository.findByProgramIdOrderByPosition(program.getId()), request.orderedIds());
         return toResponse(program, ownerId);
     }
 
@@ -184,20 +177,15 @@ public class ProgramService {
                 .filter(e -> e.getProgramDayId().equals(day.getId()))
                 .orElseThrow(ProgramExerciseNotFoundException::new);
         programExerciseRepository.delete(exercise);
+        Positions.compact(programExerciseRepository.findByProgramDayIdOrderByPosition(day.getId()));
         return toResponse(program, ownerId);
     }
 
     @Transactional
-    public ProgramResponse reorderExercises(UUID programId, UUID dayId, UUID ownerId, List<PositionUpdate> updates) {
+    public ProgramResponse reorderExercises(UUID programId, UUID dayId, UUID ownerId, ReorderRequest request) {
         Program program = findOwnedOrThrow(programId, ownerId);
         ProgramDay day = findDayOrThrow(dayId, program.getId());
-        for (PositionUpdate update : updates) {
-            ProgramExercise exercise = programExerciseRepository
-                    .findById(update.id())
-                    .filter(e -> e.getProgramDayId().equals(day.getId()))
-                    .orElseThrow(ProgramExerciseNotFoundException::new);
-            exercise.setPosition(update.position());
-        }
+        Positions.applyOrder(programExerciseRepository.findByProgramDayIdOrderByPosition(day.getId()), request.orderedIds());
         return toResponse(program, ownerId);
     }
 
@@ -282,7 +270,7 @@ public class ProgramService {
         Map<UUID, String> exerciseNames = exerciseCatalog.namesOf(
                 allExercises.stream().map(ProgramExercise::getExerciseId).distinct().toList());
 
-        List<ProgramResponse> result = new java.util.ArrayList<>(programs.size());
+        List<ProgramResponse> result = new ArrayList<>(programs.size());
         for (Program program : programs) {
             UserSummary owner = owners.get(program.getOwnerId());
             String ownerName = owner == null ? "" : owner.displayName();

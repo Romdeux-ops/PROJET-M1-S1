@@ -1,5 +1,6 @@
 package com.fitcoach.program.domain;
 
+import com.fitcoach.common.domain.Positioned;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,7 +11,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "program_days")
-public class ProgramDay {
+public class ProgramDay implements Positioned {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -39,6 +40,7 @@ public class ProgramDay {
         this.restDay = restDay;
     }
 
+    @Override
     public UUID getId() {
         return id;
     }
@@ -51,6 +53,7 @@ public class ProgramDay {
         return position;
     }
 
+    @Override
     public void setPosition(int position) {
         this.position = position;
     }

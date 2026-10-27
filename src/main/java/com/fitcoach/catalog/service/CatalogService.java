@@ -28,6 +28,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,23 +67,11 @@ public class CatalogService {
         return tagRepository.findAll().stream().map(TagResponse::from).toList();
     }
 
-    public List<ExerciseResponse> search(String query, UUID muscleGroupId, UUID tagId, ExerciseDifficulty difficulty) {
+    public Page<ExerciseResponse> search(
+            String query, UUID muscleGroupId, UUID tagId, ExerciseDifficulty difficulty, Pageable pageable) {
         String normalizedQuery = (query == null || query.isBlank()) ? "" : query.trim();
-        List<Exercise> exercises = exerciseRepository.search(normalizedQuery, muscleGroupId, tagId, difficulty);
-        return toResponseList(exercises);
-    }
-
-    public org.springframework.data.domain.Page<ExerciseResponse> search(
-            String query,
-            UUID muscleGroupId,
-            UUID tagId,
-            ExerciseDifficulty difficulty,
-            org.springframework.data.domain.Pageable pageable) {
-        String normalizedQuery = (query == null || query.isBlank()) ? "" : query.trim();
-        org.springframework.data.domain.Page<Exercise> page =
-                exerciseRepository.search(normalizedQuery, muscleGroupId, tagId, difficulty, pageable);
-        List<ExerciseResponse> content = toResponseList(page.getContent());
-        return new org.springframework.data.domain.PageImpl<>(content, pageable, page.getTotalElements());
+        Page<Exercise> page = exerciseRepository.search(normalizedQuery, muscleGroupId, tagId, difficulty, pageable);
+        return new PageImpl<>(toResponseList(page.getContent()), pageable, page.getTotalElements());
     }
 
     public ExerciseResponse get(UUID exerciseId) {
