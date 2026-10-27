@@ -62,3 +62,12 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+// Aucun profil par defaut dans application.yml (un deploiement qui oublie
+// SPRING_PROFILES_ACTIVE ne doit pas tourner en dev) ; seul bootRun, reserve au
+// poste local, bascule en dev quand rien n'est precise.
+tasks.named('bootRun') {
+    if (!System.getenv('SPRING_PROFILES_ACTIVE')) {
+        systemProperty 'spring.profiles.active', 'dev'
+    }
+}

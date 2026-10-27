@@ -15,6 +15,7 @@ import com.fitcoach.planning.exception.ScheduledSessionNotFoundException;
 import com.fitcoach.planning.exception.UnknownWorkoutSessionException;
 import com.fitcoach.planning.repository.ScheduledSessionRepository;
 import com.fitcoach.training.api.WorkoutSessions;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -28,16 +29,19 @@ public class PlanningService {
     private final CoachRelations coachRelations;
     private final UserDirectory userDirectory;
     private final WorkoutSessions workoutSessions;
+    private final Clock clock;
 
     public PlanningService(
             ScheduledSessionRepository scheduledSessionRepository,
             CoachRelations coachRelations,
             UserDirectory userDirectory,
-            WorkoutSessions workoutSessions) {
+            WorkoutSessions workoutSessions,
+            Clock clock) {
         this.scheduledSessionRepository = scheduledSessionRepository;
         this.coachRelations = coachRelations;
         this.userDirectory = userDirectory;
         this.workoutSessions = workoutSessions;
+        this.clock = clock;
     }
 
     public List<ScheduledSessionResponse> listBetween(UUID athleteId, LocalDate from, LocalDate to) {
@@ -50,7 +54,7 @@ public class PlanningService {
 
     public List<ScheduledSessionResponse> listToday(UUID athleteId) {
         return scheduledSessionRepository
-                .findByAthleteIdAndScheduledDateOrderByCreatedAt(athleteId, LocalDate.now())
+                .findByAthleteIdAndScheduledDateOrderByCreatedAt(athleteId, LocalDate.now(clock))
                 .stream()
                 .map(ScheduledSessionResponse::from)
                 .toList();
