@@ -9,6 +9,11 @@ spring:
     # Autorise ./gradlew flywayClean en local pour repartir d'une base vierge.
     clean-disabled: false
 
+app:
+  jwt:
+    # Valeur de repli uniquement active en profil dev ; JWT_SECRET reste prioritaire.
+    secret: ${JWT_SECRET:dev-only-secret-key-please-rotate-32bytes-min}
+
 logging:
   level:
     com.fitcoach: DEBUG

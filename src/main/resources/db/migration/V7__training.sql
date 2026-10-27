@@ -41,7 +41,7 @@ CREATE TABLE personal_records (
     exercise_id     uuid NOT NULL REFERENCES exercises (id) ON DELETE CASCADE,
     metric          text NOT NULL CHECK (metric IN ('MAX_WEIGHT', 'ESTIMATED_1RM')),
     value           numeric(7, 2) NOT NULL,
-    session_set_id  uuid NOT NULL REFERENCES session_sets (id) ON DELETE CASCADE,
+    session_set_id  uuid REFERENCES session_sets (id) ON DELETE SET NULL,
     achieved_at     timestamptz NOT NULL,
     PRIMARY KEY (athlete_id, exercise_id, metric)
 );

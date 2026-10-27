@@ -9,5 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ExerciseTagRepository extends JpaRepository<ExerciseTag, ExerciseTagId> {
     List<ExerciseTag> findByExerciseId(UUID exerciseId);
 
+    List<ExerciseTag> findByExerciseIdIn(List<UUID> exerciseIds);
+
     void deleteByExerciseId(UUID exerciseId);
 }

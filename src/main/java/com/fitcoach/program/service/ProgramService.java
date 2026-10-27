@@ -61,9 +61,20 @@ public class ProgramService {
     }
 
     public List<ProgramResponse> search(UUID viewerId, boolean mineOnly, ProgramCategory category, ProgramLevel level) {
-        return programRepository.search(viewerId, mineOnly, category, level).stream()
-                .map(p -> toResponse(p, viewerId))
-                .toList();
+        List<Program> programs = programRepository.search(viewerId, mineOnly, category, level);
+        return toResponseList(programs, viewerId);
+    }
+
+    public org.springframework.data.domain.Page<ProgramResponse> search(
+            UUID viewerId,
+            boolean mineOnly,
+            ProgramCategory category,
+            ProgramLevel level,
+            org.springframework.data.domain.Pageable pageable) {
+        org.springframework.data.domain.Page<Program> page =
+                programRepository.search(viewerId, mineOnly, category, level, pageable);
+        List<ProgramResponse> content = toResponseList(page.getContent(), viewerId);
+        return new org.springframework.data.domain.PageImpl<>(content, pageable, page.getTotalElements());
     }
 
     public ProgramResponse get(UUID programId, UUID viewerId) {
@@ -71,9 +82,9 @@ public class ProgramService {
         return toResponse(program, viewerId);
     }
 
-    public ProgramResponse getByShareToken(String shareToken) {
+    public ProgramResponse getByShareToken(String shareToken, UUID viewerId) {
         Program program = programRepository.findByShareToken(shareToken).orElseThrow(ProgramNotFoundException::new);
-        return toResponse(program, program.getOwnerId());
+        return toResponse(program, viewerId);
     }
 
     @Transactional
@@ -125,7 +136,7 @@ public class ProgramService {
     @Transactional
     public ProgramResponse addDay(UUID programId, UUID ownerId, ProgramDayRequest request) {
         Program program = findOwnedOrThrow(programId, ownerId);
-        int position = programDayRepository.countByProgramId(program.getId());
+        int position = programDayRepository.findMaxPositionByProgramId(program.getId()).orElse(-1) + 1;
         programDayRepository.save(new ProgramDay(program.getId(), position, request.name(), request.restDay()));
         return toResponse(program, ownerId);
     }
@@ -155,7 +166,7 @@ public class ProgramService {
         if (!exerciseRepository.existsById(request.exerciseId())) {
             throw new ProgramExerciseNotFoundException();
         }
-        int position = programExerciseRepository.countByProgramDayId(day.getId());
+        int position = programExerciseRepository.findMaxPositionByProgramDayId(day.getId()).orElse(-1) + 1;
         ProgramExercise exercise = new ProgramExercise(
                 day.getId(), request.exerciseId(), position, request.sets(), request.reps());
         exercise.setRestSeconds(request.restSeconds());
@@ -240,34 +251,66 @@ public class ProgramService {
     }
 
     private ProgramResponse toResponse(Program program, UUID viewerId) {
-        User owner = userRepository.findById(program.getOwnerId()).orElse(null);
-        String ownerName = owner == null ? "" : owner.getFirstName() + " " + owner.getLastName();
+        return toResponseList(List.of(program), viewerId).get(0);
+    }
 
-        List<ProgramRating> ratings = programRatingRepository.findByProgramId(program.getId());
-        double average = ratings.isEmpty()
-                ? 0.0
-                : ratings.stream().mapToInt(ProgramRating::getStars).average().orElse(0.0);
+    /** Batch-loads days/exercises/owners/ratings for the whole list in O(1) queries instead of O(n). */
+    private List<ProgramResponse> toResponseList(List<Program> programs, UUID viewerId) {
+        if (programs.isEmpty()) {
+            return List.of();
+        }
+        List<UUID> programIds = programs.stream().map(Program::getId).toList();
 
-        Map<UUID, String> exerciseNames = exerciseRepository.findAllById(
-                        programDayRepository.findByProgramIdOrderByPosition(program.getId()).stream()
-                                .flatMap(d -> programExerciseRepository.findByProgramDayIdOrderByPosition(d.getId()).stream())
-                                .map(ProgramExercise::getExerciseId)
-                                .distinct()
-                                .toList())
+        Map<UUID, User> owners = userRepository
+                .findAllById(programs.stream().map(Program::getOwnerId).distinct().toList())
+                .stream()
+                .collect(Collectors.toMap(User::getId, u -> u));
+
+        Map<UUID, ProgramRatingRepository.ProgramRatingAggregate> ratingAggregates = programRatingRepository
+                .aggregateByProgramIdIn(programIds)
+                .stream()
+                .collect(Collectors.toMap(ProgramRatingRepository.ProgramRatingAggregate::getProgramId, a -> a));
+
+        List<ProgramDay> allDays = programDayRepository.findByProgramIdInOrderByPosition(programIds);
+        Map<UUID, List<ProgramDay>> daysByProgram = allDays.stream().collect(Collectors.groupingBy(ProgramDay::getProgramId));
+
+        List<UUID> dayIds = allDays.stream().map(ProgramDay::getId).toList();
+        List<ProgramExercise> allExercises = dayIds.isEmpty()
+                ? List.of()
+                : programExerciseRepository.findByProgramDayIdInOrderByPosition(dayIds);
+        Map<UUID, List<ProgramExercise>> exercisesByDay =
+                allExercises.stream().collect(Collectors.groupingBy(ProgramExercise::getProgramDayId));
+
+        Map<UUID, String> exerciseNames = exerciseRepository
+                .findAllById(allExercises.stream().map(ProgramExercise::getExerciseId).distinct().toList())
                 .stream()
                 .collect(Collectors.toMap(e -> e.getId(), e -> e.getName()));
 
-        List<ProgramDayResponse> days = programDayRepository.findByProgramIdOrderByPosition(program.getId()).stream()
-                .map(day -> {
-                    List<ProgramExerciseResponse> exercises =
-                            programExerciseRepository.findByProgramDayIdOrderByPosition(day.getId()).stream()
-                                    .map(e -> ProgramExerciseResponse.from(
-                                            e, exerciseNames.getOrDefault(e.getExerciseId(), "")))
-                                    .toList();
-                    return ProgramDayResponse.from(day, exercises);
-                })
-                .toList();
+        List<ProgramResponse> result = new java.util.ArrayList<>(programs.size());
+        for (Program program : programs) {
+            User owner = owners.get(program.getOwnerId());
+            String ownerName = owner == null ? "" : owner.getFirstName() + " " + owner.getLastName();
 
-        return ProgramResponse.from(program, ownerName, average, ratings.size(), program.isOwnedBy(viewerId), days);
+            ProgramRatingRepository.ProgramRatingAggregate aggregate = ratingAggregates.get(program.getId());
+            double average = aggregate == null || aggregate.getAverage() == null ? 0.0 : aggregate.getAverage();
+            int ratingCount = aggregate == null ? 0 : aggregate.getTotal().intValue();
+
+            List<ProgramDayResponse> days = daysByProgram
+                    .getOrDefault(program.getId(), List.of())
+                    .stream()
+                    .map(day -> {
+                        List<ProgramExerciseResponse> exercises = exercisesByDay
+                                .getOrDefault(day.getId(), List.of())
+                                .stream()
+                                .map(e -> ProgramExerciseResponse.from(
+                                        e, exerciseNames.getOrDefault(e.getExerciseId(), "")))
+                                .toList();
+                        return ProgramDayResponse.from(day, exercises);
+                    })
+                    .toList();
+
+            result.add(ProgramResponse.from(program, ownerName, average, ratingCount, program.isOwnedBy(viewerId), days));
+        }
+        return result;
     }
 }

@@ -53,7 +53,7 @@ src/
 ├── features/
 │   ├── navigation.ts registre unique du menu (sidebar, mobile, recherche Ctrl+K)
 │   ├── identity/     connexion, inscription, profil
-│   ├── training/     FEATURE DE REFERENCE, a copier
+│   ├── training/     FEATURE DE REFERENCE, a copier (voir note ci-dessous)
 │   ├── dashboard/    tableau de bord (agrege stats et training)
 │   └── program/ planning/ stats/ coaching/ booking/ messaging/
 │       ai/ gamification/ nutrition/ catalog/ admin/
@@ -84,6 +84,13 @@ features/training/
 
 **Regle d'import** : une feature n'importe une autre feature que via son
 `index.ts` (`@/features/training`), jamais un fichier interne.
+
+> **Note** : `training` a d'abord ete maquette avec un type de seance
+> (`STRENGTH`/`CARDIO`/`HIIT`/`MOBILITY`), un `perceivedEffort` et un
+> `exerciseCount`. Ces champs ont ete retires lors du branchement sur le vrai
+> backend (phase 5) au profit du contrat reel : une seance a des `sets`
+> individuels (exercice, charge, repetitions, RPE) et un `totalVolume` calcule,
+> sans notion de type global.
 
 ## Ajouter une fonctionnalite en 5 etapes
 
@@ -135,20 +142,76 @@ Quand un endpoint est livre cote Spring :
 L'authentification est centralisee : le JWT est ajoute a chaque requete, et un
 401 deconnecte l'utilisateur et le renvoie vers `/login`.
 
-Contrats attendus par le front a ce jour (a implementer cote backend) :
+Contrats consommes par le front a ce jour :
 
-| Methode | URL                            | Reponse                                                       |
-| ------- | ------------------------------ | ------------------------------------------------------------- |
-| POST    | `/api/auth/login`              | `{ accessToken, user }`                                       |
-| POST    | `/api/auth/register`           | `{ accessToken, user }`                                       |
-| GET     | `/api/users/me`                | `user` (`id, email, firstName, lastName, roles[], avatarUrl`) |
-| GET     | `/api/training/sessions?type=` | `TrainingSession[]`                                           |
-| POST    | `/api/training/sessions`       | `TrainingSession` (201)                                       |
-| DELETE  | `/api/training/sessions/{id}`  | 204                                                           |
-| GET     | `/api/stats/overview`          | `StatsOverview`                                               |
+| Methode | URL                                               | Reponse                                                       |
+| ------- | -------------------------------------------------- | ------------------------------------------------------------- |
+| POST    | `/api/auth/login`                                  | `{ accessToken, user }`                                       |
+| POST    | `/api/auth/register`                               | `{ accessToken, user }`                                       |
+| GET     | `/api/users/me`                                    | `user` (`id, email, firstName, lastName, roles[], avatarUrl`) |
+| GET     | `/api/users/me/profile`                            | `ProfileResponse`                                              |
+| PATCH   | `/api/users/me/profile`                            | `ProfileResponse`                                              |
+| POST    | `/api/users/me/profile/avatar`                     | `{ avatarUrl }`                                                |
+| GET     | `/api/catalog/muscle-groups`                       | `MuscleGroup[]`                                                |
+| GET     | `/api/catalog/tags`                                | `Tag[]`                                                        |
+| GET     | `/api/catalog/exercises`                           | `Exercise[]` (filtres en query string)                         |
+| GET     | `/api/catalog/exercises/{id}`                      | `Exercise`                                                     |
+| POST    | `/api/catalog/exercises`                           | `Exercise` (201, role COACH/ADMIN)                              |
+| PUT     | `/api/catalog/exercises/{id}`                      | `Exercise` (role COACH/ADMIN)                                   |
+| DELETE  | `/api/catalog/exercises/{id}`                      | 204 (role COACH/ADMIN)                                          |
+| GET     | `/api/programs`                                    | `Program[]` (filtres en query string)                          |
+| GET     | `/api/programs/{id}`                               | `Program`                                                       |
+| GET     | `/api/programs/shared/{token}`                     | `Program` (public, sans auth)                                   |
+| POST    | `/api/programs`                                    | `Program` (201)                                                 |
+| PUT     | `/api/programs/{id}`                               | `Program` (proprietaire)                                        |
+| DELETE  | `/api/programs/{id}`                               | 204 (proprietaire)                                              |
+| POST    | `/api/programs/{id}/duplicate`                     | `Program` (201)                                                 |
+| POST    | `/api/programs/{id}/days`                          | `Program` (proprietaire)                                        |
+| DELETE  | `/api/programs/{id}/days/{dayId}`                  | `Program` (proprietaire)                                        |
+| PATCH   | `/api/programs/{id}/days/positions`                | `Program` (proprietaire)                                        |
+| POST    | `/api/programs/{id}/days/{dayId}/exercises`        | `Program` (proprietaire)                                        |
+| DELETE  | `/api/programs/{id}/days/{dayId}/exercises/{eid}`  | `Program` (proprietaire)                                        |
+| POST    | `/api/programs/{id}/ratings`                       | `Program` (non-proprietaire, programme public)                  |
+| GET     | `/api/training/sessions`                           | `TrainingSession[]`                                             |
+| GET     | `/api/training/sessions/{id}`                      | `TrainingSession`                                               |
+| POST    | `/api/training/sessions`                           | `TrainingSession` (201)                                         |
+| DELETE  | `/api/training/sessions/{id}`                      | 204                                                             |
+| POST    | `/api/training/sessions/{id}/sets`                 | `TrainingSession`                                               |
+| DELETE  | `/api/training/sessions/{id}/sets/{setId}`         | `TrainingSession`                                               |
+| GET     | `/api/training/personal-records`                   | `PersonalRecord[]`                                              |
+| GET     | `/api/planning/scheduled?from=&to=`                | `ScheduledSession[]`                                            |
+| GET     | `/api/planning/scheduled/today`                    | `ScheduledSession[]`                                            |
+| POST    | `/api/planning/scheduled`                          | `ScheduledSession` (201)                                        |
+| PATCH   | `/api/planning/scheduled/{id}/reschedule`          | `ScheduledSession`                                               |
+| PATCH   | `/api/planning/scheduled/{id}/skip`                | `ScheduledSession`                                               |
+| PATCH   | `/api/planning/scheduled/{id}/complete`            | `ScheduledSession` (verifie le proprietaire du `workoutSessionId`) |
+| PATCH   | `/api/planning/scheduled/{id}/validate`            | `ScheduledSession` (coach actif de l'athlete)                    |
+| GET     | `/api/planning/pending-validations`                | `ScheduledSession[]` (coach)                                     |
+| DELETE  | `/api/planning/scheduled/{id}`                     | 204                                                              |
+| GET     | `/api/stats/overview`                              | `StatsOverview`                                                  |
+| GET     | `/api/stats/exercises/{exerciseId}/progression`    | `ExerciseProgressionPoint[]`                                     |
+| GET     | `/api/stats/volume/weekly?weeks=`                  | `WeeklyVolumePoint[]`                                            |
+| GET     | `/api/stats/streak`                                | `{ currentStreakDays }`                                          |
+| GET     | `/api/stats/adherence/weekly?weeks=`               | `WeeklyAdherencePoint[]`                                         |
+| GET     | `/api/stats/muscle-distribution?days=`             | `MuscleVolumeShare[]`                                            |
+| GET     | `/api/stats/progression-score`                     | `ProgressionScore`                                               |
+| POST    | `/api/coaching/athletes`                           | `SessionUser` (201)                                              |
+| GET     | `/api/coaching/athletes`                           | `SessionUser[]` (role COACH)                                     |
+| GET     | `/api/coaching/coaches`                            | `SessionUser[]` (role ATHLETE)                                   |
+| POST    | `/api/coaching/posts`                              | `CoachPost` (201, role COACH)                                    |
+| POST    | `/api/coaching/posts/images`                       | `{ imageUrl }` (role COACH)                                      |
+| GET     | `/api/coaching/posts/{coachId}`                    | `CoachPost[]` (le coach ou ses clients actifs)                   |
+| DELETE  | `/api/coaching/posts/{postId}`                     | 204 (auteur uniquement)                                          |
 
 Les erreurs sont attendues au format `ProblemDetail` de Spring : `detail` est
 affiche tel quel a l'utilisateur.
+
+Les features `catalog`, `program`, `planning` et `stats` consomment le client
+type `api` (genere par `npm run gen:api` depuis `/v3/api-docs`) plutot que le
+client `http` generique. Le schema OpenAPI de springdoc ne declare pas les
+champs `required` : les reponses sont donc recastees vers le contrat strict de
+chaque `schemas.ts` au niveau de la fonction d'appel API, pour eviter de
+propager des `| undefined` partout dans les composants.
 
 ## Conventions
 

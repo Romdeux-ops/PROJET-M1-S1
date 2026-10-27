@@ -1,10 +1,22 @@
 import { http, HttpResponse } from 'msw'
 
 import type { AuthResponse } from '@/features/identity'
+import type { ProfileResponse, UpdateProfileInput } from '@/features/identity/schemas'
 import type { Role } from '@/lib/auth/session'
 
-import { db, tokenFor, toSessionUser, userFromRequest } from '../db'
+import { db, defaultProfile, tokenFor, toSessionUser, userFromRequest } from '../db'
 import { networkDelay, problem } from '../utils'
+
+function toProfileResponse(user: (typeof db.users)[number]): ProfileResponse {
+  return {
+    id: user.id,
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    roles: user.roles,
+    ...user.profile,
+  }
+}
 
 interface RegisterBody {
   firstName: string
@@ -40,6 +52,7 @@ export const identityHandlers = [
       lastName: body.lastName,
       roles: [body.role],
       password: body.password,
+      profile: defaultProfile(),
     }
     db.users.push(user)
     return HttpResponse.json<AuthResponse>(
@@ -53,5 +66,39 @@ export const identityHandlers = [
     const user = userFromRequest(request)
     if (!user) return problem(401, 'Session invalide.')
     return HttpResponse.json(toSessionUser(user))
+  }),
+
+  http.get('*/api/users/me/profile', async ({ request }) => {
+    await networkDelay()
+    const user = userFromRequest(request)
+    if (!user) return problem(401, 'Session invalide.')
+    return HttpResponse.json(toProfileResponse(user))
+  }),
+
+  http.patch<never, UpdateProfileInput>('*/api/users/me/profile', async ({ request }) => {
+    await networkDelay()
+    const user = userFromRequest(request)
+    if (!user) return problem(401, 'Session invalide.')
+    const body = await request.json()
+    user.firstName = body.firstName
+    user.lastName = body.lastName
+    user.profile = {
+      ...user.profile,
+      bio: body.bio || null,
+      fitnessGoal: body.fitnessGoal,
+      experienceLevel: body.experienceLevel,
+      unitSystem: body.unitSystem,
+      locale: body.locale,
+      notificationsEnabled: body.notificationsEnabled,
+    }
+    return HttpResponse.json(toProfileResponse(user))
+  }),
+
+  http.post('*/api/users/me/profile/avatar', async ({ request }) => {
+    await networkDelay()
+    const user = userFromRequest(request)
+    if (!user) return problem(401, 'Session invalide.')
+    user.profile = { ...user.profile, avatarUrl: '/uploads/avatars/mock-avatar.jpg' }
+    return HttpResponse.json({ avatarUrl: user.profile.avatarUrl }, { status: 201 })
   }),
 ]

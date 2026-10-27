@@ -31,7 +31,7 @@ public class PersonalRecord {
     @Column(nullable = false)
     private BigDecimal value;
 
-    @Column(name = "session_set_id", nullable = false)
+    @Column(name = "session_set_id")
     private UUID sessionSetId;
 
     @Column(name = "achieved_at", nullable = false)

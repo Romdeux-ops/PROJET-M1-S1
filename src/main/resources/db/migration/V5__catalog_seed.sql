@@ -1,7 +1,5 @@
 -- Phase 3 : jeu d'exercices de reference pour un catalogue utilisable en demo.
 
-DELETE FROM exercises WHERE slug = 'developpe-couche';
-
 INSERT INTO exercises (slug, name, description, equipment, difficulty, default_rest_seconds) VALUES
     ('squat-barre', 'Squat barre', 'Squat arriere a la barre, pieds largeur des epaules, descente controlee.', 'Barre, rack', 'INTERMEDIATE', 120),
     ('souleve-de-terre', 'Souleve de terre', 'Tirage du sol a la barre, dos neutre, poussee dans les talons.', 'Barre', 'INTERMEDIATE', 150),

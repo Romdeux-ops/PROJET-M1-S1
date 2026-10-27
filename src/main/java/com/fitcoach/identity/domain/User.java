@@ -1,5 +1,6 @@
 package com.fitcoach.identity.domain;
 
+import com.fitcoach.common.security.RoleCode;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;

@@ -9,5 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ExerciseMuscleRepository extends JpaRepository<ExerciseMuscle, ExerciseMuscleId> {
     List<ExerciseMuscle> findByExerciseId(UUID exerciseId);
 
+    List<ExerciseMuscle> findByExerciseIdIn(List<UUID> exerciseIds);
+
     void deleteByExerciseId(UUID exerciseId);
 }

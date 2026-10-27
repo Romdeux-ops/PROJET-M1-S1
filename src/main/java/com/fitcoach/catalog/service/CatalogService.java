@@ -15,6 +15,7 @@ import com.fitcoach.catalog.dto.MuscleGroupResponse;
 import com.fitcoach.catalog.dto.TagResponse;
 import com.fitcoach.catalog.exception.ExerciseNotFoundException;
 import com.fitcoach.catalog.exception.InvalidExerciseReferenceException;
+import com.fitcoach.catalog.exception.NotCatalogManagerException;
 import com.fitcoach.catalog.repository.ExerciseAlternativeRepository;
 import com.fitcoach.catalog.repository.ExerciseMuscleRepository;
 import com.fitcoach.catalog.repository.ExerciseRepository;
@@ -65,9 +66,21 @@ public class CatalogService {
 
     public List<ExerciseResponse> search(String query, UUID muscleGroupId, UUID tagId, ExerciseDifficulty difficulty) {
         String normalizedQuery = (query == null || query.isBlank()) ? "" : query.trim();
-        return exerciseRepository.search(normalizedQuery, muscleGroupId, tagId, difficulty).stream()
-                .map(this::toResponse)
-                .toList();
+        List<Exercise> exercises = exerciseRepository.search(normalizedQuery, muscleGroupId, tagId, difficulty);
+        return toResponseList(exercises);
+    }
+
+    public org.springframework.data.domain.Page<ExerciseResponse> search(
+            String query,
+            UUID muscleGroupId,
+            UUID tagId,
+            ExerciseDifficulty difficulty,
+            org.springframework.data.domain.Pageable pageable) {
+        String normalizedQuery = (query == null || query.isBlank()) ? "" : query.trim();
+        org.springframework.data.domain.Page<Exercise> page =
+                exerciseRepository.search(normalizedQuery, muscleGroupId, tagId, difficulty, pageable);
+        List<ExerciseResponse> content = toResponseList(page.getContent());
+        return new org.springframework.data.domain.PageImpl<>(content, pageable, page.getTotalElements());
     }
 
     public ExerciseResponse get(UUID exerciseId) {
@@ -84,20 +97,32 @@ public class CatalogService {
     }
 
     @Transactional
-    public ExerciseResponse update(UUID exerciseId, ExerciseRequest request) {
+    public ExerciseResponse update(UUID exerciseId, ExerciseRequest request, UUID requesterId, boolean admin) {
         Exercise exercise = findOrThrow(exerciseId);
+        requireOwnerOrAdmin(exercise, requesterId, admin);
         applyFields(exercise, request);
         replaceAssociations(exercise.getId(), request);
         return toResponse(exercise);
     }
 
     @Transactional
-    public void delete(UUID exerciseId) {
+    public void delete(UUID exerciseId, UUID requesterId, boolean admin) {
         Exercise exercise = findOrThrow(exerciseId);
+        requireOwnerOrAdmin(exercise, requesterId, admin);
         exerciseMuscleRepository.deleteByExerciseId(exercise.getId());
         exerciseTagRepository.deleteByExerciseId(exercise.getId());
         exerciseAlternativeRepository.deleteByExerciseId(exercise.getId());
         exerciseRepository.delete(exercise);
+    }
+
+    private void requireOwnerOrAdmin(Exercise exercise, UUID requesterId, boolean admin) {
+        if (admin) {
+            return;
+        }
+        if (exercise.getCreatedBy() == null || !exercise.getCreatedBy().equals(requesterId)) {
+            throw new NotCatalogManagerException(
+                    "Seul le createur de l'exercice ou un administrateur peut le modifier.");
+        }
     }
 
     private void applyFields(Exercise exercise, ExerciseRequest request) {
@@ -150,27 +175,60 @@ public class CatalogService {
     }
 
     private ExerciseResponse toResponse(Exercise exercise) {
+        return toResponseList(List.of(exercise)).get(0);
+    }
+
+    /** Batch-loads reference data and associations for the whole list in O(1) queries instead of O(n). */
+    private List<ExerciseResponse> toResponseList(List<Exercise> exercises) {
+        if (exercises.isEmpty()) {
+            return List.of();
+        }
         Map<UUID, MuscleGroup> muscleGroupsById =
                 muscleGroupRepository.findAll().stream().collect(Collectors.toMap(MuscleGroup::getId, m -> m));
         Map<UUID, Tag> tagsById = tagRepository.findAll().stream().collect(Collectors.toMap(Tag::getId, t -> t));
 
-        List<ExerciseMuscleResponse> muscles = exerciseMuscleRepository.findByExerciseId(exercise.getId()).stream()
-                .map(em -> {
-                    MuscleGroup group = muscleGroupsById.get(em.getMuscleGroupId());
-                    return new ExerciseMuscleResponse(
-                            em.getMuscleGroupId(), group.getCode(), group.getName(), em.getRole());
+        List<UUID> exerciseIds = exercises.stream().map(Exercise::getId).toList();
+
+        Map<UUID, List<ExerciseMuscle>> musclesByExercise = exerciseMuscleRepository
+                .findByExerciseIdIn(exerciseIds)
+                .stream()
+                .collect(Collectors.groupingBy(ExerciseMuscle::getExerciseId));
+        Map<UUID, List<ExerciseTag>> tagsByExercise = exerciseTagRepository
+                .findByExerciseIdIn(exerciseIds)
+                .stream()
+                .collect(Collectors.groupingBy(ExerciseTag::getExerciseId));
+        Map<UUID, List<ExerciseAlternative>> alternativesByExercise = exerciseAlternativeRepository
+                .findByExerciseIdIn(exerciseIds)
+                .stream()
+                .collect(Collectors.groupingBy(ExerciseAlternative::getExerciseId));
+
+        return exercises.stream()
+                .map(exercise -> {
+                    List<ExerciseMuscleResponse> muscles = musclesByExercise
+                            .getOrDefault(exercise.getId(), List.of())
+                            .stream()
+                            .map(em -> {
+                                MuscleGroup group = muscleGroupsById.get(em.getMuscleGroupId());
+                                return new ExerciseMuscleResponse(
+                                        em.getMuscleGroupId(), group.getCode(), group.getName(), em.getRole());
+                            })
+                            .toList();
+
+                    List<TagResponse> tags = tagsByExercise
+                            .getOrDefault(exercise.getId(), List.of())
+                            .stream()
+                            .map(et -> TagResponse.from(tagsById.get(et.getTagId())))
+                            .toList();
+
+                    List<UUID> alternativeIds = alternativesByExercise
+                            .getOrDefault(exercise.getId(), List.of())
+                            .stream()
+                            .map(ExerciseAlternative::getAlternativeExerciseId)
+                            .toList();
+
+                    return ExerciseResponse.from(exercise, muscles, tags, alternativeIds);
                 })
                 .toList();
-
-        List<TagResponse> tags = exerciseTagRepository.findByExerciseId(exercise.getId()).stream()
-                .map(et -> TagResponse.from(tagsById.get(et.getTagId())))
-                .toList();
-
-        List<UUID> alternativeIds = exerciseAlternativeRepository.findByExerciseId(exercise.getId()).stream()
-                .map(ExerciseAlternative::getAlternativeExerciseId)
-                .toList();
-
-        return ExerciseResponse.from(exercise, muscles, tags, alternativeIds);
     }
 
     private String generateUniqueSlug(String name) {

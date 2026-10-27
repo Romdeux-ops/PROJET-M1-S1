@@ -2,6 +2,7 @@ package com.fitcoach.coaching.repository;
 
 import com.fitcoach.coaching.domain.CoachAthlete;
 import com.fitcoach.coaching.domain.CoachAthleteId;
+import com.fitcoach.coaching.domain.CoachAthleteStatus;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -11,9 +12,9 @@ public interface CoachAthleteRepository extends JpaRepository<CoachAthlete, Coac
 
     Optional<CoachAthlete> findByCoachIdAndAthleteId(UUID coachId, UUID athleteId);
 
-    boolean existsByCoachIdAndAthleteIdAndStatus(UUID coachId, UUID athleteId, String status);
+    boolean existsByCoachIdAndAthleteIdAndStatus(UUID coachId, UUID athleteId, CoachAthleteStatus status);
 
-    List<CoachAthlete> findByCoachIdAndStatusOrderByCreatedAtDesc(UUID coachId, String status);
+    List<CoachAthlete> findByCoachIdAndStatusOrderByCreatedAtDesc(UUID coachId, CoachAthleteStatus status);
 
-    List<CoachAthlete> findByAthleteIdAndStatusOrderByCreatedAtDesc(UUID athleteId, String status);
+    List<CoachAthlete> findByAthleteIdAndStatusOrderByCreatedAtDesc(UUID athleteId, CoachAthleteStatus status);
 }

@@ -1,6 +1,8 @@
 package com.fitcoach.identity.exception;
 
-public class InvalidAvatarException extends RuntimeException {
+import com.fitcoach.common.exception.BusinessRuleException;
+
+public class InvalidAvatarException extends BusinessRuleException {
 
     public InvalidAvatarException(String message) {
         super(message);

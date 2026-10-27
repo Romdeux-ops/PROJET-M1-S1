@@ -11,7 +11,13 @@ export const trainingHandlers = [
     await networkDelay()
     if (!userFromRequest(request)) return problem(401, 'Session invalide.')
     const sessions = [...db.sessions].sort((a, b) => b.performedAt.localeCompare(a.performedAt))
-    return HttpResponse.json(sessions)
+    return HttpResponse.json({
+      content: sessions,
+      page: 0,
+      size: sessions.length,
+      totalElements: sessions.length,
+      totalPages: 1,
+    })
   }),
 
   http.get<{ id: string }>('*/api/training/sessions/:id', async ({ request, params }) => {

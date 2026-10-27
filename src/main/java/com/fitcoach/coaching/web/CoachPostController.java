@@ -3,16 +3,20 @@ package com.fitcoach.coaching.web;
 import com.fitcoach.common.security.AuthenticatedUsers;
 import com.fitcoach.coaching.dto.PostRequest;
 import com.fitcoach.coaching.dto.PostResponse;
-import com.fitcoach.coaching.exception.NotCoachException;
+import com.fitcoach.coaching.exception.NotCoachClientException;
 import com.fitcoach.coaching.service.CoachPostService;
+import com.fitcoach.coaching.service.CoachingService;
 import com.fitcoach.coaching.service.PostImageStorageService;
-import com.fitcoach.identity.domain.RoleCode;
 import jakarta.validation.Valid;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,29 +34,51 @@ public class CoachPostController {
 
     private final CoachPostService coachPostService;
     private final PostImageStorageService postImageStorageService;
+    private final CoachingService coachingService;
 
-    public CoachPostController(CoachPostService coachPostService, PostImageStorageService postImageStorageService) {
+    public CoachPostController(
+            CoachPostService coachPostService,
+            PostImageStorageService postImageStorageService,
+            CoachingService coachingService) {
         this.coachPostService = coachPostService;
         this.postImageStorageService = postImageStorageService;
+        this.coachingService = coachingService;
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('COACH')")
     public ResponseEntity<PostResponse> create(Authentication authentication, @Valid @RequestBody PostRequest request) {
-        requireCoach(authentication);
         PostResponse post = coachPostService.create(AuthenticatedUsers.id(authentication), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(post);
     }
 
     @PostMapping(path = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAuthority('COACH')")
     public ImageResponse uploadImage(Authentication authentication, @RequestParam("file") MultipartFile file) {
-        requireCoach(authentication);
-        return new ImageResponse(postImageStorageService.store(file));
+        UUID coachId = AuthenticatedUsers.id(authentication);
+        return new ImageResponse(postImageStorageService.store(coachId, file));
     }
 
-    private void requireCoach(Authentication authentication) {
-        if (!AuthenticatedUsers.hasAuthority(authentication, RoleCode.COACH.name())) {
-            throw new NotCoachException();
+    @GetMapping("/images/{coachId}/{filename}")
+    public ResponseEntity<FileSystemResource> getImage(
+            Authentication authentication, @PathVariable UUID coachId, @PathVariable String filename) {
+        UUID viewerId = AuthenticatedUsers.id(authentication);
+        if (!viewerId.equals(coachId) && !coachingService.isActiveClient(coachId, viewerId)) {
+            throw new NotCoachClientException();
         }
+        var path = postImageStorageService.resolve("posts/" + coachId + "/" + filename);
+        if (!Files.isRegularFile(path)) {
+            return ResponseEntity.notFound().build();
+        }
+        String contentType;
+        try {
+            contentType = Files.probeContentType(path);
+        } catch (IOException e) {
+            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        }
+        return ResponseEntity.ok()
+                .contentType(contentType != null ? MediaType.parseMediaType(contentType) : MediaType.APPLICATION_OCTET_STREAM)
+                .body(new FileSystemResource(path));
     }
 
     public record ImageResponse(String imageUrl) {}

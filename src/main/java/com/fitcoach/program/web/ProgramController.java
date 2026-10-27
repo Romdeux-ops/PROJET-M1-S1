@@ -1,6 +1,7 @@
 package com.fitcoach.program.web;
 
 import com.fitcoach.common.security.AuthenticatedUsers;
+import com.fitcoach.common.web.PageResponse;
 import com.fitcoach.program.domain.ProgramCategory;
 import com.fitcoach.program.domain.ProgramLevel;
 import com.fitcoach.program.dto.PositionUpdate;
@@ -13,6 +14,8 @@ import com.fitcoach.program.service.ProgramService;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -38,17 +41,23 @@ public class ProgramController {
     }
 
     @GetMapping
-    public List<ProgramResponse> search(
+    public PageResponse<ProgramResponse> search(
             Authentication authentication,
             @RequestParam(defaultValue = "false") boolean mineOnly,
             @RequestParam(required = false) ProgramCategory category,
-            @RequestParam(required = false) ProgramLevel level) {
-        return programService.search(AuthenticatedUsers.id(authentication), mineOnly, category, level);
+            @RequestParam(required = false) ProgramLevel level,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        int boundedSize = Math.min(Math.max(size, 1), 100);
+        PageRequest pageRequest =
+                PageRequest.of(Math.max(page, 0), boundedSize, Sort.by(Sort.Direction.DESC, "updatedAt"));
+        return PageResponse.of(programService.search(
+                AuthenticatedUsers.id(authentication), mineOnly, category, level, pageRequest));
     }
 
     @GetMapping("/shared/{shareToken}")
-    public ProgramResponse getShared(@PathVariable String shareToken) {
-        return programService.getByShareToken(shareToken);
+    public ProgramResponse getShared(Authentication authentication, @PathVariable String shareToken) {
+        return programService.getByShareToken(shareToken, AuthenticatedUsers.idOrNull(authentication));
     }
 
     @GetMapping("/{programId}")

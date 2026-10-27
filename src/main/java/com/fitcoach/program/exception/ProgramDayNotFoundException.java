@@ -1,6 +1,8 @@
 package com.fitcoach.program.exception;
 
-public class ProgramDayNotFoundException extends RuntimeException {
+import com.fitcoach.common.exception.NotFoundException;
+
+public class ProgramDayNotFoundException extends NotFoundException {
     public ProgramDayNotFoundException() {
         super("Jour de programme introuvable.");
     }

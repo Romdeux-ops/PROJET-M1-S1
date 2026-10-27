@@ -1,4 +1,6 @@
 -- Phase 6 : planification des seances dans le calendrier.
+-- Le statut PENDING_VALIDATION couvre la validation d'une seance terminee par
+-- le coach actif de l'athlete, ou l'auto-validation si l'athlete n'a pas de coach.
 
 CREATE TABLE scheduled_sessions (
     id                   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -7,7 +9,7 @@ CREATE TABLE scheduled_sessions (
     program_day_id       uuid REFERENCES program_days (id) ON DELETE SET NULL,
     workout_session_id   uuid REFERENCES workout_sessions (id) ON DELETE SET NULL,
     scheduled_date       date NOT NULL,
-    status               text NOT NULL DEFAULT 'PLANNED' CHECK (status IN ('PLANNED', 'DONE', 'SKIPPED')),
+    status               text NOT NULL DEFAULT 'PLANNED' CHECK (status IN ('PLANNED', 'PENDING_VALIDATION', 'DONE', 'SKIPPED')),
     title                text NOT NULL CHECK (char_length(title) BETWEEN 1 AND 150),
     notes                text CHECK (notes IS NULL OR char_length(notes) <= 1000),
     created_at           timestamptz NOT NULL DEFAULT now(),

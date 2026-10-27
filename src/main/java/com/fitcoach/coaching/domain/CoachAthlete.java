@@ -2,6 +2,8 @@ package com.fitcoach.coaching.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
@@ -28,8 +30,9 @@ public class CoachAthlete {
     @Column(name = "athlete_id")
     private UUID athleteId;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status = "ACTIVE";
+    private CoachAthleteStatus status = CoachAthleteStatus.ACTIVE;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
@@ -51,15 +54,15 @@ public class CoachAthlete {
         return athleteId;
     }
 
-    public String getStatus() {
+    public CoachAthleteStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(CoachAthleteStatus status) {
         this.status = status;
     }
 
     public boolean isActive() {
-        return "ACTIVE".equals(status);
+        return status == CoachAthleteStatus.ACTIVE;
     }
 }

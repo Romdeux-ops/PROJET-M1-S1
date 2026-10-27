@@ -1,6 +1,8 @@
 package com.fitcoach.program.exception;
 
-public class CannotRateOwnProgramException extends RuntimeException {
+import com.fitcoach.common.exception.BusinessRuleException;
+
+public class CannotRateOwnProgramException extends BusinessRuleException {
     public CannotRateOwnProgramException() {
         super("Vous ne pouvez pas noter votre propre programme.");
     }

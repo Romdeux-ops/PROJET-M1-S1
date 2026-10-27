@@ -16,13 +16,17 @@ public record PostResponse(
         Instant updatedAt) {
 
     public static PostResponse from(CoachPost post, User coach) {
+        String storedImage = post.getImageUrl();
+        String imageUrl = (storedImage == null || storedImage.isBlank())
+                ? null
+                : "/api/coaching/posts/images/" + storedImage.substring("posts/".length());
         return new PostResponse(
                 post.getId(),
                 post.getCoachId(),
                 coach.getFirstName() + " " + coach.getLastName(),
                 coach.getAvatarUrl(),
                 post.getContent(),
-                post.getImageUrl(),
+                imageUrl,
                 post.getCreatedAt(),
                 post.getUpdatedAt());
     }

@@ -1,6 +1,8 @@
 package com.fitcoach.planning.exception;
 
-public class ScheduledSessionNotFoundException extends RuntimeException {
+import com.fitcoach.common.exception.NotFoundException;
+
+public class ScheduledSessionNotFoundException extends NotFoundException {
     public ScheduledSessionNotFoundException() {
         super("Seance planifiee introuvable.");
     }

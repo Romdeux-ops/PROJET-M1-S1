@@ -136,18 +136,9 @@ public class StatsService {
     }
 
     public List<WeeklyVolumePoint> weeklyVolume(UUID athleteId, int weeks) {
-        Map<UUID, LocalDate> dateBySessionId = sessionDatesOf(athleteId);
-        List<SessionSet> sets = sessionSetRepository.findBySessionIdIn(List.copyOf(dateBySessionId.keySet()));
-
-        LocalDate cutoff = LocalDate.now().minusWeeks(weeks);
-        Map<LocalDate, BigDecimal> volumeByWeek = sets.stream()
-                .filter(s -> !dateBySessionId.get(s.getSessionId()).isBefore(cutoff))
-                .collect(Collectors.groupingBy(
-                        s -> weekStartOf(dateBySessionId.get(s.getSessionId())),
-                        Collectors.reducing(BigDecimal.ZERO, SessionSet::volume, BigDecimal::add)));
-
-        return volumeByWeek.entrySet().stream()
-                .map(e -> new WeeklyVolumePoint(e.getKey(), e.getValue()))
+        Instant cutoff = LocalDate.now().minusWeeks(weeks).atStartOfDay(ZoneOffset.UTC).toInstant();
+        return sessionSetRepository.aggregateWeeklyVolume(athleteId, cutoff).stream()
+                .map(row -> new WeeklyVolumePoint(row.getWeekStart(), row.getVolume()))
                 .sorted(Comparator.comparing(WeeklyVolumePoint::weekStart))
                 .toList();
     }
@@ -211,9 +202,15 @@ public class StatsService {
         Map<UUID, MuscleGroup> muscleGroupsById =
                 muscleGroupRepository.findAll().stream().collect(Collectors.toMap(MuscleGroup::getId, m -> m));
 
+        List<UUID> exerciseIds = sets.stream().map(SessionSet::getExerciseId).distinct().toList();
+        Map<UUID, List<ExerciseMuscle>> musclesByExercise = exerciseMuscleRepository
+                .findByExerciseIdIn(exerciseIds)
+                .stream()
+                .collect(Collectors.groupingBy(ExerciseMuscle::getExerciseId));
+
         Map<UUID, BigDecimal> volumeByMuscleGroup = new java.util.HashMap<>();
         for (SessionSet set : sets) {
-            List<ExerciseMuscle> muscles = exerciseMuscleRepository.findByExerciseId(set.getExerciseId());
+            List<ExerciseMuscle> muscles = musclesByExercise.getOrDefault(set.getExerciseId(), List.of());
             for (ExerciseMuscle muscle : muscles) {
                 if (muscle.getRole() != MuscleRole.PRIMARY) {
                     continue;

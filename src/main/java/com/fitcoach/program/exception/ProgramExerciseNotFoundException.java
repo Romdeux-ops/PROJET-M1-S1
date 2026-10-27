@@ -1,6 +1,8 @@
 package com.fitcoach.program.exception;
 
-public class ProgramExerciseNotFoundException extends RuntimeException {
+import com.fitcoach.common.exception.NotFoundException;
+
+public class ProgramExerciseNotFoundException extends NotFoundException {
     public ProgramExerciseNotFoundException() {
         super("Exercice de programme introuvable.");
     }

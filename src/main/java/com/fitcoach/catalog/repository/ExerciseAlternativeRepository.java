@@ -9,5 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ExerciseAlternativeRepository extends JpaRepository<ExerciseAlternative, ExerciseAlternativeId> {
     List<ExerciseAlternative> findByExerciseId(UUID exerciseId);
 
+    List<ExerciseAlternative> findByExerciseIdIn(List<UUID> exerciseIds);
+
     void deleteByExerciseId(UUID exerciseId);
 }

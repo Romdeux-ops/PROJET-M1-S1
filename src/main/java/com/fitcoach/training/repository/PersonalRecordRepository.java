@@ -13,4 +13,6 @@ public interface PersonalRecordRepository extends JpaRepository<PersonalRecord, 
 
     Optional<PersonalRecord> findByAthleteIdAndExerciseIdAndMetric(
             UUID athleteId, UUID exerciseId, PersonalRecordMetric metric);
+
+    List<PersonalRecord> findBySessionSetId(UUID sessionSetId);
 }

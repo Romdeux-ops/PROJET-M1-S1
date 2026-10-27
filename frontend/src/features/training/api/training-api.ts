@@ -1,4 +1,4 @@
-import { http } from '@/lib/api/client'
+import { api, http, unwrap } from '@/lib/api/client'
 
 import type { AddSetInput, CreateSessionInput, PersonalRecord, TrainingSession } from '../schemas'
 
@@ -13,7 +13,7 @@ function toSessionBody(input: CreateSessionInput) {
 
 /**
  * Contrat du module training (backend) :
- *   GET    /api/training/sessions                   -> TrainingSession[] (tri date desc)
+ *   GET    /api/training/sessions                   -> PageResponse<TrainingSession> (tri date desc ; .content extrait cote client, size=100)
  *   GET    /api/training/sessions/{id}               -> TrainingSession
  *   POST   /api/training/sessions                    -> TrainingSession (201)
  *   DELETE /api/training/sessions/{id}               -> 204
@@ -22,7 +22,10 @@ function toSessionBody(input: CreateSessionInput) {
  *   GET    /api/training/personal-records            -> PersonalRecord[]
  */
 export const trainingApi = {
-  list: () => http.get<TrainingSession[]>('/api/training/sessions'),
+  list: async () => {
+    const page = await unwrap(api.GET('/api/training/sessions', { params: { query: { size: 100 } } }))
+    return (page.content ?? []) as TrainingSession[]
+  },
   get: (sessionId: string) => http.get<TrainingSession>(`/api/training/sessions/${sessionId}`),
   create: (input: CreateSessionInput) => http.post<TrainingSession>('/api/training/sessions', toSessionBody(input)),
   remove: (id: string) => http.delete(`/api/training/sessions/${id}`),

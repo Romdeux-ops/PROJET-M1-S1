@@ -1,6 +1,5 @@
 package com.fitcoach.common.security;
 
-import com.fitcoach.identity.domain.RoleCode;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

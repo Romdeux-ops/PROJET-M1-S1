@@ -1,4 +1,4 @@
-import { http } from '@/lib/api/client'
+import { api, unwrap } from '@/lib/api/client'
 
 import type { ScheduleFormInput, ScheduledSession } from '../schemas'
 
@@ -14,22 +14,50 @@ import type { ScheduleFormInput, ScheduledSession } from '../schemas'
  *   GET    /api/planning/pending-validations                      -> ScheduledSession[] (coach)
  *   DELETE /api/planning/scheduled/{id}                            -> 204
  */
+/**
+ * Le schema OpenAPI genere par springdoc marque tous les champs comme
+ * optionnels : on recast la reponse vers le contrat strict de `schemas.ts`.
+ */
 export const planningApi = {
   listBetween: (from: string, to: string) =>
-    http.get<ScheduledSession[]>(`/api/planning/scheduled?from=${from}&to=${to}`),
-  listToday: () => http.get<ScheduledSession[]>('/api/planning/scheduled/today'),
-  listPendingValidations: () => http.get<ScheduledSession[]>('/api/planning/pending-validations'),
+    unwrap(api.GET('/api/planning/scheduled', { params: { query: { from, to } } })) as Promise<ScheduledSession[]>,
+  listToday: () => unwrap(api.GET('/api/planning/scheduled/today')) as Promise<ScheduledSession[]>,
+  listPendingValidations: () =>
+    unwrap(api.GET('/api/planning/pending-validations')) as Promise<ScheduledSession[]>,
   schedule: (input: ScheduleFormInput) =>
-    http.post<ScheduledSession>('/api/planning/scheduled', {
-      title: input.title,
-      scheduledDate: input.scheduledDate,
-      notes: input.notes || undefined,
-    }),
+    unwrap(
+      api.POST('/api/planning/scheduled', {
+        body: { title: input.title, scheduledDate: input.scheduledDate, notes: input.notes || undefined },
+      }),
+    ) as Promise<ScheduledSession>,
   reschedule: (id: string, scheduledDate: string) =>
-    http.patch<ScheduledSession>(`/api/planning/scheduled/${id}/reschedule`, { scheduledDate }),
-  skip: (id: string) => http.patch<ScheduledSession>(`/api/planning/scheduled/${id}/skip`),
+    unwrap(
+      api.PATCH('/api/planning/scheduled/{scheduledSessionId}/reschedule', {
+        params: { path: { scheduledSessionId: id } },
+        body: { scheduledDate },
+      }),
+    ) as Promise<ScheduledSession>,
+  skip: (id: string) =>
+    unwrap(
+      api.PATCH('/api/planning/scheduled/{scheduledSessionId}/skip', {
+        params: { path: { scheduledSessionId: id } },
+      }),
+    ) as Promise<ScheduledSession>,
   complete: (id: string, workoutSessionId: string) =>
-    http.patch<ScheduledSession>(`/api/planning/scheduled/${id}/complete`, { workoutSessionId }),
-  validate: (id: string) => http.patch<ScheduledSession>(`/api/planning/scheduled/${id}/validate`),
-  delete: (id: string) => http.delete(`/api/planning/scheduled/${id}`),
+    unwrap(
+      api.PATCH('/api/planning/scheduled/{scheduledSessionId}/complete', {
+        params: { path: { scheduledSessionId: id } },
+        body: { workoutSessionId },
+      }),
+    ) as Promise<ScheduledSession>,
+  validate: (id: string) =>
+    unwrap(
+      api.PATCH('/api/planning/scheduled/{scheduledSessionId}/validate', {
+        params: { path: { scheduledSessionId: id } },
+      }),
+    ) as Promise<ScheduledSession>,
+  delete: (id: string) =>
+    unwrap(
+      api.DELETE('/api/planning/scheduled/{scheduledSessionId}', { params: { path: { scheduledSessionId: id } } }),
+    ),
 }

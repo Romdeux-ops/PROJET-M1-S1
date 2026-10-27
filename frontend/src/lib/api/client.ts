@@ -33,7 +33,14 @@ const authMiddleware: Middleware = {
  *
  * @example const data = await unwrap(api.GET('/api/sessions'))
  */
-export const api = createClient<paths>({ baseUrl })
+export const api = createClient<paths>({
+  baseUrl,
+  // `openapi-fetch` capture sa reference a `fetch` a la creation du client :
+  // en test, MSW ne patche `globalThis.fetch` qu'au demarrage du serveur
+  // (`beforeAll`), *apres* l'import de ce module. Un wrapper resout `fetch`
+  // dynamiquement a chaque appel pour que MSW l'intercepte correctement.
+  fetch: (...args: Parameters<typeof fetch>) => globalThis.fetch(...args),
+})
 api.use(authMiddleware)
 
 /** Transforme le resultat d'openapi-fetch en donnee, ou lance une ApiError. */

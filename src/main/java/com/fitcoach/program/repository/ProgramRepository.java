@@ -6,6 +6,8 @@ import com.fitcoach.program.domain.ProgramLevel;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -28,4 +30,19 @@ public interface ProgramRepository extends JpaRepository<Program, UUID> {
             @Param("mineOnly") boolean mineOnly,
             @Param("category") ProgramCategory category,
             @Param("level") ProgramLevel level);
+
+    @Query(
+            """
+            SELECT p FROM Program p
+            WHERE (p.visibility = 'PUBLIC' OR p.ownerId = :viewerId)
+              AND (:mineOnly = false OR p.ownerId = :viewerId)
+              AND (:category IS NULL OR p.category = :category)
+              AND (:level IS NULL OR p.level = :level)
+            """)
+    Page<Program> search(
+            @Param("viewerId") UUID viewerId,
+            @Param("mineOnly") boolean mineOnly,
+            @Param("category") ProgramCategory category,
+            @Param("level") ProgramLevel level,
+            Pageable pageable);
 }

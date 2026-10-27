@@ -1,7 +1,7 @@
 package com.fitcoach.identity.service;
 
 import com.fitcoach.common.security.JwtService;
-import com.fitcoach.identity.domain.RoleCode;
+import com.fitcoach.common.security.RoleCode;
 import com.fitcoach.identity.domain.User;
 import com.fitcoach.identity.dto.AuthResponse;
 import com.fitcoach.identity.dto.LoginRequest;
@@ -41,7 +41,7 @@ public class AuthService {
         user.addRole(role);
         userRepository.save(user);
 
-        return new AuthResponse(jwtService.generateToken(user), UserResponse.from(user));
+        return new AuthResponse(issueToken(user), UserResponse.from(user));
     }
 
     @Transactional(readOnly = true)
@@ -53,6 +53,11 @@ public class AuthService {
         if (!user.isActive()) {
             throw new AccountDisabledException();
         }
-        return new AuthResponse(jwtService.generateToken(user), UserResponse.from(user));
+        return new AuthResponse(issueToken(user), UserResponse.from(user));
+    }
+
+    private String issueToken(User user) {
+        return jwtService.generateToken(
+                user.getId(), user.getEmail(), user.getRoles().stream().map(Enum::name).toList());
     }
 }

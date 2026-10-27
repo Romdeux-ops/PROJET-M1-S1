@@ -9,9 +9,13 @@ import com.fitcoach.planning.dto.CompleteRequest;
 import com.fitcoach.planning.dto.RescheduleRequest;
 import com.fitcoach.planning.dto.ScheduleRequest;
 import com.fitcoach.planning.dto.ScheduledSessionResponse;
+import com.fitcoach.planning.exception.InvalidScheduledSessionStatusException;
 import com.fitcoach.planning.exception.NotValidatingCoachException;
 import com.fitcoach.planning.exception.ScheduledSessionNotFoundException;
 import com.fitcoach.planning.repository.ScheduledSessionRepository;
+import com.fitcoach.training.domain.WorkoutSession;
+import com.fitcoach.training.exception.SessionNotFoundException;
+import com.fitcoach.training.repository.WorkoutSessionRepository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -24,14 +28,17 @@ public class PlanningService {
     private final ScheduledSessionRepository scheduledSessionRepository;
     private final CoachingService coachingService;
     private final UserRepository userRepository;
+    private final WorkoutSessionRepository workoutSessionRepository;
 
     public PlanningService(
             ScheduledSessionRepository scheduledSessionRepository,
             CoachingService coachingService,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            WorkoutSessionRepository workoutSessionRepository) {
         this.scheduledSessionRepository = scheduledSessionRepository;
         this.coachingService = coachingService;
         this.userRepository = userRepository;
+        this.workoutSessionRepository = workoutSessionRepository;
     }
 
     public List<ScheduledSessionResponse> listBetween(UUID athleteId, LocalDate from, LocalDate to) {
@@ -79,6 +86,18 @@ public class PlanningService {
     @Transactional
     public ScheduledSessionResponse complete(UUID scheduledSessionId, UUID athleteId, CompleteRequest request) {
         ScheduledSession session = findOwnedOrThrow(scheduledSessionId, athleteId);
+        if (session.getStatus() != ScheduledSessionStatus.PLANNED) {
+            throw new InvalidScheduledSessionStatusException(
+                    "Seule une seance PLANIFIEE peut etre marquee comme terminee.");
+        }
+        if (request.workoutSessionId() != null) {
+            WorkoutSession workoutSession = workoutSessionRepository
+                    .findById(request.workoutSessionId())
+                    .orElseThrow(SessionNotFoundException::new);
+            if (!workoutSession.getAthleteId().equals(athleteId)) {
+                throw new SessionNotFoundException();
+            }
+        }
         session.setWorkoutSessionId(request.workoutSessionId());
         boolean hasActiveCoach = !coachingService.listCoaches(athleteId).isEmpty();
         session.setStatus(hasActiveCoach ? ScheduledSessionStatus.PENDING_VALIDATION : ScheduledSessionStatus.DONE);
@@ -105,6 +124,10 @@ public class PlanningService {
                 .orElseThrow(ScheduledSessionNotFoundException::new);
         if (!coachingService.isActiveClient(coachId, session.getAthleteId())) {
             throw new NotValidatingCoachException();
+        }
+        if (session.getStatus() != ScheduledSessionStatus.PENDING_VALIDATION) {
+            throw new InvalidScheduledSessionStatusException(
+                    "Seule une seance en attente de validation peut etre validee.");
         }
         session.setStatus(ScheduledSessionStatus.DONE);
         return ScheduledSessionResponse.from(session, athleteNameOf(session.getAthleteId()));

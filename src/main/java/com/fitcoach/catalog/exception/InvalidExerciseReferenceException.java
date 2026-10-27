@@ -1,6 +1,8 @@
 package com.fitcoach.catalog.exception;
 
-public class InvalidExerciseReferenceException extends RuntimeException {
+import com.fitcoach.common.exception.BusinessRuleException;
+
+public class InvalidExerciseReferenceException extends BusinessRuleException {
     public InvalidExerciseReferenceException(String message) {
         super(message);
     }

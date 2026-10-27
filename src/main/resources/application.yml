@@ -57,8 +57,10 @@ app:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
   jwt:
-    # 32 caracteres minimum (HS256) ; a definir via JWT_SECRET en dehors du dev local.
-    secret: ${JWT_SECRET:dev-only-secret-key-please-rotate-32bytes-min}
+    # 32 caracteres minimum (HS256). Pas de valeur par defaut ici : JWT_SECRET est
+    # obligatoire hors profil dev/test, pour ne jamais demarrer en prod avec un
+    # secret connu publiquement. Le profil dev fournit sa propre valeur de repli.
+    secret: ${JWT_SECRET}
     expiration-minutes: ${JWT_EXPIRATION_MINUTES:60}
   uploads:
     dir: ${UPLOADS_DIR:./uploads}

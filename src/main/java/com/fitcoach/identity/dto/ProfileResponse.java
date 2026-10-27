@@ -1,6 +1,6 @@
 package com.fitcoach.identity.dto;
 
-import com.fitcoach.identity.domain.RoleCode;
+import com.fitcoach.common.security.RoleCode;
 import com.fitcoach.identity.domain.User;
 import java.math.BigDecimal;
 import java.time.LocalDate;

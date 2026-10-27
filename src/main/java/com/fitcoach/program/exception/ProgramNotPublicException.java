@@ -1,6 +1,8 @@
 package com.fitcoach.program.exception;
 
-public class ProgramNotPublicException extends RuntimeException {
+import com.fitcoach.common.exception.BusinessRuleException;
+
+public class ProgramNotPublicException extends BusinessRuleException {
     public ProgramNotPublicException() {
         super("Seuls les programmes publics peuvent etre notes.");
     }

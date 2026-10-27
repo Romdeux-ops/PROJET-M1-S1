@@ -1,14 +1,16 @@
 package com.fitcoach.coaching.service;
 
 import com.fitcoach.coaching.domain.CoachAthlete;
+import com.fitcoach.coaching.domain.CoachAthleteStatus;
 import com.fitcoach.coaching.exception.InvalidAthleteException;
 import com.fitcoach.coaching.repository.CoachAthleteRepository;
-import com.fitcoach.identity.domain.RoleCode;
+import com.fitcoach.common.security.RoleCode;
 import com.fitcoach.identity.domain.User;
 import com.fitcoach.identity.dto.UserResponse;
 import com.fitcoach.identity.repository.UserRepository;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,7 +40,7 @@ public class CoachingService {
         CoachAthlete relation = coachAthleteRepository
                 .findByCoachIdAndAthleteId(coachId, athlete.getId())
                 .orElseGet(() -> new CoachAthlete(coachId, athlete.getId()));
-        relation.setStatus("ACTIVE");
+        relation.setStatus(CoachAthleteStatus.ACTIVE);
         coachAthleteRepository.save(relation);
 
         return UserResponse.from(athlete);
@@ -46,21 +48,25 @@ public class CoachingService {
 
     @Transactional(readOnly = true)
     public boolean isActiveClient(UUID coachId, UUID athleteId) {
-        return coachAthleteRepository.existsByCoachIdAndAthleteIdAndStatus(coachId, athleteId, "ACTIVE");
+        return coachAthleteRepository.existsByCoachIdAndAthleteIdAndStatus(coachId, athleteId, CoachAthleteStatus.ACTIVE);
     }
 
     @Transactional(readOnly = true)
     public List<UserResponse> listAthletes(UUID coachId) {
-        return coachAthleteRepository.findByCoachIdAndStatusOrderByCreatedAtDesc(coachId, "ACTIVE").stream()
-                .map(relation -> userRepository.findById(relation.getAthleteId()).orElseThrow())
+        return coachAthleteRepository.findByCoachIdAndStatusOrderByCreatedAtDesc(coachId, CoachAthleteStatus.ACTIVE).stream()
+                .map(relation -> userRepository
+                        .findById(relation.getAthleteId())
+                        .orElseThrow(() -> new UsernameNotFoundException(relation.getAthleteId().toString())))
                 .map(UserResponse::from)
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public List<UserResponse> listCoaches(UUID athleteId) {
-        return coachAthleteRepository.findByAthleteIdAndStatusOrderByCreatedAtDesc(athleteId, "ACTIVE").stream()
-                .map(relation -> userRepository.findById(relation.getCoachId()).orElseThrow())
+        return coachAthleteRepository.findByAthleteIdAndStatusOrderByCreatedAtDesc(athleteId, CoachAthleteStatus.ACTIVE).stream()
+                .map(relation -> userRepository
+                        .findById(relation.getCoachId())
+                        .orElseThrow(() -> new UsernameNotFoundException(relation.getCoachId().toString())))
                 .map(UserResponse::from)
                 .toList();
     }

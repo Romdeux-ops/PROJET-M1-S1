@@ -1,6 +1,8 @@
 package com.fitcoach.training.exception;
 
-public class SessionSetNotFoundException extends RuntimeException {
+import com.fitcoach.common.exception.NotFoundException;
+
+public class SessionSetNotFoundException extends NotFoundException {
     public SessionSetNotFoundException() {
         super("Serie introuvable.");
     }

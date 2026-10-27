@@ -1,6 +1,7 @@
 package com.fitcoach.training.web;
 
 import com.fitcoach.common.security.AuthenticatedUsers;
+import com.fitcoach.common.web.PageResponse;
 import com.fitcoach.training.dto.PersonalRecordResponse;
 import com.fitcoach.training.dto.SessionRequest;
 import com.fitcoach.training.dto.SessionResponse;
@@ -9,6 +10,7 @@ import com.fitcoach.training.service.TrainingService;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -32,8 +35,13 @@ public class TrainingController {
     }
 
     @GetMapping("/sessions")
-    public List<SessionResponse> listSessions(Authentication authentication) {
-        return trainingService.listSessions(AuthenticatedUsers.id(authentication));
+    public PageResponse<SessionResponse> listSessions(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        int boundedSize = Math.min(Math.max(size, 1), 100);
+        return PageResponse.of(trainingService.listSessions(
+                AuthenticatedUsers.id(authentication), PageRequest.of(Math.max(page, 0), boundedSize)));
     }
 
     @GetMapping("/sessions/{sessionId}")

@@ -1,6 +1,6 @@
 package com.fitcoach.identity.dto;
 
-import com.fitcoach.identity.domain.RoleCode;
+import com.fitcoach.common.security.RoleCode;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

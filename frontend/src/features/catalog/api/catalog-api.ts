@@ -1,4 +1,4 @@
-import { http } from '@/lib/api/client'
+import { api, unwrap } from '@/lib/api/client'
 
 import type { Exercise, ExerciseFormInput, ExerciseSearchFilters, MuscleGroup, Tag } from '../schemas'
 
@@ -20,27 +20,45 @@ function toRequestBody(input: ExerciseFormInput) {
  * Contrat attendu du module catalogue (backend) :
  *   GET    /api/catalog/muscle-groups          -> MuscleGroup[]
  *   GET    /api/catalog/tags                   -> Tag[]
- *   GET    /api/catalog/exercises               -> Exercise[]  (filtres en query string)
+ *   GET    /api/catalog/exercises               -> PageResponse<Exercise> (filtres en query string ; .content extrait cote client, size=100)
  *   GET    /api/catalog/exercises/{id}          -> Exercise
  *   POST   /api/catalog/exercises               -> Exercise (201, role COACH/ADMIN)
  *   PUT    /api/catalog/exercises/{id}          -> Exercise      (role COACH/ADMIN)
  *   DELETE /api/catalog/exercises/{id}          -> 204            (role COACH/ADMIN)
  */
+/**
+ * Le schema OpenAPI genere par springdoc marque tous les champs comme
+ * optionnels (il ne declare pas `required`). Le contrat reel du backend est
+ * plus strict (voir `schemas.ts`) : on recast donc la reponse une fois
+ * validee au niveau HTTP, plutot que de propager des `| undefined` partout.
+ */
 export const catalogApi = {
-  listMuscleGroups: () => http.get<MuscleGroup[]>('/api/catalog/muscle-groups'),
-  listTags: () => http.get<Tag[]>('/api/catalog/tags'),
-  searchExercises: (filters: ExerciseSearchFilters) => {
-    const params = new URLSearchParams()
-    if (filters.query) params.set('query', filters.query)
-    if (filters.muscleGroupId) params.set('muscleGroupId', filters.muscleGroupId)
-    if (filters.tagId) params.set('tagId', filters.tagId)
-    if (filters.difficulty) params.set('difficulty', filters.difficulty)
-    const qs = params.toString()
-    return http.get<Exercise[]>(`/api/catalog/exercises${qs ? `?${qs}` : ''}`)
+  listMuscleGroups: () => unwrap(api.GET('/api/catalog/muscle-groups')) as Promise<MuscleGroup[]>,
+  listTags: () => unwrap(api.GET('/api/catalog/tags')) as Promise<Tag[]>,
+  searchExercises: async (filters: ExerciseSearchFilters) => {
+    const page = await unwrap(
+      api.GET('/api/catalog/exercises', {
+        params: {
+          query: {
+            query: filters.query,
+            muscleGroupId: filters.muscleGroupId,
+            tagId: filters.tagId,
+            difficulty: filters.difficulty,
+            size: 100,
+          },
+        },
+      }),
+    )
+    return (page.content ?? []) as Exercise[]
   },
-  getExercise: (exerciseId: string) => http.get<Exercise>(`/api/catalog/exercises/${exerciseId}`),
-  createExercise: (input: ExerciseFormInput) => http.post<Exercise>('/api/catalog/exercises', toRequestBody(input)),
+  getExercise: (exerciseId: string) =>
+    unwrap(api.GET('/api/catalog/exercises/{exerciseId}', { params: { path: { exerciseId } } })) as Promise<Exercise>,
+  createExercise: (input: ExerciseFormInput) =>
+    unwrap(api.POST('/api/catalog/exercises', { body: toRequestBody(input) })) as Promise<Exercise>,
   updateExercise: (exerciseId: string, input: ExerciseFormInput) =>
-    http.put<Exercise>(`/api/catalog/exercises/${exerciseId}`, toRequestBody(input)),
-  deleteExercise: (exerciseId: string) => http.delete(`/api/catalog/exercises/${exerciseId}`),
+    unwrap(
+      api.PUT('/api/catalog/exercises/{exerciseId}', { params: { path: { exerciseId } }, body: toRequestBody(input) }),
+    ) as Promise<Exercise>,
+  deleteExercise: (exerciseId: string) =>
+    unwrap(api.DELETE('/api/catalog/exercises/{exerciseId}', { params: { path: { exerciseId } } })),
 }

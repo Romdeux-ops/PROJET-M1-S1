@@ -1,7 +1,5 @@
 package com.fitcoach.common.security;
 
-import com.fitcoach.identity.domain.RoleCode;
-import com.fitcoach.identity.domain.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -9,6 +7,7 @@ import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -39,13 +38,12 @@ public class JwtService {
         this.expiration = Duration.ofMinutes(expirationMinutes);
     }
 
-    public String generateToken(User user) {
+    public String generateToken(UUID userId, String email, Collection<String> roles) {
         Instant now = Instant.now();
-        List<String> roles = user.getRoles().stream().map(Enum::name).toList();
         return Jwts.builder()
-                .subject(user.getId().toString())
-                .claim(CLAIM_EMAIL, user.getEmail())
-                .claim(CLAIM_ROLES, roles)
+                .subject(userId.toString())
+                .claim(CLAIM_EMAIL, email)
+                .claim(CLAIM_ROLES, List.copyOf(roles))
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(expiration)))
                 .signWith(signingKey)

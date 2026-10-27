@@ -18,6 +18,7 @@ import com.fitcoach.training.repository.PersonalRecordRepository;
 import com.fitcoach.training.repository.SessionSetRepository;
 import com.fitcoach.training.repository.WorkoutSessionRepository;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,6 +52,11 @@ public class TrainingService {
                 .toList();
     }
 
+    public org.springframework.data.domain.Page<SessionResponse> listSessions(
+            UUID athleteId, org.springframework.data.domain.Pageable pageable) {
+        return sessionRepository.findByAthleteIdOrderByPerformedAtDesc(athleteId, pageable).map(this::toResponse);
+    }
+
     public SessionResponse getSession(UUID sessionId, UUID athleteId) {
         return toResponse(findOwnedOrThrow(sessionId, athleteId));
     }
@@ -82,14 +88,14 @@ public class TrainingService {
         Exercise exercise = exerciseRepository.findById(request.exerciseId())
                 .orElseThrow(InvalidSessionExerciseException::new);
 
-        int position = sessionSetRepository.countBySessionId(session.getId());
+        int position = sessionSetRepository.findMaxPositionBySessionId(session.getId()).orElse(-1) + 1;
         SessionSet set = new SessionSet(
                 session.getId(), exercise.getId(), position, request.setNumber(), request.reps(), request.weightKg());
         set.setRpe(request.rpe());
         set.setRestSeconds(request.restSeconds());
         set = sessionSetRepository.save(set);
 
-        updatePersonalRecords(athleteId, set);
+        updatePersonalRecords(athleteId, set, session.getPerformedAt());
 
         return toResponse(session);
     }
@@ -101,7 +107,11 @@ public class TrainingService {
                 .findById(setId)
                 .filter(s -> s.getSessionId().equals(session.getId()))
                 .orElseThrow(SessionSetNotFoundException::new);
+        List<PersonalRecord> affectedRecords = personalRecordRepository.findBySessionSetId(set.getId());
         sessionSetRepository.delete(set);
+        for (PersonalRecord record : affectedRecords) {
+            recomputeRecord(athleteId, record.getExerciseId(), record.getMetric());
+        }
         return toResponse(session);
     }
 
@@ -114,22 +124,60 @@ public class TrainingService {
                 .toList();
     }
 
-    private void updatePersonalRecords(UUID athleteId, SessionSet set) {
-        upsertRecord(athleteId, set, PersonalRecordMetric.MAX_WEIGHT, set.getWeightKg());
-        upsertRecord(athleteId, set, PersonalRecordMetric.ESTIMATED_1RM, set.estimated1Rm());
+    private void updatePersonalRecords(UUID athleteId, SessionSet set, Instant performedAt) {
+        upsertRecord(athleteId, set, PersonalRecordMetric.MAX_WEIGHT, set.getWeightKg(), performedAt);
+        upsertRecord(athleteId, set, PersonalRecordMetric.ESTIMATED_1RM, set.estimated1Rm(), performedAt);
     }
 
-    private void upsertRecord(UUID athleteId, SessionSet set, PersonalRecordMetric metric, BigDecimal value) {
+    private void upsertRecord(UUID athleteId, SessionSet set, PersonalRecordMetric metric, BigDecimal value, Instant performedAt) {
         PersonalRecord record = personalRecordRepository
                 .findByAthleteIdAndExerciseIdAndMetric(athleteId, set.getExerciseId(), metric)
                 .orElse(null);
         if (record == null) {
             personalRecordRepository.save(
-                    new PersonalRecord(athleteId, set.getExerciseId(), metric, value, set.getId(), set.getCreatedAt()));
+                    new PersonalRecord(athleteId, set.getExerciseId(), metric, value, set.getId(), performedAt));
         } else if (value.compareTo(record.getValue()) > 0) {
             record.setValue(value);
             record.setSessionSetId(set.getId());
-            record.setAchievedAt(set.getCreatedAt());
+            record.setAchievedAt(performedAt);
+        }
+    }
+
+    private void recomputeRecord(UUID athleteId, UUID exerciseId, PersonalRecordMetric metric) {
+        List<WorkoutSession> sessions = sessionRepository.findByAthleteIdOrderByPerformedAtDesc(athleteId);
+        Map<UUID, Instant> performedAtBySession =
+                sessions.stream().collect(Collectors.toMap(WorkoutSession::getId, WorkoutSession::getPerformedAt));
+        List<SessionSet> sets = sessionSetRepository.findByExerciseIdAndSessionIdIn(
+                exerciseId, sessions.stream().map(WorkoutSession::getId).toList());
+
+        SessionSet bestSet = null;
+        BigDecimal bestValue = null;
+        for (SessionSet candidate : sets) {
+            BigDecimal candidateValue =
+                    metric == PersonalRecordMetric.MAX_WEIGHT ? candidate.getWeightKg() : candidate.estimated1Rm();
+            if (bestValue == null || candidateValue.compareTo(bestValue) > 0) {
+                bestValue = candidateValue;
+                bestSet = candidate;
+            }
+        }
+
+        PersonalRecord record = personalRecordRepository
+                .findByAthleteIdAndExerciseIdAndMetric(athleteId, exerciseId, metric)
+                .orElse(null);
+        if (bestSet == null) {
+            if (record != null) {
+                personalRecordRepository.delete(record);
+            }
+            return;
+        }
+        Instant achievedAt = performedAtBySession.get(bestSet.getSessionId());
+        if (record == null) {
+            personalRecordRepository.save(
+                    new PersonalRecord(athleteId, exerciseId, metric, bestValue, bestSet.getId(), achievedAt));
+        } else {
+            record.setValue(bestValue);
+            record.setSessionSetId(bestSet.getId());
+            record.setAchievedAt(achievedAt);
         }
     }
 
@@ -166,7 +214,7 @@ public class TrainingService {
     private boolean isPersonalRecord(UUID athleteId, SessionSet set) {
         return personalRecordRepository
                 .findByAthleteIdAndExerciseIdAndMetric(athleteId, set.getExerciseId(), PersonalRecordMetric.ESTIMATED_1RM)
-                .map(r -> r.getSessionSetId().equals(set.getId()))
+                .map(r -> set.getId().equals(r.getSessionSetId()))
                 .orElse(false);
     }
 
