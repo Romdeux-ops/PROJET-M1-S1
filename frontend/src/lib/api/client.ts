@@ -52,6 +52,19 @@ export async function unwrap<T>(
   return data as T
 }
 
+/**
+ * Telecharge un binaire protege par le JWT (images privees). Un `<img src>`
+ * n'envoie pas l'en-tete Authorization : passer par `useAuthorizedImage`.
+ */
+export async function fetchBlob(path: string): Promise<Blob> {
+  const headers = new Headers()
+  authHeaders(headers)
+  const response = await fetch(new URL(path, baseUrl), { headers })
+  handleUnauthorized(response)
+  if (!response.ok) throw await toApiError(response)
+  return response.blob()
+}
+
 type QueryParams = Record<string, string | number | boolean | null | undefined>
 
 interface RequestOptions extends Omit<RequestInit, 'body' | 'method'> {

@@ -5,6 +5,14 @@ import type { AddAthleteInput, CoachPost, CreatePostInput } from '@/features/coa
 import { db, toSessionUser, userFromRequest } from '../db'
 import { networkDelay, problem } from '../utils'
 
+/** Image 1x1 servie pour toute image de publication simulee. */
+const PLACEHOLDER_PNG = Uint8Array.from(
+  atob(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+  ),
+  (c) => c.charCodeAt(0),
+)
+
 export const coachingHandlers = [
   http.post<never, AddAthleteInput>('*/api/coaching/athletes', async ({ request }) => {
     await networkDelay()
@@ -22,7 +30,9 @@ export const coachingHandlers = [
     await networkDelay()
     const user = userFromRequest(request)
     if (!user) return problem(401, 'Session invalide.')
-    const ids = db.coachAthletes.filter((c) => c.coachId === user.id && c.status === 'ACTIVE').map((c) => c.athleteId)
+    const ids = db.coachAthletes
+      .filter((c) => c.coachId === user.id && c.status === 'ACTIVE')
+      .map((c) => c.athleteId)
     return HttpResponse.json(db.users.filter((u) => ids.includes(u.id)).map(toSessionUser))
   }),
 
@@ -30,7 +40,9 @@ export const coachingHandlers = [
     await networkDelay()
     const user = userFromRequest(request)
     if (!user) return problem(401, 'Session invalide.')
-    const ids = db.coachAthletes.filter((c) => c.athleteId === user.id && c.status === 'ACTIVE').map((c) => c.coachId)
+    const ids = db.coachAthletes
+      .filter((c) => c.athleteId === user.id && c.status === 'ACTIVE')
+      .map((c) => c.coachId)
     return HttpResponse.json(db.users.filter((u) => ids.includes(u.id)).map(toSessionUser))
   }),
 
@@ -46,7 +58,9 @@ export const coachingHandlers = [
       coachName: `${user.firstName} ${user.lastName}`,
       coachAvatarUrl: null,
       content: body.content,
-      imageUrl: body.imageUrl ?? null,
+      imageUrl: body.imageUrl
+        ? `/api/coaching/posts/images/${body.imageUrl.replace(/^posts\//, '')}`
+        : null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
@@ -56,8 +70,17 @@ export const coachingHandlers = [
 
   http.post('*/api/coaching/posts/images', async ({ request }) => {
     await networkDelay()
+    const user = userFromRequest(request)
+    if (!user) return problem(401, 'Session invalide.')
+    if (!user.roles.includes('COACH')) return problem(403, 'Réservé aux coachs.')
+    // Comme le backend : chemin relatif a renvoyer tel quel dans createPost.
+    return HttpResponse.json({ imageUrl: `posts/${user.id}/${crypto.randomUUID()}.png` })
+  }),
+
+  http.get('*/api/coaching/posts/images/:coachId/:filename', async ({ request }) => {
+    await networkDelay()
     if (!userFromRequest(request)) return problem(401, 'Session invalide.')
-    return HttpResponse.json({ imageUrl: '/uploads/posts/mock-image.jpg' }, { status: 201 })
+    return new HttpResponse(PLACEHOLDER_PNG, { headers: { 'Content-Type': 'image/png' } })
   }),
 
   http.get<{ coachId: string }>('*/api/coaching/posts/:coachId', async ({ request, params }) => {

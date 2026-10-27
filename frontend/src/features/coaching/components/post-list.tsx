@@ -1,5 +1,6 @@
 import { Loader2, MessageSquare, Trash2 } from 'lucide-react'
 
+import { AuthorizedImage } from '@/components/authorized-image'
 import { EmptyState } from '@/components/empty-state'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -37,7 +38,9 @@ export function PostList({ coachId, canDelete = false }: PostListProps) {
         <Card key={post.id}>
           <CardContent className="flex gap-3">
             <Avatar>
-              {post.coachAvatarUrl && <AvatarImage src={post.coachAvatarUrl} alt={post.coachName} />}
+              {post.coachAvatarUrl && (
+                <AvatarImage src={post.coachAvatarUrl} alt={post.coachName} />
+              )}
               <AvatarFallback className="bg-brand text-xs font-semibold text-white">
                 {initials(post.coachName)}
               </AvatarFallback>
@@ -49,7 +52,10 @@ export function PostList({ coachId, canDelete = false }: PostListProps) {
               </div>
               <p className="text-sm whitespace-pre-wrap text-foreground">{post.content}</p>
               {post.imageUrl && (
-                <img src={post.imageUrl} alt="" className="mt-2 max-h-64 rounded-lg border object-cover" />
+                <AuthorizedImage
+                  src={post.imageUrl}
+                  className="mt-2 max-h-64 rounded-lg border object-cover"
+                />
               )}
             </div>
             {canDelete && (

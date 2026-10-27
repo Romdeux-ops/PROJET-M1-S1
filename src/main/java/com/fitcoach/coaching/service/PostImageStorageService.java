@@ -5,10 +5,12 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,9 +28,20 @@ public class PostImageStorageService {
     private static final Map<String, String> ALLOWED_TYPES =
             Map.of("image/png", "png", "image/jpeg", "jpg", "image/webp", "webp");
 
+    private static final Map<String, MediaType> MEDIA_TYPES = Map.of(
+            "png", MediaType.IMAGE_PNG, "jpg", MediaType.IMAGE_JPEG, "webp", MediaType.parseMediaType("image/webp"));
+
+    /** Seuls les noms generes par {@link #store} sont acceptes : aucun separateur ni {@code ..} possible. */
+    private static final Pattern STORED_FILENAME =
+            Pattern.compile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\.(png|jpg|webp)$");
+
+    private static final String RELATIVE_PREFIX = "posts/";
+
     private static final Map<String, byte[]> MAGIC_BYTES = Map.of(
             "png", new byte[] {(byte) 0x89, 0x50, 0x4E, 0x47},
             "jpg", new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF});
+
+    public record StoredImage(Path path, MediaType mediaType) {}
 
     private final Path root;
 
@@ -81,16 +94,37 @@ public class PostImageStorageService {
         } catch (IOException e) {
             throw new UncheckedIOException("Ecriture de l'image impossible", e);
         }
-        return "posts/" + coachId + "/" + filename;
+        return relativePath(coachId, filename);
     }
 
-    /** Resout un chemin stocke en base (ex. {@code posts/<coachId>/<uuid>.jpg}) vers le fichier reel. */
-    public Path resolve(String relativePath) {
-        Path resolved = root.getParent().resolve(relativePath).normalize();
-        if (!resolved.startsWith(root.getParent())) {
-            throw new InvalidPostImageException("Chemin d'image invalide.");
+    /** Vrai si {@code relativePath} designe une image deposee par ce coach via {@link #store}. */
+    public boolean isOwnUpload(UUID coachId, String relativePath) {
+        String prefix = RELATIVE_PREFIX + coachId + "/";
+        return relativePath.startsWith(prefix) && isStoredFilename(relativePath.substring(prefix.length()));
+    }
+
+    /**
+     * @throws InvalidPostImageException si le nom n'a pas ete genere par {@link #store}
+     */
+    public Optional<StoredImage> load(UUID coachId, String filename) {
+        if (!isStoredFilename(filename)) {
+            throw new InvalidPostImageException("Nom d'image invalide.");
         }
-        return resolved;
+        Path coachDir = root.resolve(coachId.toString());
+        Path path = coachDir.resolve(filename).normalize();
+        if (!path.startsWith(coachDir) || !Files.isRegularFile(path)) {
+            return Optional.empty();
+        }
+        String extension = filename.substring(filename.lastIndexOf('.') + 1);
+        return Optional.of(new StoredImage(path, MEDIA_TYPES.get(extension)));
+    }
+
+    private static boolean isStoredFilename(String filename) {
+        return STORED_FILENAME.matcher(filename).matches();
+    }
+
+    private static String relativePath(UUID coachId, String filename) {
+        return RELATIVE_PREFIX + coachId + "/" + filename;
     }
 
     private boolean matchesMagicBytes(String extension, byte[] content) {
