@@ -30,18 +30,23 @@ CREATE TABLE session_sets (
     weight_kg       numeric(6, 2) NOT NULL CHECK (weight_kg >= 0),
     rpe             numeric(3, 1) CHECK (rpe IS NULL OR rpe BETWEEN 1 AND 10),
     rest_seconds    integer CHECK (rest_seconds IS NULL OR rest_seconds BETWEEN 0 AND 1200),
+    -- Formule d'Epley, unique source de verite pour les records et les stats.
+    estimated_1rm   numeric(7, 2) GENERATED ALWAYS AS (round(weight_kg * (1 + reps / 30.0), 2)) STORED,
     created_at      timestamptz NOT NULL DEFAULT now(),
-    UNIQUE (session_id, position)
+    -- Differee pour permettre un reordonnancement en une transaction.
+    UNIQUE (session_id, position) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE INDEX idx_session_sets_exercise ON session_sets (exercise_id);
 
+-- Meilleure serie par exercice et metrique, recalculee par PersonalRecordService.
+-- La date du record n'est pas stockee : elle se deduit de la seance de la serie,
+-- et le record disparait avec elle (cascade) avant d'etre recalcule.
 CREATE TABLE personal_records (
     athlete_id      uuid NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     exercise_id     uuid NOT NULL REFERENCES exercises (id) ON DELETE CASCADE,
     metric          text NOT NULL CHECK (metric IN ('MAX_WEIGHT', 'ESTIMATED_1RM')),
     value           numeric(7, 2) NOT NULL,
-    session_set_id  uuid REFERENCES session_sets (id) ON DELETE SET NULL,
-    achieved_at     timestamptz NOT NULL,
+    session_set_id  uuid NOT NULL REFERENCES session_sets (id) ON DELETE CASCADE,
     PRIMARY KEY (athlete_id, exercise_id, metric)
 );

@@ -126,7 +126,7 @@ public class StatsService {
                             .max(BigDecimal::compareTo)
                             .orElse(BigDecimal.ZERO);
                     BigDecimal maxEst1Rm = entry.getValue().stream()
-                            .map(SessionSet::estimated1Rm)
+                            .map(SessionSet::getEstimated1Rm)
                             .max(BigDecimal::compareTo)
                             .orElse(BigDecimal.ZERO);
                     return new ExerciseProgressionPoint(entry.getKey(), maxWeight, maxEst1Rm);

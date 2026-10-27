@@ -9,6 +9,7 @@ import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
+import org.hibernate.annotations.Generated;
 
 @Entity
 @Table(name = "session_sets")
@@ -40,6 +41,10 @@ public class SessionSet {
 
     @Column(name = "rest_seconds")
     private Integer restSeconds;
+
+    @Generated
+    @Column(name = "estimated_1rm", insertable = false, updatable = false)
+    private BigDecimal estimated1Rm;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
@@ -109,7 +114,8 @@ public class SessionSet {
         return weightKg.multiply(BigDecimal.valueOf(reps));
     }
 
-    public BigDecimal estimated1Rm() {
-        return weightKg.multiply(BigDecimal.ONE.add(BigDecimal.valueOf(reps).divide(BigDecimal.valueOf(30), 4, java.math.RoundingMode.HALF_UP)));
+    /** Calcule par PostgreSQL (colonne generee) ; disponible apres flush. */
+    public BigDecimal getEstimated1Rm() {
+        return estimated1Rm;
     }
 }
