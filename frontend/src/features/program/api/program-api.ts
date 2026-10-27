@@ -47,36 +47,56 @@ export const programApi = {
     const page = await unwrap(
       api.GET('/api/programs', {
         params: {
-          query: { mineOnly: filters.mineOnly, category: filters.category, level: filters.level, size: 100 },
+          query: {
+            mineOnly: filters.mineOnly,
+            category: filters.category,
+            level: filters.level,
+            size: 100,
+          },
         },
       }),
     )
     return (page.content ?? []) as Program[]
   },
   get: (programId: string) =>
-    unwrap(api.GET('/api/programs/{programId}', { params: { path: { programId } } })) as Promise<Program>,
+    unwrap(
+      api.GET('/api/programs/{programId}', { params: { path: { programId } } }),
+    ) as Promise<Program>,
   getShared: (shareToken: string) =>
-    unwrap(api.GET('/api/programs/shared/{shareToken}', { params: { path: { shareToken } } })) as Promise<Program>,
+    unwrap(
+      api.GET('/api/programs/shared/{shareToken}', { params: { path: { shareToken } } }),
+    ) as Promise<Program>,
   create: (input: ProgramFormInput) =>
     unwrap(api.POST('/api/programs', { body: toProgramBody(input) })) as Promise<Program>,
   update: (programId: string, input: ProgramFormInput) =>
     unwrap(
-      api.PUT('/api/programs/{programId}', { params: { path: { programId } }, body: toProgramBody(input) }),
+      api.PUT('/api/programs/{programId}', {
+        params: { path: { programId } },
+        body: toProgramBody(input),
+      }),
     ) as Promise<Program>,
-  delete: (programId: string) => unwrap(api.DELETE('/api/programs/{programId}', { params: { path: { programId } } })),
+  delete: (programId: string) =>
+    unwrap(api.DELETE('/api/programs/{programId}', { params: { path: { programId } } })),
   duplicate: (programId: string) =>
-    unwrap(api.POST('/api/programs/{programId}/duplicate', { params: { path: { programId } } })) as Promise<Program>,
+    unwrap(
+      api.POST('/api/programs/{programId}/duplicate', { params: { path: { programId } } }),
+    ) as Promise<Program>,
   addDay: (programId: string, input: DayFormInput) =>
     unwrap(
       api.POST('/api/programs/{programId}/days', { params: { path: { programId } }, body: input }),
     ) as Promise<Program>,
   deleteDay: (programId: string, dayId: string) =>
     unwrap(
-      api.DELETE('/api/programs/{programId}/days/{dayId}', { params: { path: { programId, dayId } } }),
+      api.DELETE('/api/programs/{programId}/days/{dayId}', {
+        params: { path: { programId, dayId } },
+      }),
     ) as Promise<Program>,
   reorderDays: (programId: string, updates: PositionUpdate[]) =>
     unwrap(
-      api.PATCH('/api/programs/{programId}/days/positions', { params: { path: { programId } }, body: updates }),
+      api.PATCH('/api/programs/{programId}/days/positions', {
+        params: { path: { programId } },
+        body: updates,
+      }),
     ) as Promise<Program>,
   addExercise: (programId: string, dayId: string, input: ExerciseEntryFormInput) =>
     unwrap(
@@ -99,6 +119,9 @@ export const programApi = {
     ) as Promise<Program>,
   rate: (programId: string, stars: number, comment?: string) =>
     unwrap(
-      api.POST('/api/programs/{programId}/ratings', { params: { path: { programId } }, body: { stars, comment } }),
+      api.POST('/api/programs/{programId}/ratings', {
+        params: { path: { programId } },
+        body: { stars, comment },
+      }),
     ) as Promise<Program>,
 }

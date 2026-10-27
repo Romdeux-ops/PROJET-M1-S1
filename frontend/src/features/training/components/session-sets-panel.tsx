@@ -6,7 +6,13 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useExercises } from '@/features/catalog'
 import { formatDuration } from '@/lib/format'
 
@@ -21,7 +27,14 @@ export function SessionSetsPanel({ sessionId }: { sessionId: string }) {
 
   const form = useForm<AddSetInput>({
     resolver: zodResolver(addSetSchema),
-    defaultValues: { exerciseId: '', setNumber: 1, reps: 8, weightKg: 20, rpe: undefined, restSeconds: 90 },
+    defaultValues: {
+      exerciseId: '',
+      setNumber: 1,
+      reps: 8,
+      weightKg: 20,
+      rpe: undefined,
+      restSeconds: 90,
+    },
   })
 
   if (isLoading || !session) {
@@ -29,13 +42,17 @@ export function SessionSetsPanel({ sessionId }: { sessionId: string }) {
   }
 
   function handleAddSet(values: AddSetInput) {
-    addSet.mutate(values, { onSuccess: () => form.reset({ ...values, setNumber: values.setNumber + 1 }) })
+    addSet.mutate(values, {
+      onSuccess: () => form.reset({ ...values, setNumber: values.setNumber + 1 }),
+    })
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>{session.durationMinutes != null ? formatDuration(session.durationMinutes) : '—'}</span>
+        <span>
+          {session.durationMinutes != null ? formatDuration(session.durationMinutes) : '—'}
+        </span>
         <span>Volume total : {session.totalVolume.toLocaleString('fr-FR')} kg</span>
       </div>
       {session.notes && <p className="text-sm">{session.notes}</p>}
@@ -43,7 +60,10 @@ export function SessionSetsPanel({ sessionId }: { sessionId: string }) {
       {session.sets.length > 0 && (
         <ul className="space-y-2">
           {session.sets.map((set) => (
-            <li key={set.id} className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm">
+            <li
+              key={set.id}
+              className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm"
+            >
               <div>
                 <p className="font-medium">
                   {set.exerciseName}
@@ -74,7 +94,10 @@ export function SessionSetsPanel({ sessionId }: { sessionId: string }) {
       )}
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleAddSet)} className="grid gap-2 rounded-md border p-3 sm:grid-cols-3">
+        <form
+          onSubmit={form.handleSubmit(handleAddSet)}
+          className="grid gap-2 rounded-md border p-3 sm:grid-cols-3"
+        >
           <FormField
             control={form.control}
             name="exerciseId"
@@ -167,7 +190,9 @@ export function SessionSetsPanel({ sessionId }: { sessionId: string }) {
                     step="0.5"
                     placeholder="RPE (optionnel)"
                     value={field.value ?? ''}
-                    onChange={(e) => field.onChange(e.target.value ? e.target.valueAsNumber : undefined)}
+                    onChange={(e) =>
+                      field.onChange(e.target.value ? e.target.valueAsNumber : undefined)
+                    }
                   />
                 </FormControl>
                 <FormMessage />
@@ -186,7 +211,9 @@ export function SessionSetsPanel({ sessionId }: { sessionId: string }) {
                     max={1200}
                     placeholder="Repos (s)"
                     value={field.value ?? ''}
-                    onChange={(e) => field.onChange(e.target.value ? e.target.valueAsNumber : undefined)}
+                    onChange={(e) =>
+                      field.onChange(e.target.value ? e.target.valueAsNumber : undefined)
+                    }
                   />
                 </FormControl>
                 <FormMessage />

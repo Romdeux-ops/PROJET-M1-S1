@@ -1,6 +1,11 @@
 import { http, HttpResponse } from 'msw'
 
-import type { DayFormInput, ExerciseEntryFormInput, Program, ProgramFormInput } from '@/features/program/schemas'
+import type {
+  DayFormInput,
+  ExerciseEntryFormInput,
+  Program,
+  ProgramFormInput,
+} from '@/features/program/schemas'
 
 import { db, userFromRequest } from '../db'
 import { networkDelay, problem } from '../utils'
@@ -24,7 +29,13 @@ export const programHandlers = [
     if (category) results = results.filter((p) => p.category === category)
     if (level) results = results.filter((p) => p.level === level)
     const content = results.map((p) => ({ ...p, mine: p.ownerId === user.id }))
-    return HttpResponse.json({ content, page: 0, size: content.length, totalElements: content.length, totalPages: 1 })
+    return HttpResponse.json({
+      content,
+      page: 0,
+      size: content.length,
+      totalElements: content.length,
+      totalPages: 1,
+    })
   }),
 
   http.get<{ id: string }>('*/api/programs/:id', async ({ request, params }) => {
@@ -117,7 +128,11 @@ export const programHandlers = [
       averageRating: 0,
       ratingsCount: 0,
       mine: true,
-      days: source.days.map((d) => ({ ...d, id: crypto.randomUUID(), exercises: d.exercises.map((e) => ({ ...e, id: crypto.randomUUID() })) })),
+      days: source.days.map((d) => ({
+        ...d,
+        id: crypto.randomUUID(),
+        exercises: d.exercises.map((e) => ({ ...e, id: crypto.randomUUID() })),
+      })),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
@@ -125,46 +140,61 @@ export const programHandlers = [
     return HttpResponse.json(copy, { status: 201 })
   }),
 
-  http.post<{ id: string }, DayFormInput>('*/api/programs/:id/days', async ({ request, params }) => {
-    await networkDelay()
-    const user = userFromRequest(request)
-    if (!user) return problem(401, 'Session invalide.')
-    const program = db.programs.find((p) => p.id === params.id)
-    if (!program) return problem(404, 'Programme introuvable.')
-    if (program.ownerId !== user.id) return problem(403, 'Réservé au propriétaire.')
-    const body = await request.json()
-    const maxPosition = program.days.reduce((max, d) => Math.max(max, d.position), -1)
-    program.days.push({ id: crypto.randomUUID(), position: maxPosition + 1, name: body.name, restDay: body.restDay, exercises: [] })
-    program.updatedAt = new Date().toISOString()
-    return HttpResponse.json(program)
-  }),
+  http.post<{ id: string }, DayFormInput>(
+    '*/api/programs/:id/days',
+    async ({ request, params }) => {
+      await networkDelay()
+      const user = userFromRequest(request)
+      if (!user) return problem(401, 'Session invalide.')
+      const program = db.programs.find((p) => p.id === params.id)
+      if (!program) return problem(404, 'Programme introuvable.')
+      if (program.ownerId !== user.id) return problem(403, 'Réservé au propriétaire.')
+      const body = await request.json()
+      const maxPosition = program.days.reduce((max, d) => Math.max(max, d.position), -1)
+      program.days.push({
+        id: crypto.randomUUID(),
+        position: maxPosition + 1,
+        name: body.name,
+        restDay: body.restDay,
+        exercises: [],
+      })
+      program.updatedAt = new Date().toISOString()
+      return HttpResponse.json(program)
+    },
+  ),
 
-  http.delete<{ id: string; dayId: string }>('*/api/programs/:id/days/:dayId', async ({ request, params }) => {
-    await networkDelay()
-    const user = userFromRequest(request)
-    if (!user) return problem(401, 'Session invalide.')
-    const program = db.programs.find((p) => p.id === params.id)
-    if (!program) return problem(404, 'Programme introuvable.')
-    if (program.ownerId !== user.id) return problem(403, 'Réservé au propriétaire.')
-    program.days = program.days.filter((d) => d.id !== params.dayId)
-    program.updatedAt = new Date().toISOString()
-    return HttpResponse.json(program)
-  }),
+  http.delete<{ id: string; dayId: string }>(
+    '*/api/programs/:id/days/:dayId',
+    async ({ request, params }) => {
+      await networkDelay()
+      const user = userFromRequest(request)
+      if (!user) return problem(401, 'Session invalide.')
+      const program = db.programs.find((p) => p.id === params.id)
+      if (!program) return problem(404, 'Programme introuvable.')
+      if (program.ownerId !== user.id) return problem(403, 'Réservé au propriétaire.')
+      program.days = program.days.filter((d) => d.id !== params.dayId)
+      program.updatedAt = new Date().toISOString()
+      return HttpResponse.json(program)
+    },
+  ),
 
-  http.patch<{ id: string }, PositionUpdate[]>('*/api/programs/:id/days/positions', async ({ request, params }) => {
-    await networkDelay()
-    const user = userFromRequest(request)
-    if (!user) return problem(401, 'Session invalide.')
-    const program = db.programs.find((p) => p.id === params.id)
-    if (!program) return problem(404, 'Programme introuvable.')
-    if (program.ownerId !== user.id) return problem(403, 'Réservé au propriétaire.')
-    const updates = await request.json()
-    for (const u of updates) {
-      const day = program.days.find((d) => d.id === u.id)
-      if (day) day.position = u.position
-    }
-    return HttpResponse.json(program)
-  }),
+  http.patch<{ id: string }, PositionUpdate[]>(
+    '*/api/programs/:id/days/positions',
+    async ({ request, params }) => {
+      await networkDelay()
+      const user = userFromRequest(request)
+      if (!user) return problem(401, 'Session invalide.')
+      const program = db.programs.find((p) => p.id === params.id)
+      if (!program) return problem(404, 'Programme introuvable.')
+      if (program.ownerId !== user.id) return problem(403, 'Réservé au propriétaire.')
+      const updates = await request.json()
+      for (const u of updates) {
+        const day = program.days.find((d) => d.id === u.id)
+        if (day) day.position = u.position
+      }
+      return HttpResponse.json(program)
+    },
+  ),
 
   http.post<{ id: string; dayId: string }, ExerciseEntryFormInput>(
     '*/api/programs/:id/days/:dayId/exercises',
@@ -220,7 +250,8 @@ export const programHandlers = [
       if (!user) return problem(401, 'Session invalide.')
       const program = db.programs.find((p) => p.id === params.id)
       if (!program) return problem(404, 'Programme introuvable.')
-      if (program.ownerId === user.id) return problem(409, 'Vous ne pouvez pas noter votre propre programme.')
+      if (program.ownerId === user.id)
+        return problem(409, 'Vous ne pouvez pas noter votre propre programme.')
       if (program.visibility !== 'PUBLIC') return problem(409, 'Ce programme n’est pas public.')
       const body = await request.json()
       program.ratingsCount += 1

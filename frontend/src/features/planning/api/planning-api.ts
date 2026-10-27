@@ -20,14 +20,20 @@ import type { ScheduleFormInput, ScheduledSession } from '../schemas'
  */
 export const planningApi = {
   listBetween: (from: string, to: string) =>
-    unwrap(api.GET('/api/planning/scheduled', { params: { query: { from, to } } })) as Promise<ScheduledSession[]>,
+    unwrap(api.GET('/api/planning/scheduled', { params: { query: { from, to } } })) as Promise<
+      ScheduledSession[]
+    >,
   listToday: () => unwrap(api.GET('/api/planning/scheduled/today')) as Promise<ScheduledSession[]>,
   listPendingValidations: () =>
     unwrap(api.GET('/api/planning/pending-validations')) as Promise<ScheduledSession[]>,
   schedule: (input: ScheduleFormInput) =>
     unwrap(
       api.POST('/api/planning/scheduled', {
-        body: { title: input.title, scheduledDate: input.scheduledDate, notes: input.notes || undefined },
+        body: {
+          title: input.title,
+          scheduledDate: input.scheduledDate,
+          notes: input.notes || undefined,
+        },
       }),
     ) as Promise<ScheduledSession>,
   reschedule: (id: string, scheduledDate: string) =>
@@ -58,6 +64,8 @@ export const planningApi = {
     ) as Promise<ScheduledSession>,
   delete: (id: string) =>
     unwrap(
-      api.DELETE('/api/planning/scheduled/{scheduledSessionId}', { params: { path: { scheduledSessionId: id } } }),
+      api.DELETE('/api/planning/scheduled/{scheduledSessionId}', {
+        params: { path: { scheduledSessionId: id } },
+      }),
     ),
 }

@@ -23,11 +23,14 @@ function toSessionBody(input: CreateSessionInput) {
  */
 export const trainingApi = {
   list: async () => {
-    const page = await unwrap(api.GET('/api/training/sessions', { params: { query: { size: 100 } } }))
+    const page = await unwrap(
+      api.GET('/api/training/sessions', { params: { query: { size: 100 } } }),
+    )
     return (page.content ?? []) as TrainingSession[]
   },
   get: (sessionId: string) => http.get<TrainingSession>(`/api/training/sessions/${sessionId}`),
-  create: (input: CreateSessionInput) => http.post<TrainingSession>('/api/training/sessions', toSessionBody(input)),
+  create: (input: CreateSessionInput) =>
+    http.post<TrainingSession>('/api/training/sessions', toSessionBody(input)),
   remove: (id: string) => http.delete(`/api/training/sessions/${id}`),
   addSet: (sessionId: string, input: AddSetInput) =>
     http.post<TrainingSession>(`/api/training/sessions/${sessionId}/sets`, input),

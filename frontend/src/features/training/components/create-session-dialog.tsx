@@ -13,7 +13,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 
@@ -108,7 +115,9 @@ export function CreateSessionDialog({ trigger }: { trigger?: ReactElement }) {
                         min={0}
                         step={5}
                         value={field.value ?? ''}
-                        onChange={(e) => field.onChange(e.target.value ? e.target.valueAsNumber : undefined)}
+                        onChange={(e) =>
+                          field.onChange(e.target.value ? e.target.valueAsNumber : undefined)
+                        }
                       />
                     </FormControl>
                     <FormMessage />

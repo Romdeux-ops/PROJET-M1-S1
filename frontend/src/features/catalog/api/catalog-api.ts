@@ -1,6 +1,12 @@
 import { api, unwrap } from '@/lib/api/client'
 
-import type { Exercise, ExerciseFormInput, ExerciseSearchFilters, MuscleGroup, Tag } from '../schemas'
+import type {
+  Exercise,
+  ExerciseFormInput,
+  ExerciseSearchFilters,
+  MuscleGroup,
+  Tag,
+} from '../schemas'
 
 function toRequestBody(input: ExerciseFormInput) {
   return {
@@ -52,12 +58,17 @@ export const catalogApi = {
     return (page.content ?? []) as Exercise[]
   },
   getExercise: (exerciseId: string) =>
-    unwrap(api.GET('/api/catalog/exercises/{exerciseId}', { params: { path: { exerciseId } } })) as Promise<Exercise>,
+    unwrap(
+      api.GET('/api/catalog/exercises/{exerciseId}', { params: { path: { exerciseId } } }),
+    ) as Promise<Exercise>,
   createExercise: (input: ExerciseFormInput) =>
     unwrap(api.POST('/api/catalog/exercises', { body: toRequestBody(input) })) as Promise<Exercise>,
   updateExercise: (exerciseId: string, input: ExerciseFormInput) =>
     unwrap(
-      api.PUT('/api/catalog/exercises/{exerciseId}', { params: { path: { exerciseId } }, body: toRequestBody(input) }),
+      api.PUT('/api/catalog/exercises/{exerciseId}', {
+        params: { path: { exerciseId } },
+        body: toRequestBody(input),
+      }),
     ) as Promise<Exercise>,
   deleteExercise: (exerciseId: string) =>
     unwrap(api.DELETE('/api/catalog/exercises/{exerciseId}', { params: { path: { exerciseId } } })),

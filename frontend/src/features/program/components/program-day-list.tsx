@@ -8,7 +8,13 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useExercises } from '@/features/catalog'
 
 import {
@@ -84,7 +90,7 @@ export function ProgramDayList({ program, canManage }: { program: Program; canMa
                   control={dayForm.control}
                   name="name"
                   render={({ field }) => (
-                    <FormItem className="flex-1 min-w-[200px]">
+                    <FormItem className="min-w-[200px] flex-1">
                       <FormControl>
                         <Input placeholder="Nom du jour (ex: Jour 1 - Haut du corps)" {...field} />
                       </FormControl>

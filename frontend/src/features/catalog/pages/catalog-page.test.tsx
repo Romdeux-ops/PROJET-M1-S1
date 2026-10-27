@@ -35,6 +35,8 @@ describe('CatalogPage', () => {
     server.use(http.get('*/api/catalog/exercises', () => HttpResponse.json([])))
     renderWithProviders(<CatalogPage />)
 
-    expect(await screen.findByText('Aucun exercice ne correspond à ces critères.')).toBeInTheDocument()
+    expect(
+      await screen.findByText('Aucun exercice ne correspond à ces critères.'),
+    ).toBeInTheDocument()
   })
 })

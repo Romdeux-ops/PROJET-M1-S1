@@ -20,7 +20,8 @@ export const statsHandlers = [
       db.sessions.filter((s) => dateOf(s) <= isoDaysAgo(from) && dateOf(s) > isoDaysAgo(to))
     const thisWeek = inRange(0, 7)
     const lastWeek = inRange(7, 14)
-    const minutes = (list: typeof thisWeek) => list.reduce((sum, s) => sum + (s.durationMinutes ?? 0), 0)
+    const minutes = (list: typeof thisWeek) =>
+      list.reduce((sum, s) => sum + (s.durationMinutes ?? 0), 0)
 
     const weeklyActivity = Array.from({ length: 7 }, (_, i) => {
       const date = isoDaysAgo(6 - i)
@@ -33,7 +34,9 @@ export const statsHandlers = [
     let streak = 0
     while (db.sessions.some((s) => dateOf(s) === isoDaysAgo(streak))) streak++
 
-    const rpes = thisWeek.flatMap((s) => s.sets.map((set) => set.rpe).filter((rpe): rpe is number => rpe != null))
+    const rpes = thisWeek.flatMap((s) =>
+      s.sets.map((set) => set.rpe).filter((rpe): rpe is number => rpe != null),
+    )
 
     const overview: StatsOverview = {
       sessionsThisWeek: thisWeek.length,
@@ -47,11 +50,14 @@ export const statsHandlers = [
     return HttpResponse.json(overview)
   }),
 
-  http.get<{ exerciseId: string }>('*/api/stats/exercises/:exerciseId/progression', async ({ request }) => {
-    await networkDelay()
-    if (!userFromRequest(request)) return problem(401, 'Session invalide.')
-    return HttpResponse.json([])
-  }),
+  http.get<{ exerciseId: string }>(
+    '*/api/stats/exercises/:exerciseId/progression',
+    async ({ request }) => {
+      await networkDelay()
+      if (!userFromRequest(request)) return problem(401, 'Session invalide.')
+      return HttpResponse.json([])
+    },
+  ),
 
   http.get('*/api/stats/volume/weekly', async ({ request }) => {
     await networkDelay()

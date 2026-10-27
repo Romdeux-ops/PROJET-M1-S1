@@ -38,7 +38,11 @@ export function StatsPage() {
             value={overview ? String(overview.minutesThisWeek) : '—'}
             trend={overview?.minutesTrend}
           />
-          <StatCard icon={Gauge} label="RPE moyen" value={overview ? overview.averageEffort.toFixed(1) : '—'} />
+          <StatCard
+            icon={Gauge}
+            label="RPE moyen"
+            value={overview ? overview.averageEffort.toFixed(1) : '—'}
+          />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
@@ -46,7 +50,9 @@ export function StatsPage() {
             <CardHeader>
               <CardTitle>Activité des 7 derniers jours</CardTitle>
             </CardHeader>
-            <CardContent>{overview && <WeeklyActivityChart data={overview.weeklyActivity} />}</CardContent>
+            <CardContent>
+              {overview && <WeeklyActivityChart data={overview.weeklyActivity} />}
+            </CardContent>
           </Card>
           <ProgressionScoreCard />
         </div>
@@ -55,7 +61,9 @@ export function StatsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Volume hebdomadaire</CardTitle>
-              <CardDescription>Tonnage total (charge × répétitions) des 12 dernières semaines.</CardDescription>
+              <CardDescription>
+                Tonnage total (charge × répétitions) des 12 dernières semaines.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <WeeklyVolumeChart />
@@ -64,7 +72,9 @@ export function StatsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Répartition par muscle</CardTitle>
-              <CardDescription>Volume des 30 derniers jours, par groupe musculaire primaire.</CardDescription>
+              <CardDescription>
+                Volume des 30 derniers jours, par groupe musculaire primaire.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <MuscleDistributionChart />

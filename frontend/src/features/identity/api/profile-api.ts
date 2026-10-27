@@ -14,7 +14,8 @@ const baseUrl = import.meta.env.VITE_API_URL || window.location.origin
  */
 export const profileApi = {
   get: () => http.get<ProfileResponse>('/api/users/me/profile'),
-  update: (input: UpdateProfileInput) => http.patch<ProfileResponse>('/api/users/me/profile', input),
+  update: (input: UpdateProfileInput) =>
+    http.patch<ProfileResponse>('/api/users/me/profile', input),
   uploadAvatar: async (file: File) => {
     const formData = new FormData()
     formData.append('file', file)

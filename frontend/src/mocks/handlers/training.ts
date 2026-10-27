@@ -54,28 +54,31 @@ export const trainingHandlers = [
     return new HttpResponse(null, { status: 204 })
   }),
 
-  http.post<{ id: string }, AddSetInput>('*/api/training/sessions/:id/sets', async ({ request, params }) => {
-    await networkDelay()
-    if (!userFromRequest(request)) return problem(401, 'Session invalide.')
-    const session = db.sessions.find((s) => s.id === params.id)
-    if (!session) return problem(404, 'Séance introuvable.')
-    const body = await request.json()
-    session.sets.push({
-      id: crypto.randomUUID(),
-      exerciseId: body.exerciseId,
-      exerciseName: 'Exercice',
-      position: session.sets.length,
-      setNumber: body.setNumber,
-      reps: body.reps,
-      weightKg: body.weightKg,
-      rpe: body.rpe ?? null,
-      restSeconds: body.restSeconds ?? null,
-      volume: body.weightKg * body.reps,
-      isPersonalRecord: false,
-    })
-    session.totalVolume = session.sets.reduce((sum, s) => sum + s.volume, 0)
-    return HttpResponse.json(session)
-  }),
+  http.post<{ id: string }, AddSetInput>(
+    '*/api/training/sessions/:id/sets',
+    async ({ request, params }) => {
+      await networkDelay()
+      if (!userFromRequest(request)) return problem(401, 'Session invalide.')
+      const session = db.sessions.find((s) => s.id === params.id)
+      if (!session) return problem(404, 'Séance introuvable.')
+      const body = await request.json()
+      session.sets.push({
+        id: crypto.randomUUID(),
+        exerciseId: body.exerciseId,
+        exerciseName: 'Exercice',
+        position: session.sets.length,
+        setNumber: body.setNumber,
+        reps: body.reps,
+        weightKg: body.weightKg,
+        rpe: body.rpe ?? null,
+        restSeconds: body.restSeconds ?? null,
+        volume: body.weightKg * body.reps,
+        isPersonalRecord: false,
+      })
+      session.totalVolume = session.sets.reduce((sum, s) => sum + s.volume, 0)
+      return HttpResponse.json(session)
+    },
+  ),
 
   http.delete<{ id: string; setId: string }>(
     '*/api/training/sessions/:id/sets/:setId',

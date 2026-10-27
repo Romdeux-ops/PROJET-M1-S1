@@ -21,13 +21,17 @@ describe('ProgramPage', () => {
 
     await user.click(screen.getByRole('button', { name: /mes programmes/i }))
 
-    expect(await screen.findByText('Aucun programme ne correspond à ces critères.')).toBeInTheDocument()
+    expect(
+      await screen.findByText('Aucun programme ne correspond à ces critères.'),
+    ).toBeInTheDocument()
   })
 
   it('affiche un état vide quand aucun programme ne correspond', async () => {
     server.use(http.get('*/api/programs', () => HttpResponse.json([])))
     renderWithProviders(<ProgramPage />)
 
-    expect(await screen.findByText('Aucun programme ne correspond à ces critères.')).toBeInTheDocument()
+    expect(
+      await screen.findByText('Aucun programme ne correspond à ces critères.'),
+    ).toBeInTheDocument()
   })
 })

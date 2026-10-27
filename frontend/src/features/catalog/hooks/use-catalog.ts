@@ -7,7 +7,8 @@ export const catalogKeys = {
   all: ['catalog'] as const,
   muscleGroups: () => [...catalogKeys.all, 'muscle-groups'] as const,
   tags: () => [...catalogKeys.all, 'tags'] as const,
-  exercises: (filters: ExerciseSearchFilters) => [...catalogKeys.all, 'exercises', filters] as const,
+  exercises: (filters: ExerciseSearchFilters) =>
+    [...catalogKeys.all, 'exercises', filters] as const,
   exercise: (id: string) => [...catalogKeys.all, 'exercise', id] as const,
 }
 
