@@ -1,5 +1,6 @@
 package com.fitcoach.planning.domain;
 
+import com.fitcoach.planning.exception.InvalidScheduledSessionStatusException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -91,24 +92,12 @@ public class ScheduledSession {
         return workoutSessionId;
     }
 
-    public void setWorkoutSessionId(UUID workoutSessionId) {
-        this.workoutSessionId = workoutSessionId;
-    }
-
     public LocalDate getScheduledDate() {
         return scheduledDate;
     }
 
-    public void setScheduledDate(LocalDate scheduledDate) {
-        this.scheduledDate = scheduledDate;
-    }
-
     public ScheduledSessionStatus getStatus() {
         return status;
-    }
-
-    public void setStatus(ScheduledSessionStatus status) {
-        this.status = status;
     }
 
     public String getTitle() {
@@ -133,5 +122,37 @@ public class ScheduledSession {
 
     public boolean isOwnedBy(UUID userId) {
         return athleteId.equals(userId);
+    }
+
+    /** Une seance sautee redevient planifiee ; une seance realisee ne se deplace plus. */
+    public void reschedule(LocalDate newDate) {
+        if (status != ScheduledSessionStatus.PLANNED) {
+            transitionTo(ScheduledSessionStatus.PLANNED);
+        }
+        this.scheduledDate = newDate;
+    }
+
+    public void skip() {
+        transitionTo(ScheduledSessionStatus.SKIPPED);
+    }
+
+    /** @param needsCoachValidation vrai si l'athlete a un coach actif, qui devra valider */
+    public void complete(UUID workoutSessionId, boolean needsCoachValidation) {
+        transitionTo(needsCoachValidation ? ScheduledSessionStatus.PENDING_VALIDATION : ScheduledSessionStatus.DONE);
+        this.workoutSessionId = workoutSessionId;
+    }
+
+    public void validate() {
+        if (status != ScheduledSessionStatus.PENDING_VALIDATION) {
+            throw new InvalidScheduledSessionStatusException(status, ScheduledSessionStatus.DONE);
+        }
+        transitionTo(ScheduledSessionStatus.DONE);
+    }
+
+    private void transitionTo(ScheduledSessionStatus target) {
+        if (!status.canTransitionTo(target)) {
+            throw new InvalidScheduledSessionStatusException(status, target);
+        }
+        this.status = target;
     }
 }

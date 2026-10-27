@@ -9,7 +9,7 @@ import com.fitcoach.planning.dto.CompleteRequest;
 import com.fitcoach.planning.dto.RescheduleRequest;
 import com.fitcoach.planning.dto.ScheduleRequest;
 import com.fitcoach.planning.dto.ScheduledSessionResponse;
-import com.fitcoach.planning.exception.InvalidScheduledSessionStatusException;
+import com.fitcoach.planning.exception.InvalidDateRangeException;
 import com.fitcoach.planning.exception.NotValidatingCoachException;
 import com.fitcoach.planning.exception.ScheduledSessionNotFoundException;
 import com.fitcoach.planning.exception.UnknownWorkoutSessionException;
@@ -17,13 +17,19 @@ import com.fitcoach.planning.repository.ScheduledSessionRepository;
 import com.fitcoach.training.api.WorkoutSessions;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional(readOnly = true)
 public class PlanningService {
+
+    /** Une annee bissextile complete : couvre toute vue calendrier sans autoriser un balayage illimite. */
+    private static final int MAX_RANGE_DAYS = 366;
 
     private final ScheduledSessionRepository scheduledSessionRepository;
     private final CoachRelations coachRelations;
@@ -45,6 +51,9 @@ public class PlanningService {
     }
 
     public List<ScheduledSessionResponse> listBetween(UUID athleteId, LocalDate from, LocalDate to) {
+        if (to.isBefore(from) || ChronoUnit.DAYS.between(from, to) >= MAX_RANGE_DAYS) {
+            throw new InvalidDateRangeException(MAX_RANGE_DAYS);
+        }
         return scheduledSessionRepository
                 .findByAthleteIdAndScheduledDateBetweenOrderByScheduledDate(athleteId, from, to)
                 .stream()
@@ -72,33 +81,24 @@ public class PlanningService {
     @Transactional
     public ScheduledSessionResponse reschedule(UUID scheduledSessionId, UUID athleteId, RescheduleRequest request) {
         ScheduledSession session = findOwnedOrThrow(scheduledSessionId, athleteId);
-        session.setScheduledDate(request.scheduledDate());
-        if (session.getStatus() == ScheduledSessionStatus.SKIPPED) {
-            session.setStatus(ScheduledSessionStatus.PLANNED);
-        }
+        session.reschedule(request.scheduledDate());
         return ScheduledSessionResponse.from(session);
     }
 
     @Transactional
     public ScheduledSessionResponse skip(UUID scheduledSessionId, UUID athleteId) {
         ScheduledSession session = findOwnedOrThrow(scheduledSessionId, athleteId);
-        session.setStatus(ScheduledSessionStatus.SKIPPED);
+        session.skip();
         return ScheduledSessionResponse.from(session);
     }
 
     @Transactional
     public ScheduledSessionResponse complete(UUID scheduledSessionId, UUID athleteId, CompleteRequest request) {
         ScheduledSession session = findOwnedOrThrow(scheduledSessionId, athleteId);
-        if (session.getStatus() != ScheduledSessionStatus.PLANNED) {
-            throw new InvalidScheduledSessionStatusException(
-                    "Seule une seance PLANIFIEE peut etre marquee comme terminee.");
-        }
-        if (request.workoutSessionId() != null && !workoutSessions.isOwnedBy(request.workoutSessionId(), athleteId)) {
+        if (!workoutSessions.isOwnedBy(request.workoutSessionId(), athleteId)) {
             throw new UnknownWorkoutSessionException();
         }
-        session.setWorkoutSessionId(request.workoutSessionId());
-        boolean hasActiveCoach = coachRelations.hasActiveCoach(athleteId);
-        session.setStatus(hasActiveCoach ? ScheduledSessionStatus.PENDING_VALIDATION : ScheduledSessionStatus.DONE);
+        session.complete(request.workoutSessionId(), coachRelations.hasActiveCoach(athleteId));
         return ScheduledSessionResponse.from(session);
     }
 
@@ -107,10 +107,11 @@ public class PlanningService {
         if (athleteIds.isEmpty()) {
             return List.of();
         }
+        Map<UUID, UserSummary> athletes = userDirectory.findAllById(athleteIds);
         return scheduledSessionRepository
                 .findByAthleteIdInAndStatusOrderByScheduledDate(athleteIds, ScheduledSessionStatus.PENDING_VALIDATION)
                 .stream()
-                .map(session -> ScheduledSessionResponse.from(session, athleteNameOf(session.getAthleteId())))
+                .map(session -> ScheduledSessionResponse.from(session, displayName(athletes.get(session.getAthleteId()))))
                 .toList();
     }
 
@@ -122,12 +123,9 @@ public class PlanningService {
         if (!coachRelations.isActiveClient(coachId, session.getAthleteId())) {
             throw new NotValidatingCoachException();
         }
-        if (session.getStatus() != ScheduledSessionStatus.PENDING_VALIDATION) {
-            throw new InvalidScheduledSessionStatusException(
-                    "Seule une seance en attente de validation peut etre validee.");
-        }
-        session.setStatus(ScheduledSessionStatus.DONE);
-        return ScheduledSessionResponse.from(session, athleteNameOf(session.getAthleteId()));
+        session.validate();
+        return ScheduledSessionResponse.from(
+                session, displayName(userDirectory.findById(session.getAthleteId()).orElse(null)));
     }
 
     @Transactional
@@ -135,17 +133,14 @@ public class PlanningService {
         scheduledSessionRepository.delete(findOwnedOrThrow(scheduledSessionId, athleteId));
     }
 
-    private String athleteNameOf(UUID athleteId) {
-        return userDirectory.findById(athleteId).map(UserSummary::displayName).orElse("");
+    private static String displayName(UserSummary user) {
+        return user == null ? "" : user.displayName();
     }
 
     private ScheduledSession findOwnedOrThrow(UUID scheduledSessionId, UUID athleteId) {
-        ScheduledSession session = scheduledSessionRepository
+        return scheduledSessionRepository
                 .findById(scheduledSessionId)
+                .filter(s -> s.isOwnedBy(athleteId))
                 .orElseThrow(ScheduledSessionNotFoundException::new);
-        if (!session.isOwnedBy(athleteId)) {
-            throw new ScheduledSessionNotFoundException();
-        }
-        return session;
     }
 }
