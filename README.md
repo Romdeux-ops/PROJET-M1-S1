@@ -30,6 +30,12 @@ docker compose up -d      # PostgreSQL sur 5432, pgAdmin sur 5050
 Au demarrage, Flyway applique les migrations puis Hibernate valide que les
 entites correspondent au schema obtenu.
 
+`application.yml` ne definit aucun profil par defaut : `./gradlew bootRun`
+active `dev` (secret JWT de repli, logs SQL) si `SPRING_PROFILES_ACTIVE` est
+absent, mais un jar lance ailleurs exige `SPRING_PROFILES_ACTIVE` et
+`JWT_SECRET` explicites. `APP_TIME_ZONE` (defaut `Europe/Paris`) fixe le fuseau
+des notions "aujourd'hui" et "semaine" ; les instants sont stockes en UTC.
+
 | Service | URL |
 | --- | --- |
 | API | http://localhost:8080 |
@@ -139,12 +145,12 @@ frontend.
 ## Etat d'avancement
 
 - [x] Phase 1 — socle technique, base de donnees, migration initiale
-- [ ] Phase 2 — authentification JWT et profil
-- [ ] Phase 3 — catalogue d'exercices
-- [ ] Phase 4 — programmes
-- [ ] Phase 5 — carnet d'entrainement
-- [ ] Phase 6 — planning
-- [ ] Phase 7 — statistiques
+- [x] Phase 2 — authentification JWT et profil
+- [x] Phase 3 — catalogue d'exercices
+- [x] Phase 4 — programmes
+- [x] Phase 5 — carnet d'entrainement
+- [x] Phase 6 — planning
+- [x] Phase 7 — statistiques
 - [ ] Phase 8 — portail de coaching
 - [ ] Phase 9 — reservation de creneaux
 - [ ] Phase 10 — messagerie

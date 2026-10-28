@@ -44,13 +44,30 @@ dependencies {
     // springdoc 3.x est la ligne compatible Spring Boot 4 (la 2.x cible Boot 3).
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
 
+    // Authentification JWT (phase 2).
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.1'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+// Aucun profil par defaut dans application.yml (un deploiement qui oublie
+// SPRING_PROFILES_ACTIVE ne doit pas tourner en dev) ; seul bootRun, reserve au
+// poste local, bascule en dev quand rien n'est precise.
+tasks.named('bootRun') {
+    if (!System.getenv('SPRING_PROFILES_ACTIVE')) {
+        systemProperty 'spring.profiles.active', 'dev'
+    }
 }

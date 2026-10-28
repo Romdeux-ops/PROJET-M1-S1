@@ -1,5 +1,8 @@
 export { authApi, type AuthResponse } from './api/auth-api'
+export { profileApi } from './api/profile-api'
 export { useLogin, useLogout, useRegister } from './hooks/use-auth'
+export { useProfile, useUpdateProfile, useUploadAvatar } from './hooks/use-profile'
 export { LoginPage } from './pages/login-page'
 export { ProfilePage } from './pages/profile-page'
 export { RegisterPage } from './pages/register-page'
+export type { ProfileResponse, UpdateProfileInput } from './schemas'

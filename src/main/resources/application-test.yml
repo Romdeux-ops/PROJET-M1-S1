@@ -15,3 +15,11 @@ spring:
 logging:
   level:
     com.fitcoach: DEBUG
+
+app:
+  jwt:
+    # Valeur de repli uniquement active en profil test ; JWT_SECRET reste prioritaire.
+    secret: ${JWT_SECRET:test-only-secret-key-please-rotate-32bytes-min}
+  # Hors de ./uploads pour que les fichiers deposes par les tests restent dans build/.
+  uploads:
+    dir: build/test-uploads

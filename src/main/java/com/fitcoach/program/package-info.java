@@ -13,6 +13,10 @@
  * <p>Tables : {@code programs}, {@code program_days}, {@code program_exercises},
  * {@code program_ratings}.
  *
+ * <p>Visibilite publique accessible en lecture a tout utilisateur connecte (et
+ * via lien de partage sans authentification) ; creation, modification et
+ * suppression reservees au proprietaire du programme.
+ *
  * <p>Phase 4.
  */
 package com.fitcoach.program;

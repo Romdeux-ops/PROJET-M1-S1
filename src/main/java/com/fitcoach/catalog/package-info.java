@@ -9,6 +9,9 @@
  * <p>Tables : {@code exercises}, {@code muscle_groups}, {@code exercise_muscles},
  * {@code tags}, {@code exercise_tags}, {@code exercise_alternatives}.
  *
+ * <p>Lecture ouverte a tout utilisateur authentifie ; creation, modification et
+ * suppression d'exercices reservees aux roles {@code COACH} et {@code ADMIN}.
+ *
  * <p>Phase 3.
  */
 package com.fitcoach.catalog;

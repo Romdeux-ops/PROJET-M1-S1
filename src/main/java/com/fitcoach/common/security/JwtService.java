@@ -1,0 +1,71 @@
+package com.fitcoach.common.security;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+import javax.crypto.SecretKey;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+/**
+ * Emission et validation des JWT d'acces.
+ *
+ * <p>Jeton stateless porteur du role : pas de session serveur, le contenu du
+ * jeton (id, email, roles) suffit a reconstruire l'authentification a chaque
+ * requete dans {@link JwtAuthenticationFilter}.
+ */
+@Component
+public class JwtService {
+
+    private static final String CLAIM_EMAIL = "email";
+    private static final String CLAIM_ROLES = "roles";
+
+    private final SecretKey signingKey;
+    private final Duration expiration;
+    private final Clock clock;
+
+    public JwtService(
+            @Value("${app.jwt.secret}") String secret,
+            @Value("${app.jwt.expiration-minutes}") long expirationMinutes,
+            Clock clock) {
+        this.signingKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.expiration = Duration.ofMinutes(expirationMinutes);
+        this.clock = clock;
+    }
+
+    public String generateToken(UUID userId, String email, Collection<String> roles) {
+        Instant now = clock.instant();
+        return Jwts.builder()
+                .subject(userId.toString())
+                .claim(CLAIM_EMAIL, email)
+                .claim(CLAIM_ROLES, List.copyOf(roles))
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(now.plus(expiration)))
+                .signWith(signingKey)
+                .compact();
+    }
+
+    /** @throws JwtException si le jeton est invalide, expire ou mal signe. */
+    public ParsedToken parse(String token) {
+        Claims claims = Jwts.parser()
+                .clock(() -> Date.from(clock.instant()))
+                .verifyWith(signingKey)
+                .build().parseSignedClaims(token).getPayload();
+        UUID userId = UUID.fromString(claims.getSubject());
+        List<?> rawRoles = claims.get(CLAIM_ROLES, List.class);
+        List<RoleCode> roles =
+                rawRoles == null ? List.of() : rawRoles.stream().map(Object::toString).map(RoleCode::valueOf).toList();
+        return new ParsedToken(userId, roles);
+    }
+
+    public record ParsedToken(UUID userId, List<RoleCode> roles) {}
+}

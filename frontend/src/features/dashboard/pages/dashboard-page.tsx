@@ -16,7 +16,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { NAV_ITEMS } from '@/features/navigation'
 import { useStatsOverview, WeeklyActivityChart } from '@/features/stats'
-import { SessionTypeBadge, useSessions } from '@/features/training'
+import { useSessions } from '@/features/training'
 import { useSession } from '@/lib/auth/session'
 import { formatDuration, formatShortDate } from '@/lib/format'
 
@@ -144,10 +144,11 @@ export function DashboardPage() {
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{s.title}</p>
                       <p className="text-xs text-muted-foreground">
-                        {formatShortDate(s.date)} · {formatDuration(s.durationMinutes)}
+                        {formatShortDate(s.performedAt)}
+                        {s.durationMinutes != null ? ` · ${formatDuration(s.durationMinutes)}` : ''}
                       </p>
                     </div>
-                    <SessionTypeBadge type={s.type} />
+                    <span className="text-xs text-muted-foreground">{s.sets.length} série(s)</span>
                   </li>
                 ))}
               </ul>

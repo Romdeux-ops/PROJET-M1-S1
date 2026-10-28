@@ -10,6 +10,10 @@
  * <p>Tables : {@code workout_sessions}, {@code session_sets},
  * {@code personal_records}.
  *
+ * <p>Seances strictement privees a leur auteur (aucun partage). Deux records
+ * personnels par exercice sont maintenus a jour a chaque serie enregistree :
+ * charge maximale et 1RM estime (formule d'Epley).
+ *
  * <p>Phase 5.
  */
 package com.fitcoach.training;
