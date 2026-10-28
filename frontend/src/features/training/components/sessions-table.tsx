@@ -37,7 +37,9 @@ export function SessionsTable({ sessions, isLoading, emptyAction }: SessionsTabl
       key: 'duration',
       header: 'Durée',
       cell: (s) => (
-        <span className="tabular-nums">{s.durationMinutes != null ? formatDuration(s.durationMinutes) : '—'}</span>
+        <span className="tabular-nums">
+          {s.durationMinutes != null ? formatDuration(s.durationMinutes) : '—'}
+        </span>
       ),
     },
     {
@@ -56,7 +58,12 @@ export function SessionsTable({ sessions, isLoading, emptyAction }: SessionsTabl
       className: 'w-20 text-right',
       cell: (s) => (
         <div className="flex justify-end gap-1">
-          <Button variant="ghost" size="icon-sm" aria-label={`Voir ${s.title}`} onClick={() => setDetailId(s.id)}>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={`Voir ${s.title}`}
+            onClick={() => setDetailId(s.id)}
+          >
             <Eye />
           </Button>
           <Button

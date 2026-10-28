@@ -3,16 +3,14 @@ package com.fitcoach.coaching.web;
 import com.fitcoach.common.security.AuthenticatedUsers;
 import com.fitcoach.coaching.dto.PostRequest;
 import com.fitcoach.coaching.dto.PostResponse;
-import com.fitcoach.coaching.exception.NotCoachClientException;
 import com.fitcoach.coaching.service.CoachPostService;
-import com.fitcoach.coaching.service.CoachingService;
 import com.fitcoach.coaching.service.PostImageStorageService;
 import jakarta.validation.Valid;
-import java.io.IOException;
-import java.nio.file.Files;
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,17 +30,15 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/coaching/posts")
 public class CoachPostController {
 
+    /** Images immuables (nom = UUID) mais privees : cache navigateur uniquement. */
+    private static final Duration IMAGE_CACHE = Duration.ofHours(1);
+
     private final CoachPostService coachPostService;
     private final PostImageStorageService postImageStorageService;
-    private final CoachingService coachingService;
 
-    public CoachPostController(
-            CoachPostService coachPostService,
-            PostImageStorageService postImageStorageService,
-            CoachingService coachingService) {
+    public CoachPostController(CoachPostService coachPostService, PostImageStorageService postImageStorageService) {
         this.coachPostService = coachPostService;
         this.postImageStorageService = postImageStorageService;
-        this.coachingService = coachingService;
     }
 
     @PostMapping
@@ -62,23 +58,13 @@ public class CoachPostController {
     @GetMapping("/images/{coachId}/{filename}")
     public ResponseEntity<FileSystemResource> getImage(
             Authentication authentication, @PathVariable UUID coachId, @PathVariable String filename) {
-        UUID viewerId = AuthenticatedUsers.id(authentication);
-        if (!viewerId.equals(coachId) && !coachingService.isActiveClient(coachId, viewerId)) {
-            throw new NotCoachClientException();
-        }
-        var path = postImageStorageService.resolve("posts/" + coachId + "/" + filename);
-        if (!Files.isRegularFile(path)) {
-            return ResponseEntity.notFound().build();
-        }
-        String contentType;
-        try {
-            contentType = Files.probeContentType(path);
-        } catch (IOException e) {
-            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
-        }
-        return ResponseEntity.ok()
-                .contentType(contentType != null ? MediaType.parseMediaType(contentType) : MediaType.APPLICATION_OCTET_STREAM)
-                .body(new FileSystemResource(path));
+        return coachPostService
+                .loadImage(coachId, filename, AuthenticatedUsers.id(authentication))
+                .map(image -> ResponseEntity.ok()
+                        .contentType(image.mediaType())
+                        .cacheControl(CacheControl.maxAge(IMAGE_CACHE).cachePrivate())
+                        .body(new FileSystemResource(image.path())))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     public record ImageResponse(String imageUrl) {}

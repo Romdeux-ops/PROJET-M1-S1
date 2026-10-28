@@ -21,9 +21,7 @@ export function CoachingPage() {
     <>
       <PageHeader
         title="Coaching"
-        description={
-          isCoach ? 'Vos athlètes suivis.' : 'Vos coachs et leurs publications.'
-        }
+        description={isCoach ? 'Vos athlètes suivis.' : 'Vos coachs et leurs publications.'}
       />
       {isCoach ? <CoachView /> : <AthleteView />}
     </>
@@ -36,47 +34,47 @@ function CoachView() {
     <div className="space-y-6">
       <PendingValidationsPanel />
       <div className="grid gap-6 lg:grid-cols-3">
-      <Card className="lg:col-span-1">
-        <CardHeader>
-          <CardTitle>Rattacher un athlète</CardTitle>
-          <CardDescription>Par son adresse e-mail.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <AddAthleteForm />
-        </CardContent>
-      </Card>
-      <Card className="lg:col-span-2">
-        <CardHeader>
-          <CardTitle>Mes athlètes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <Loader2 className="size-5 animate-spin text-muted-foreground" />
-          ) : !athletes || athletes.length === 0 ? (
-            <EmptyState icon={Users} title="Aucun athlète pour le moment" />
-          ) : (
-            <ul className="space-y-3">
-              {athletes.map((athlete) => {
-                const name = `${athlete.firstName} ${athlete.lastName}`
-                return (
-                  <li key={athlete.id} className="flex items-center gap-3">
-                    <Avatar>
-                      {athlete.avatarUrl && <AvatarImage src={athlete.avatarUrl} alt={name} />}
-                      <AvatarFallback className="bg-brand text-xs font-semibold text-white">
-                        {initials(name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="text-sm font-medium">{name}</p>
-                      <p className="text-xs text-muted-foreground">{athlete.email}</p>
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <CardTitle>Rattacher un athlète</CardTitle>
+            <CardDescription>Par son adresse e-mail.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AddAthleteForm />
+          </CardContent>
+        </Card>
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Mes athlètes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <Loader2 className="size-5 animate-spin text-muted-foreground" />
+            ) : !athletes || athletes.length === 0 ? (
+              <EmptyState icon={Users} title="Aucun athlète pour le moment" />
+            ) : (
+              <ul className="space-y-3">
+                {athletes.map((athlete) => {
+                  const name = `${athlete.firstName} ${athlete.lastName}`
+                  return (
+                    <li key={athlete.id} className="flex items-center gap-3">
+                      <Avatar>
+                        {athlete.avatarUrl && <AvatarImage src={athlete.avatarUrl} alt={name} />}
+                        <AvatarFallback className="bg-brand text-xs font-semibold text-white">
+                          {initials(name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-sm font-medium">{name}</p>
+                        <p className="text-xs text-muted-foreground">{athlete.email}</p>
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

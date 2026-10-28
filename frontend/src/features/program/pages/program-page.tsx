@@ -4,7 +4,13 @@ import { useState } from 'react'
 import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 import { ProgramCard } from '../components/program-card'
 import { ProgramForm } from '../components/program-form'
@@ -56,7 +62,10 @@ export function ProgramPage() {
           <Select
             value={filters.category ?? ALL}
             onValueChange={(value) =>
-              setFilters((f) => ({ ...f, category: value === ALL ? undefined : (value as typeof f.category) }))
+              setFilters((f) => ({
+                ...f,
+                category: value === ALL ? undefined : (value as typeof f.category),
+              }))
             }
           >
             <SelectTrigger className="w-[160px]">
@@ -75,7 +84,10 @@ export function ProgramPage() {
           <Select
             value={filters.level ?? ALL}
             onValueChange={(value) =>
-              setFilters((f) => ({ ...f, level: value === ALL ? undefined : (value as typeof f.level) }))
+              setFilters((f) => ({
+                ...f,
+                level: value === ALL ? undefined : (value as typeof f.level),
+              }))
             }
           >
             <SelectTrigger className="w-[160px]">
@@ -95,7 +107,9 @@ export function ProgramPage() {
         {isLoading ? (
           <Loader2 className="size-5 animate-spin text-muted-foreground" />
         ) : programs.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Aucun programme ne correspond à ces critères.</p>
+          <p className="text-sm text-muted-foreground">
+            Aucun programme ne correspond à ces critères.
+          </p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {programs.map((program) => (

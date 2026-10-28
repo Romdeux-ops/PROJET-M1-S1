@@ -1,7 +1,12 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { programApi } from '../api/program-api'
-import type { DayFormInput, ExerciseEntryFormInput, ProgramFormInput, ProgramSearchFilters } from '../schemas'
+import type {
+  DayFormInput,
+  ExerciseEntryFormInput,
+  ProgramFormInput,
+  ProgramSearchFilters,
+} from '../schemas'
 
 export const programKeys = {
   all: ['programs'] as const,

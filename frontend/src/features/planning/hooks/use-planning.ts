@@ -11,7 +11,10 @@ export const planningKeys = {
 }
 
 export const scheduledRangeQuery = (from: string, to: string) =>
-  queryOptions({ queryKey: planningKeys.range(from, to), queryFn: () => planningApi.listBetween(from, to) })
+  queryOptions({
+    queryKey: planningKeys.range(from, to),
+    queryFn: () => planningApi.listBetween(from, to),
+  })
 
 export function useScheduledRange(from: string, to: string) {
   return useQuery(scheduledRangeQuery(from, to))
@@ -22,7 +25,10 @@ export function useScheduledToday() {
 }
 
 export function usePendingValidations() {
-  return useQuery({ queryKey: planningKeys.pendingValidations(), queryFn: planningApi.listPendingValidations })
+  return useQuery({
+    queryKey: planningKeys.pendingValidations(),
+    queryFn: planningApi.listPendingValidations,
+  })
 }
 
 export function useSchedule() {

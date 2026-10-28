@@ -98,7 +98,14 @@ function seedExercises(): Exercise[] {
       difficulty: 'INTERMEDIATE',
       defaultRestSeconds: 120,
       mediaUrl: null,
-      muscles: [{ muscleGroupId: 'mg-chest', muscleGroupCode: 'CHEST', muscleGroupName: 'Pectoraux', role: 'PRIMARY' }],
+      muscles: [
+        {
+          muscleGroupId: 'mg-chest',
+          muscleGroupCode: 'CHEST',
+          muscleGroupName: 'Pectoraux',
+          role: 'PRIMARY',
+        },
+      ],
       tags: [{ id: 'tag-push', code: 'PUSH', name: 'Poussée' }],
       alternativeExerciseIds: [],
       createdAt: now,
@@ -113,7 +120,14 @@ function seedExercises(): Exercise[] {
       difficulty: 'INTERMEDIATE',
       defaultRestSeconds: 150,
       mediaUrl: null,
-      muscles: [{ muscleGroupId: 'mg-legs', muscleGroupCode: 'LEGS', muscleGroupName: 'Jambes', role: 'PRIMARY' }],
+      muscles: [
+        {
+          muscleGroupId: 'mg-legs',
+          muscleGroupCode: 'LEGS',
+          muscleGroupName: 'Jambes',
+          role: 'PRIMARY',
+        },
+      ],
       tags: [{ id: 'tag-compound', code: 'COMPOUND', name: 'Polyarticulaire' }],
       alternativeExerciseIds: [],
       createdAt: now,
@@ -128,7 +142,14 @@ function seedExercises(): Exercise[] {
       difficulty: 'ADVANCED',
       defaultRestSeconds: 120,
       mediaUrl: null,
-      muscles: [{ muscleGroupId: 'mg-back', muscleGroupCode: 'BACK', muscleGroupName: 'Dos', role: 'PRIMARY' }],
+      muscles: [
+        {
+          muscleGroupId: 'mg-back',
+          muscleGroupCode: 'BACK',
+          muscleGroupName: 'Dos',
+          role: 'PRIMARY',
+        },
+      ],
       tags: [{ id: 'tag-pull', code: 'PULL', name: 'Tirage' }],
       alternativeExerciseIds: [],
       createdAt: now,
@@ -160,7 +181,16 @@ function seedPrograms(): Program[] {
           name: 'Jour 1',
           restDay: false,
           exercises: [
-            { id: 'pe-1', exerciseId: 'ex-1', exerciseName: 'Développé couché', position: 0, sets: 4, reps: '8-10', restSeconds: 90, notes: null },
+            {
+              id: 'pe-1',
+              exerciseId: 'ex-1',
+              exerciseName: 'Développé couché',
+              position: 0,
+              sets: 4,
+              reps: '8-10',
+              restSeconds: 90,
+              notes: null,
+            },
           ],
         },
       ],
@@ -207,7 +237,12 @@ function seedCoachAthletes(): MockCoachAthlete[] {
 }
 
 function seedSessions(): TrainingSession[] {
-  const session = (id: string, title: string, daysAgo: number, durationMinutes: number): TrainingSession => ({
+  const session = (
+    id: string,
+    title: string,
+    daysAgo: number,
+    durationMinutes: number,
+  ): TrainingSession => ({
     id,
     title,
     performedAt: isoDaysAgo(daysAgo),

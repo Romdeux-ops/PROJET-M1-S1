@@ -18,7 +18,10 @@ export function WeeklyVolumeChart() {
       {data.map((week, index) => {
         const height = week.totalVolume === 0 ? 4 : Math.max(8, (week.totalVolume / max) * 100)
         return (
-          <div key={week.weekStart} className="group flex h-full flex-1 flex-col items-center gap-2">
+          <div
+            key={week.weekStart}
+            className="group flex h-full flex-1 flex-col items-center gap-2"
+          >
             <div className="relative flex w-full flex-1 items-end">
               <span className="pointer-events-none absolute -top-1 left-1/2 z-10 -translate-x-1/2 -translate-y-full rounded-md border bg-popover px-2 py-1 text-xs whitespace-nowrap text-popover-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
                 {week.totalVolume.toLocaleString('fr-FR')} kg
@@ -30,7 +33,9 @@ export function WeeklyVolumeChart() {
                 className="w-full rounded-md bg-primary/40"
               />
             </div>
-            <span className="text-xs text-muted-foreground">{weekFormatter.format(new Date(week.weekStart))}</span>
+            <span className="text-xs text-muted-foreground">
+              {weekFormatter.format(new Date(week.weekStart))}
+            </span>
           </div>
         )
       })}

@@ -7,7 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 import { useDeleteProgram, useDuplicateProgram, useUpdateProgram } from '../hooks/use-programs'
-import { CATEGORY_LABELS, LEVEL_LABELS, VISIBILITY_LABELS, type Program, type ProgramFormInput } from '../schemas'
+import {
+  CATEGORY_LABELS,
+  LEVEL_LABELS,
+  VISIBILITY_LABELS,
+  type Program,
+  type ProgramFormInput,
+} from '../schemas'
 import { ProgramDetail } from './program-detail'
 import { ProgramForm } from './program-form'
 import { StaticStars } from './rating-widget'
@@ -41,7 +47,9 @@ export function ProgramCard({ program }: { program: Program }) {
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        {program.description && <p className="text-sm text-muted-foreground">{program.description}</p>}
+        {program.description && (
+          <p className="text-sm text-muted-foreground">{program.description}</p>
+        )}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <StaticStars value={program.averageRating} />
@@ -61,7 +69,11 @@ export function ProgramCard({ program }: { program: Program }) {
             disabled={duplicate.isPending}
             onClick={() => duplicate.mutate(program.id)}
           >
-            {duplicate.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Copy className="size-3.5" />}
+            {duplicate.isPending ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <Copy className="size-3.5" />
+            )}
             Dupliquer
           </Button>
           {program.mine && (
@@ -101,7 +113,11 @@ export function ProgramCard({ program }: { program: Program }) {
           <DialogHeader>
             <DialogTitle>Modifier le programme</DialogTitle>
           </DialogHeader>
-          <ProgramForm program={program} onSubmit={handleUpdate} isPending={updateProgram.isPending} />
+          <ProgramForm
+            program={program}
+            onSubmit={handleUpdate}
+            isPending={updateProgram.isPending}
+          />
         </DialogContent>
       </Dialog>
     </Card>

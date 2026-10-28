@@ -1,8 +1,6 @@
 package com.fitcoach.training.service;
 
-import com.fitcoach.catalog.domain.Exercise;
-import com.fitcoach.catalog.repository.ExerciseRepository;
-import com.fitcoach.training.domain.PersonalRecord;
+import com.fitcoach.catalog.api.ExerciseCatalog;
 import com.fitcoach.training.domain.PersonalRecordMetric;
 import com.fitcoach.training.domain.SessionSet;
 import com.fitcoach.training.domain.WorkoutSession;
@@ -15,46 +13,46 @@ import com.fitcoach.training.exception.InvalidSessionExerciseException;
 import com.fitcoach.training.exception.SessionNotFoundException;
 import com.fitcoach.training.exception.SessionSetNotFoundException;
 import com.fitcoach.training.repository.PersonalRecordRepository;
+import com.fitcoach.training.repository.PersonalRecordView;
 import com.fitcoach.training.repository.SessionSetRepository;
 import com.fitcoach.training.repository.WorkoutSessionRepository;
-import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional(readOnly = true)
 public class TrainingService {
 
     private final WorkoutSessionRepository sessionRepository;
     private final SessionSetRepository sessionSetRepository;
     private final PersonalRecordRepository personalRecordRepository;
-    private final ExerciseRepository exerciseRepository;
+    private final PersonalRecordService personalRecordService;
+    private final ExerciseCatalog exerciseCatalog;
 
     public TrainingService(
             WorkoutSessionRepository sessionRepository,
             SessionSetRepository sessionSetRepository,
             PersonalRecordRepository personalRecordRepository,
-            ExerciseRepository exerciseRepository) {
+            PersonalRecordService personalRecordService,
+            ExerciseCatalog exerciseCatalog) {
         this.sessionRepository = sessionRepository;
         this.sessionSetRepository = sessionSetRepository;
         this.personalRecordRepository = personalRecordRepository;
-        this.exerciseRepository = exerciseRepository;
+        this.personalRecordService = personalRecordService;
+        this.exerciseCatalog = exerciseCatalog;
     }
 
-    public List<SessionResponse> listSessions(UUID athleteId) {
-        return sessionRepository.findByAthleteIdOrderByPerformedAtDesc(athleteId).stream()
-                .map(this::toResponse)
-                .toList();
-    }
-
-    public org.springframework.data.domain.Page<SessionResponse> listSessions(
-            UUID athleteId, org.springframework.data.domain.Pageable pageable) {
-        return sessionRepository.findByAthleteIdOrderByPerformedAtDesc(athleteId, pageable).map(this::toResponse);
+    public Page<SessionResponse> listSessions(UUID athleteId, Pageable pageable) {
+        Page<WorkoutSession> page = sessionRepository.findByAthleteIdOrderByPerformedAtDesc(athleteId, pageable);
+        return new PageImpl<>(toResponses(athleteId, page.getContent()), pageable, page.getTotalElements());
     }
 
     public SessionResponse getSession(UUID sessionId, UUID athleteId) {
@@ -65,8 +63,7 @@ public class TrainingService {
     public SessionResponse createSession(UUID athleteId, SessionRequest request) {
         WorkoutSession session = new WorkoutSession(athleteId, request.title(), request.performedAt());
         applyFields(session, request);
-        session = sessionRepository.save(session);
-        return toResponse(session);
+        return toResponse(sessionRepository.save(session));
     }
 
     @Transactional
@@ -79,24 +76,26 @@ public class TrainingService {
     @Transactional
     public void deleteSession(UUID sessionId, UUID athleteId) {
         WorkoutSession session = findOwnedOrThrow(sessionId, athleteId);
+        Set<UUID> exerciseIds = sessionSetRepository.findDistinctExerciseIdsBySessionId(session.getId());
         sessionRepository.delete(session);
+        personalRecordService.recompute(athleteId, exerciseIds);
     }
 
     @Transactional
     public SessionResponse addSet(UUID sessionId, UUID athleteId, SessionSetRequest request) {
         WorkoutSession session = findOwnedOrThrow(sessionId, athleteId);
-        Exercise exercise = exerciseRepository.findById(request.exerciseId())
-                .orElseThrow(InvalidSessionExerciseException::new);
+        if (!exerciseCatalog.exists(request.exerciseId())) {
+            throw new InvalidSessionExerciseException();
+        }
 
         int position = sessionSetRepository.findMaxPositionBySessionId(session.getId()).orElse(-1) + 1;
         SessionSet set = new SessionSet(
-                session.getId(), exercise.getId(), position, request.setNumber(), request.reps(), request.weightKg());
+                session.getId(), request.exerciseId(), position, request.setNumber(), request.reps(), request.weightKg());
         set.setRpe(request.rpe());
         set.setRestSeconds(request.restSeconds());
-        set = sessionSetRepository.save(set);
+        sessionSetRepository.save(set);
 
-        updatePersonalRecords(athleteId, set, session.getPerformedAt());
-
+        personalRecordService.recompute(athleteId, Set.of(request.exerciseId()));
         return toResponse(session);
     }
 
@@ -107,78 +106,18 @@ public class TrainingService {
                 .findById(setId)
                 .filter(s -> s.getSessionId().equals(session.getId()))
                 .orElseThrow(SessionSetNotFoundException::new);
-        List<PersonalRecord> affectedRecords = personalRecordRepository.findBySessionSetId(set.getId());
         sessionSetRepository.delete(set);
-        for (PersonalRecord record : affectedRecords) {
-            recomputeRecord(athleteId, record.getExerciseId(), record.getMetric());
-        }
+        personalRecordService.recompute(athleteId, Set.of(set.getExerciseId()));
         return toResponse(session);
     }
 
     public List<PersonalRecordResponse> listPersonalRecords(UUID athleteId) {
-        List<PersonalRecord> records = personalRecordRepository.findByAthleteIdOrderByExerciseId(athleteId);
-        Map<UUID, String> exerciseNames = exerciseNamesFor(
-                records.stream().map(PersonalRecord::getExerciseId).collect(Collectors.toSet()));
+        List<PersonalRecordView> records = personalRecordRepository.findViewsByAthleteId(athleteId);
+        Map<UUID, String> exerciseNames = exerciseCatalog.namesOf(
+                records.stream().map(PersonalRecordView::exerciseId).collect(Collectors.toSet()));
         return records.stream()
-                .map(r -> PersonalRecordResponse.from(r, exerciseNames.getOrDefault(r.getExerciseId(), "")))
+                .map(r -> PersonalRecordResponse.from(r, exerciseNames.getOrDefault(r.exerciseId(), "")))
                 .toList();
-    }
-
-    private void updatePersonalRecords(UUID athleteId, SessionSet set, Instant performedAt) {
-        upsertRecord(athleteId, set, PersonalRecordMetric.MAX_WEIGHT, set.getWeightKg(), performedAt);
-        upsertRecord(athleteId, set, PersonalRecordMetric.ESTIMATED_1RM, set.estimated1Rm(), performedAt);
-    }
-
-    private void upsertRecord(UUID athleteId, SessionSet set, PersonalRecordMetric metric, BigDecimal value, Instant performedAt) {
-        PersonalRecord record = personalRecordRepository
-                .findByAthleteIdAndExerciseIdAndMetric(athleteId, set.getExerciseId(), metric)
-                .orElse(null);
-        if (record == null) {
-            personalRecordRepository.save(
-                    new PersonalRecord(athleteId, set.getExerciseId(), metric, value, set.getId(), performedAt));
-        } else if (value.compareTo(record.getValue()) > 0) {
-            record.setValue(value);
-            record.setSessionSetId(set.getId());
-            record.setAchievedAt(performedAt);
-        }
-    }
-
-    private void recomputeRecord(UUID athleteId, UUID exerciseId, PersonalRecordMetric metric) {
-        List<WorkoutSession> sessions = sessionRepository.findByAthleteIdOrderByPerformedAtDesc(athleteId);
-        Map<UUID, Instant> performedAtBySession =
-                sessions.stream().collect(Collectors.toMap(WorkoutSession::getId, WorkoutSession::getPerformedAt));
-        List<SessionSet> sets = sessionSetRepository.findByExerciseIdAndSessionIdIn(
-                exerciseId, sessions.stream().map(WorkoutSession::getId).toList());
-
-        SessionSet bestSet = null;
-        BigDecimal bestValue = null;
-        for (SessionSet candidate : sets) {
-            BigDecimal candidateValue =
-                    metric == PersonalRecordMetric.MAX_WEIGHT ? candidate.getWeightKg() : candidate.estimated1Rm();
-            if (bestValue == null || candidateValue.compareTo(bestValue) > 0) {
-                bestValue = candidateValue;
-                bestSet = candidate;
-            }
-        }
-
-        PersonalRecord record = personalRecordRepository
-                .findByAthleteIdAndExerciseIdAndMetric(athleteId, exerciseId, metric)
-                .orElse(null);
-        if (bestSet == null) {
-            if (record != null) {
-                personalRecordRepository.delete(record);
-            }
-            return;
-        }
-        Instant achievedAt = performedAtBySession.get(bestSet.getSessionId());
-        if (record == null) {
-            personalRecordRepository.save(
-                    new PersonalRecord(athleteId, exerciseId, metric, bestValue, bestSet.getId(), achievedAt));
-        } else {
-            record.setValue(bestValue);
-            record.setSessionSetId(bestSet.getId());
-            record.setAchievedAt(achievedAt);
-        }
     }
 
     private void applyFields(WorkoutSession session, SessionRequest request) {
@@ -191,38 +130,41 @@ public class TrainingService {
     }
 
     private WorkoutSession findOwnedOrThrow(UUID sessionId, UUID athleteId) {
-        WorkoutSession session = sessionRepository.findById(sessionId).orElseThrow(SessionNotFoundException::new);
-        if (!session.isOwnedBy(athleteId)) {
-            throw new SessionNotFoundException();
-        }
-        return session;
+        return sessionRepository
+                .findById(sessionId)
+                .filter(s -> s.isOwnedBy(athleteId))
+                .orElseThrow(SessionNotFoundException::new);
     }
 
     private SessionResponse toResponse(WorkoutSession session) {
-        List<SessionSet> sets = sessionSetRepository.findBySessionIdOrderByPosition(session.getId());
-        Map<UUID, String> exerciseNames =
-                exerciseNamesFor(sets.stream().map(SessionSet::getExerciseId).collect(Collectors.toSet()));
-
-        List<SessionSetResponse> setResponses = sets.stream()
-                .map(set -> SessionSetResponse.from(
-                        set, exerciseNames.getOrDefault(set.getExerciseId(), ""), isPersonalRecord(session.getAthleteId(), set)))
-                .toList();
-
-        return SessionResponse.from(session, setResponses);
+        return toResponses(session.getAthleteId(), List.of(session)).get(0);
     }
 
-    private boolean isPersonalRecord(UUID athleteId, SessionSet set) {
-        return personalRecordRepository
-                .findByAthleteIdAndExerciseIdAndMetric(athleteId, set.getExerciseId(), PersonalRecordMetric.ESTIMATED_1RM)
-                .map(r -> set.getId().equals(r.getSessionSetId()))
-                .orElse(false);
-    }
-
-    private Map<UUID, String> exerciseNamesFor(Set<UUID> exerciseIds) {
-        if (exerciseIds.isEmpty()) {
-            return Map.of();
+    /** Charge series, noms d'exercices et records en trois requetes, quelle que soit la taille de la page. */
+    private List<SessionResponse> toResponses(UUID athleteId, List<WorkoutSession> sessions) {
+        if (sessions.isEmpty()) {
+            return List.of();
         }
-        return exerciseRepository.findAllById(exerciseIds).stream()
-                .collect(Collectors.toMap(Exercise::getId, Exercise::getName));
+        Map<UUID, List<SessionSet>> setsBySession = sessionSetRepository
+                .findBySessionIdInOrderByPosition(sessions.stream().map(WorkoutSession::getId).toList())
+                .stream()
+                .collect(Collectors.groupingBy(SessionSet::getSessionId));
+        Map<UUID, String> exerciseNames = exerciseCatalog.namesOf(setsBySession.values().stream()
+                .flatMap(List::stream)
+                .map(SessionSet::getExerciseId)
+                .collect(Collectors.toSet()));
+        Set<UUID> recordSetIds =
+                personalRecordRepository.findSessionSetIds(athleteId, PersonalRecordMetric.ESTIMATED_1RM);
+
+        return sessions.stream()
+                .map(session -> SessionResponse.from(
+                        session,
+                        setsBySession.getOrDefault(session.getId(), List.of()).stream()
+                                .map(set -> SessionSetResponse.from(
+                                        set,
+                                        exerciseNames.getOrDefault(set.getExerciseId(), ""),
+                                        recordSetIds.contains(set.getId())))
+                                .toList()))
+                .toList();
     }
 }

@@ -3,7 +3,7 @@ package com.fitcoach.coaching.web;
 import com.fitcoach.common.security.AuthenticatedUsers;
 import com.fitcoach.coaching.dto.AddAthleteRequest;
 import com.fitcoach.coaching.service.CoachingService;
-import com.fitcoach.identity.dto.UserResponse;
+import com.fitcoach.identity.api.UserSummary;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -28,14 +28,14 @@ public class CoachAthleteController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('COACH')")
-    public ResponseEntity<UserResponse> add(Authentication authentication, @Valid @RequestBody AddAthleteRequest request) {
-        UserResponse athlete = coachingService.addAthlete(AuthenticatedUsers.id(authentication), request.athleteEmail());
+    public ResponseEntity<UserSummary> add(Authentication authentication, @Valid @RequestBody AddAthleteRequest request) {
+        UserSummary athlete = coachingService.addAthlete(AuthenticatedUsers.id(authentication), request.athleteEmail());
         return ResponseEntity.status(HttpStatus.CREATED).body(athlete);
     }
 
     @GetMapping
     @PreAuthorize("hasAuthority('COACH')")
-    public List<UserResponse> list(Authentication authentication) {
+    public List<UserSummary> list(Authentication authentication) {
         return coachingService.listAthletes(AuthenticatedUsers.id(authentication));
     }
 }

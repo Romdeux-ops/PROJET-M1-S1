@@ -1,11 +1,11 @@
 package com.fitcoach.identity.service;
 
+import com.fitcoach.identity.api.UserNotFoundException;
 import com.fitcoach.identity.domain.User;
 import com.fitcoach.identity.dto.ProfileResponse;
 import com.fitcoach.identity.dto.UpdateProfileRequest;
 import com.fitcoach.identity.repository.UserRepository;
 import java.util.UUID;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -51,6 +51,6 @@ public class ProfileService {
     }
 
     private User findUser(UUID userId) {
-        return userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException(userId.toString()));
+        return userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
     }
 }

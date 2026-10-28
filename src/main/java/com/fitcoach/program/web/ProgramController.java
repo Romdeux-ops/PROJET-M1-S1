@@ -4,15 +4,14 @@ import com.fitcoach.common.security.AuthenticatedUsers;
 import com.fitcoach.common.web.PageResponse;
 import com.fitcoach.program.domain.ProgramCategory;
 import com.fitcoach.program.domain.ProgramLevel;
-import com.fitcoach.program.dto.PositionUpdate;
 import com.fitcoach.program.dto.ProgramDayRequest;
 import com.fitcoach.program.dto.ProgramExerciseRequest;
 import com.fitcoach.program.dto.ProgramRequest;
 import com.fitcoach.program.dto.ProgramResponse;
 import com.fitcoach.program.dto.RatingRequest;
+import com.fitcoach.program.dto.ReorderRequest;
 import com.fitcoach.program.service.ProgramService;
 import jakarta.validation.Valid;
-import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -103,8 +102,8 @@ public class ProgramController {
 
     @PatchMapping("/{programId}/days/positions")
     public ProgramResponse reorderDays(
-            Authentication authentication, @PathVariable UUID programId, @RequestBody List<PositionUpdate> updates) {
-        return programService.reorderDays(programId, AuthenticatedUsers.id(authentication), updates);
+            Authentication authentication, @PathVariable UUID programId, @Valid @RequestBody ReorderRequest request) {
+        return programService.reorderDays(programId, AuthenticatedUsers.id(authentication), request);
     }
 
     @PostMapping("/{programId}/days/{dayId}/exercises")
@@ -130,8 +129,8 @@ public class ProgramController {
             Authentication authentication,
             @PathVariable UUID programId,
             @PathVariable UUID dayId,
-            @RequestBody List<PositionUpdate> updates) {
-        return programService.reorderExercises(programId, dayId, AuthenticatedUsers.id(authentication), updates);
+            @Valid @RequestBody ReorderRequest request) {
+        return programService.reorderExercises(programId, dayId, AuthenticatedUsers.id(authentication), request);
     }
 
     @PostMapping("/{programId}/ratings")

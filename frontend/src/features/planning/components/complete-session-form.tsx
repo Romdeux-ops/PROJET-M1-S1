@@ -2,7 +2,13 @@ import { Loader2 } from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useSessions } from '@/features/training'
 import { formatDate } from '@/lib/format'
 
@@ -24,8 +30,8 @@ export function CompleteSessionForm({
   if (sessions.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        Aucune séance dans votre carnet d'entraînement. Enregistrez-en une depuis la page Entraînements avant de la
-        rattacher ici.
+        Aucune séance dans votre carnet d'entraînement. Enregistrez-en une depuis la page
+        Entraînements avant de la rattacher ici.
       </p>
     )
   }

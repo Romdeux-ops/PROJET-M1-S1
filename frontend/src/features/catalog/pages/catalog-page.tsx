@@ -43,11 +43,18 @@ export function CatalogPage() {
         {isLoading ? (
           <Loader2 className="size-5 animate-spin text-muted-foreground" />
         ) : exercises.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Aucun exercice ne correspond à ces critères.</p>
+          <p className="text-sm text-muted-foreground">
+            Aucun exercice ne correspond à ces critères.
+          </p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {exercises.map((exercise) => (
-              <ExerciseCard key={exercise.id} exercise={exercise} exercises={exercises} canManage={canManage} />
+              <ExerciseCard
+                key={exercise.id}
+                exercise={exercise}
+                exercises={exercises}
+                canManage={canManage}
+              />
             ))}
           </div>
         )}
@@ -58,7 +65,11 @@ export function CatalogPage() {
           <DialogHeader>
             <DialogTitle>Ajouter un exercice</DialogTitle>
           </DialogHeader>
-          <ExerciseForm exercises={exercises} onSubmit={handleCreate} isPending={createExercise.isPending} />
+          <ExerciseForm
+            exercises={exercises}
+            onSubmit={handleCreate}
+            isPending={createExercise.isPending}
+          />
         </DialogContent>
       </Dialog>
     </>

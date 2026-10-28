@@ -4,12 +4,7 @@ import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 import { useDeleteExercise, useUpdateExercise } from '../hooks/use-catalog'
 import { DIFFICULTY_LABELS, type Exercise, type ExerciseFormInput } from '../schemas'
@@ -71,7 +66,9 @@ export function ExerciseCard({
         )}
       </CardHeader>
       <CardContent className="space-y-3">
-        {exercise.description && <p className="text-sm text-muted-foreground">{exercise.description}</p>}
+        {exercise.description && (
+          <p className="text-sm text-muted-foreground">{exercise.description}</p>
+        )}
         {exercise.muscles.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {exercise.muscles.map((m) => (
@@ -84,7 +81,10 @@ export function ExerciseCard({
         {exercise.tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {exercise.tags.map((tag) => (
-              <span key={tag.id} className="rounded-full border px-2 py-0.5 text-xs text-muted-foreground">
+              <span
+                key={tag.id}
+                className="rounded-full border px-2 py-0.5 text-xs text-muted-foreground"
+              >
                 {tag.name}
               </span>
             ))}

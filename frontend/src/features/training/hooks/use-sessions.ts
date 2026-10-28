@@ -30,7 +30,10 @@ export function useSessionDetail(sessionId: string) {
 }
 
 export function usePersonalRecords() {
-  return useQuery({ queryKey: trainingKeys.personalRecords(), queryFn: trainingApi.personalRecords })
+  return useQuery({
+    queryKey: trainingKeys.personalRecords(),
+    queryFn: trainingApi.personalRecords,
+  })
 }
 
 export function useCreateSession() {

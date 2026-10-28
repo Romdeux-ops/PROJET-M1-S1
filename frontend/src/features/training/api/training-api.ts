@@ -1,4 +1,4 @@
-import { api, http, unwrap } from '@/lib/api/client'
+import { api, unwrap } from '@/lib/api/client'
 
 import type { AddSetInput, CreateSessionInput, PersonalRecord, TrainingSession } from '../schemas'
 
@@ -23,15 +23,34 @@ function toSessionBody(input: CreateSessionInput) {
  */
 export const trainingApi = {
   list: async () => {
-    const page = await unwrap(api.GET('/api/training/sessions', { params: { query: { size: 100 } } }))
+    const page = await unwrap(
+      api.GET('/api/training/sessions', { params: { query: { size: 100 } } }),
+    )
     return (page.content ?? []) as TrainingSession[]
   },
-  get: (sessionId: string) => http.get<TrainingSession>(`/api/training/sessions/${sessionId}`),
-  create: (input: CreateSessionInput) => http.post<TrainingSession>('/api/training/sessions', toSessionBody(input)),
-  remove: (id: string) => http.delete(`/api/training/sessions/${id}`),
+  get: (sessionId: string) =>
+    unwrap(
+      api.GET('/api/training/sessions/{sessionId}', { params: { path: { sessionId } } }),
+    ) as Promise<TrainingSession>,
+  create: (input: CreateSessionInput) =>
+    unwrap(
+      api.POST('/api/training/sessions', { body: toSessionBody(input) }),
+    ) as Promise<TrainingSession>,
+  remove: (sessionId: string) =>
+    unwrap(api.DELETE('/api/training/sessions/{sessionId}', { params: { path: { sessionId } } })),
   addSet: (sessionId: string, input: AddSetInput) =>
-    http.post<TrainingSession>(`/api/training/sessions/${sessionId}/sets`, input),
+    unwrap(
+      api.POST('/api/training/sessions/{sessionId}/sets', {
+        params: { path: { sessionId } },
+        body: input,
+      }),
+    ) as Promise<TrainingSession>,
   removeSet: (sessionId: string, setId: string) =>
-    http.delete<TrainingSession>(`/api/training/sessions/${sessionId}/sets/${setId}`),
-  personalRecords: () => http.get<PersonalRecord[]>('/api/training/personal-records'),
+    unwrap(
+      api.DELETE('/api/training/sessions/{sessionId}/sets/{setId}', {
+        params: { path: { sessionId, setId } },
+      }),
+    ) as Promise<TrainingSession>,
+  personalRecords: () =>
+    unwrap(api.GET('/api/training/personal-records')) as Promise<PersonalRecord[]>,
 }

@@ -1,32 +1,30 @@
 package com.fitcoach.identity.web;
 
 import com.fitcoach.common.security.AuthenticatedUsers;
-import com.fitcoach.identity.dto.UserResponse;
-import com.fitcoach.identity.repository.UserRepository;
-import java.util.UUID;
+import com.fitcoach.identity.api.UserDirectory;
+import com.fitcoach.identity.api.UserSummary;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
 
-    private final UserRepository userRepository;
+    private final UserDirectory userDirectory;
 
-    public UserController(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserController(UserDirectory userDirectory) {
+        this.userDirectory = userDirectory;
     }
 
+    /** 401 si le compte du jeton n'existe plus : le frontend deconnecte alors l'utilisateur. */
     @GetMapping("/me")
-    public UserResponse me(Authentication authentication) {
-        UUID userId = AuthenticatedUsers.id(authentication);
-        return userRepository
-                .findById(userId)
-                .map(UserResponse::from)
+    public UserSummary me(Authentication authentication) {
+        return userDirectory
+                .findById(AuthenticatedUsers.id(authentication))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
     }
 }

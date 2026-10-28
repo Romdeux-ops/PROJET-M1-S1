@@ -1,6 +1,12 @@
 import { useState } from 'react'
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useExercises } from '@/features/catalog'
 
 import { useExerciseProgression } from '../hooks/use-stats'
@@ -28,7 +34,9 @@ export function ExerciseProgressionChart() {
       </Select>
 
       {!exerciseId ? (
-        <p className="text-sm text-muted-foreground">Sélectionnez un exercice pour voir votre progression.</p>
+        <p className="text-sm text-muted-foreground">
+          Sélectionnez un exercice pour voir votre progression.
+        </p>
       ) : points.length === 0 ? (
         <p className="text-sm text-muted-foreground">Aucune série enregistrée pour cet exercice.</p>
       ) : (

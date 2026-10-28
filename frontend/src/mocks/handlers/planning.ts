@@ -24,7 +24,9 @@ export const planningHandlers = [
     const user = userFromRequest(request)
     if (!user) return problem(401, 'Session invalide.')
     const today = new Date().toISOString().slice(0, 10)
-    return HttpResponse.json(db.scheduledSessions.filter((s) => s.athleteId === user.id && s.scheduledDate === today))
+    return HttpResponse.json(
+      db.scheduledSessions.filter((s) => s.athleteId === user.id && s.scheduledDate === today),
+    )
   }),
 
   http.get('*/api/planning/pending-validations', async ({ request }) => {
@@ -62,8 +64,12 @@ export const planningHandlers = [
       if (!userFromRequest(request)) return problem(401, 'Session invalide.')
       const session = db.scheduledSessions.find((s) => s.id === params.id)
       if (!session) return problem(404, 'Séance planifiée introuvable.')
+      if (session.status === 'DONE' || session.status === 'PENDING_VALIDATION') {
+        return problem(409, 'Une séance réalisée ne peut plus être déplacée.')
+      }
       const body = await request.json()
       session.scheduledDate = body.scheduledDate
+      session.status = 'PLANNED'
       return HttpResponse.json(session)
     },
   ),
@@ -73,6 +79,8 @@ export const planningHandlers = [
     if (!userFromRequest(request)) return problem(401, 'Session invalide.')
     const session = db.scheduledSessions.find((s) => s.id === params.id)
     if (!session) return problem(404, 'Séance planifiée introuvable.')
+    if (session.status !== 'PLANNED')
+      return problem(409, 'Seule une séance planifiée peut être sautée.')
     session.status = 'SKIPPED'
     return HttpResponse.json(session)
   }),
@@ -85,26 +93,33 @@ export const planningHandlers = [
       if (!user) return problem(401, 'Session invalide.')
       const session = db.scheduledSessions.find((s) => s.id === params.id)
       if (!session) return problem(404, 'Séance planifiée introuvable.')
-      if (session.status !== 'PLANNED') return problem(409, 'Cette séance ne peut plus être terminée.')
+      if (session.status !== 'PLANNED')
+        return problem(409, 'Cette séance ne peut plus être terminée.')
       const body = await request.json()
       const workoutSession = db.sessions.find((s) => s.id === body.workoutSessionId)
       if (!workoutSession) return problem(404, 'Séance réalisée introuvable.')
       session.workoutSessionId = body.workoutSessionId
-      const hasCoach = db.coachAthletes.some((c) => c.athleteId === user.id && c.status === 'ACTIVE')
+      const hasCoach = db.coachAthletes.some(
+        (c) => c.athleteId === user.id && c.status === 'ACTIVE',
+      )
       session.status = hasCoach ? 'PENDING_VALIDATION' : 'DONE'
       return HttpResponse.json(session)
     },
   ),
 
-  http.patch<{ id: string }>('*/api/planning/scheduled/:id/validate', async ({ request, params }) => {
-    await networkDelay()
-    if (!userFromRequest(request)) return problem(401, 'Session invalide.')
-    const session = db.scheduledSessions.find((s) => s.id === params.id)
-    if (!session) return problem(404, 'Séance planifiée introuvable.')
-    if (session.status !== 'PENDING_VALIDATION') return problem(409, 'Cette séance n’est pas en attente de validation.')
-    session.status = 'DONE'
-    return HttpResponse.json(session)
-  }),
+  http.patch<{ id: string }>(
+    '*/api/planning/scheduled/:id/validate',
+    async ({ request, params }) => {
+      await networkDelay()
+      if (!userFromRequest(request)) return problem(401, 'Session invalide.')
+      const session = db.scheduledSessions.find((s) => s.id === params.id)
+      if (!session) return problem(404, 'Séance planifiée introuvable.')
+      if (session.status !== 'PENDING_VALIDATION')
+        return problem(409, 'Cette séance n’est pas en attente de validation.')
+      session.status = 'DONE'
+      return HttpResponse.json(session)
+    },
+  ),
 
   http.delete<{ id: string }>('*/api/planning/scheduled/:id', async ({ request, params }) => {
     await networkDelay()

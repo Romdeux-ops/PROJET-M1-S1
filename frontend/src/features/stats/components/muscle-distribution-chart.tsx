@@ -4,7 +4,11 @@ export function MuscleDistributionChart() {
   const { data = [] } = useMuscleDistribution(30)
 
   if (data.length === 0) {
-    return <p className="text-sm text-muted-foreground">Pas assez de données sur les 30 derniers jours.</p>
+    return (
+      <p className="text-sm text-muted-foreground">
+        Pas assez de données sur les 30 derniers jours.
+      </p>
+    )
   }
 
   const total = data.reduce((sum, m) => sum + m.volume, 0)

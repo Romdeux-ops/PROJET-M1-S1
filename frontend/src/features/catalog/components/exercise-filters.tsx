@@ -1,7 +1,13 @@
 import { Search } from 'lucide-react'
 
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 import { useMuscleGroups, useTags } from '../hooks/use-catalog'
 import { DIFFICULTY_LABELS, type ExerciseSearchFilters, difficulties } from '../schemas'
@@ -20,8 +26,8 @@ export function ExerciseFiltersBar({
 
   return (
     <div className="flex flex-wrap gap-3">
-      <div className="relative flex-1 min-w-[200px]">
-        <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+      <div className="relative min-w-[200px] flex-1">
+        <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           className="pl-8"
           placeholder="Rechercher un exercice..."
@@ -32,7 +38,9 @@ export function ExerciseFiltersBar({
 
       <Select
         value={filters.muscleGroupId ?? ALL}
-        onValueChange={(value) => onChange({ ...filters, muscleGroupId: value === ALL ? undefined : value })}
+        onValueChange={(value) =>
+          onChange({ ...filters, muscleGroupId: value === ALL ? undefined : value })
+        }
       >
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="Muscle" />
@@ -49,7 +57,9 @@ export function ExerciseFiltersBar({
 
       <Select
         value={filters.tagId ?? ALL}
-        onValueChange={(value) => onChange({ ...filters, tagId: value === ALL ? undefined : value })}
+        onValueChange={(value) =>
+          onChange({ ...filters, tagId: value === ALL ? undefined : value })
+        }
       >
         <SelectTrigger className="w-[160px]">
           <SelectValue placeholder="Tag" />
@@ -67,7 +77,10 @@ export function ExerciseFiltersBar({
       <Select
         value={filters.difficulty ?? ALL}
         onValueChange={(value) =>
-          onChange({ ...filters, difficulty: value === ALL ? undefined : (value as (typeof difficulties)[number]) })
+          onChange({
+            ...filters,
+            difficulty: value === ALL ? undefined : (value as (typeof difficulties)[number]),
+          })
         }
       >
         <SelectTrigger className="w-[160px]">

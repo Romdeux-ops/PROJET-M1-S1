@@ -31,7 +31,10 @@ export function StaticStars({ value }: { value: number }) {
   return (
     <div className="flex items-center gap-0.5 text-amber-500">
       {[1, 2, 3, 4, 5].map((i) => (
-        <Star key={i} className={`size-3.5 ${i <= Math.round(value) ? 'fill-current' : 'text-muted-foreground'}`} />
+        <Star
+          key={i}
+          className={`size-3.5 ${i <= Math.round(value) ? 'fill-current' : 'text-muted-foreground'}`}
+        />
       ))}
     </div>
   )

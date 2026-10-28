@@ -90,7 +90,12 @@ export function PostForm({ coachId }: { coachId: string }) {
         />
 
         <div className="flex items-center justify-between">
-          <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+          >
             <ImagePlus /> {preview ? 'Changer la photo' : 'Ajouter une photo'}
           </Button>
           <Button type="submit" disabled={createPost.isPending}>

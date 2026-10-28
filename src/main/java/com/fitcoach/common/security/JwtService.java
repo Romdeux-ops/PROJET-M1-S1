@@ -5,6 +5,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
@@ -30,16 +31,19 @@ public class JwtService {
 
     private final SecretKey signingKey;
     private final Duration expiration;
+    private final Clock clock;
 
     public JwtService(
             @Value("${app.jwt.secret}") String secret,
-            @Value("${app.jwt.expiration-minutes}") long expirationMinutes) {
+            @Value("${app.jwt.expiration-minutes}") long expirationMinutes,
+            Clock clock) {
         this.signingKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expiration = Duration.ofMinutes(expirationMinutes);
+        this.clock = clock;
     }
 
     public String generateToken(UUID userId, String email, Collection<String> roles) {
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         return Jwts.builder()
                 .subject(userId.toString())
                 .claim(CLAIM_EMAIL, email)
@@ -52,7 +56,10 @@ public class JwtService {
 
     /** @throws JwtException si le jeton est invalide, expire ou mal signe. */
     public ParsedToken parse(String token) {
-        Claims claims = Jwts.parser().verifyWith(signingKey).build().parseSignedClaims(token).getPayload();
+        Claims claims = Jwts.parser()
+                .clock(() -> Date.from(clock.instant()))
+                .verifyWith(signingKey)
+                .build().parseSignedClaims(token).getPayload();
         UUID userId = UUID.fromString(claims.getSubject());
         List<?> rawRoles = claims.get(CLAIM_ROLES, List.class);
         List<RoleCode> roles =

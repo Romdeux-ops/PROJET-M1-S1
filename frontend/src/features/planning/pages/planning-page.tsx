@@ -29,7 +29,11 @@ export function PlanningPage() {
   const [scheduleDate, setScheduleDate] = useState<string | null>(null)
 
   const days = useMemo(
-    () => Array.from({ length: 7 }, (_, i) => new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + i)),
+    () =>
+      Array.from(
+        { length: 7 },
+        (_, i) => new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + i),
+      ),
     [weekStart],
   )
   const from = toIso(days[0]!)
@@ -37,7 +41,9 @@ export function PlanningPage() {
   const { data: sessions = [], isLoading } = useScheduledRange(from, to)
 
   function shiftWeek(delta: number) {
-    setWeekStart((prev) => new Date(prev.getFullYear(), prev.getMonth(), prev.getDate() + delta * 7))
+    setWeekStart(
+      (prev) => new Date(prev.getFullYear(), prev.getMonth(), prev.getDate() + delta * 7),
+    )
   }
 
   return (
@@ -103,7 +109,9 @@ export function PlanningPage() {
           <DialogHeader>
             <DialogTitle>Planifier une séance</DialogTitle>
           </DialogHeader>
-          {scheduleDate && <ScheduleForm defaultDate={scheduleDate} onDone={() => setScheduleDate(null)} />}
+          {scheduleDate && (
+            <ScheduleForm defaultDate={scheduleDate} onDone={() => setScheduleDate(null)} />
+          )}
         </DialogContent>
       </Dialog>
     </>

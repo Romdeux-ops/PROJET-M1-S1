@@ -8,4 +8,10 @@ export {
   useUpdateExercise,
 } from './hooks/use-catalog'
 export { CatalogPage } from './pages/catalog-page'
-export type { Exercise, ExerciseFormInput, ExerciseSearchFilters, MuscleGroup, Tag } from './schemas'
+export type {
+  Exercise,
+  ExerciseFormInput,
+  ExerciseSearchFilters,
+  MuscleGroup,
+  Tag,
+} from './schemas'

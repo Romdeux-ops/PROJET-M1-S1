@@ -8,12 +8,13 @@ import com.fitcoach.coaching.exception.InvalidPostImageException;
 import com.fitcoach.coaching.exception.NotCoachClientException;
 import com.fitcoach.coaching.exception.NotPostAuthorException;
 import com.fitcoach.coaching.repository.CoachPostRepository;
-import com.fitcoach.identity.domain.User;
-import com.fitcoach.identity.repository.UserRepository;
+import com.fitcoach.coaching.service.PostImageStorageService.StoredImage;
+import com.fitcoach.identity.api.UserDirectory;
+import com.fitcoach.identity.api.UserNotFoundException;
+import com.fitcoach.identity.api.UserSummary;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.regex.Pattern;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,29 +28,27 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class CoachPostService {
 
-    private static final Pattern OWN_UPLOAD_PATH =
-            Pattern.compile("^posts/[0-9a-fA-F-]{36}/[0-9a-fA-F-]{36}\\.(png|jpg|webp)$");
-
     private final CoachPostRepository coachPostRepository;
-    private final UserRepository userRepository;
+    private final UserDirectory userDirectory;
     private final CoachingService coachingService;
+    private final PostImageStorageService imageStorage;
 
     public CoachPostService(
-            CoachPostRepository coachPostRepository, UserRepository userRepository, CoachingService coachingService) {
+            CoachPostRepository coachPostRepository,
+            UserDirectory userDirectory,
+            CoachingService coachingService,
+            PostImageStorageService imageStorage) {
         this.coachPostRepository = coachPostRepository;
-        this.userRepository = userRepository;
+        this.userDirectory = userDirectory;
         this.coachingService = coachingService;
+        this.imageStorage = imageStorage;
     }
 
     @Transactional
     public PostResponse create(UUID coachId, PostRequest request) {
         String imageUrl = request.imageUrl();
-        if (imageUrl != null && !imageUrl.isBlank()) {
-            String expectedPrefix = "posts/" + coachId + "/";
-            if (!imageUrl.startsWith(expectedPrefix) || !OWN_UPLOAD_PATH.matcher(imageUrl).matches()) {
-                throw new InvalidPostImageException(
-                        "L'image doit provenir de l'endpoint d'upload du coach authentifie.");
-            }
+        if (imageUrl != null && !imageUrl.isBlank() && !imageStorage.isOwnUpload(coachId, imageUrl)) {
+            throw new InvalidPostImageException("L'image doit provenir de l'endpoint d'upload du coach authentifie.");
         }
         CoachPost post = new CoachPost(coachId, request.content(), imageUrl);
         coachPostRepository.save(post);
@@ -58,10 +57,8 @@ public class CoachPostService {
 
     @Transactional(readOnly = true)
     public List<PostResponse> listForCoach(UUID coachId, UUID viewerId) {
-        if (!viewerId.equals(coachId) && !coachingService.isActiveClient(coachId, viewerId)) {
-            throw new NotCoachClientException();
-        }
-        User coach = findUser(coachId);
+        checkCanRead(coachId, viewerId);
+        UserSummary coach = findUser(coachId);
         return coachPostRepository.findByCoachIdOrderByCreatedAtDesc(coachId).stream()
                 .map(post -> PostResponse.from(post, coach))
                 .toList();
@@ -76,7 +73,20 @@ public class CoachPostService {
         coachPostRepository.delete(post);
     }
 
-    private User findUser(UUID userId) {
-        return userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException(userId.toString()));
+    /** Meme regle d'acces que les publications qui referencent l'image. */
+    @Transactional(readOnly = true)
+    public Optional<StoredImage> loadImage(UUID coachId, String filename, UUID viewerId) {
+        checkCanRead(coachId, viewerId);
+        return imageStorage.load(coachId, filename);
+    }
+
+    private void checkCanRead(UUID coachId, UUID viewerId) {
+        if (!viewerId.equals(coachId) && !coachingService.isActiveClient(coachId, viewerId)) {
+            throw new NotCoachClientException();
+        }
+    }
+
+    private UserSummary findUser(UUID userId) {
+        return userDirectory.findById(userId).orElseThrow(UserNotFoundException::new);
     }
 }

@@ -3,9 +3,22 @@ import { Loader2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 
 import {
@@ -64,7 +77,11 @@ export function ProgramForm({
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea rows={3} placeholder="Objectif, public visé, organisation des semaines..." {...field} />
+                <Textarea
+                  rows={3}
+                  placeholder="Objectif, public visé, organisation des semaines..."
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

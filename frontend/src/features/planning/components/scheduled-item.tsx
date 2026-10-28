@@ -54,7 +54,9 @@ export function ScheduledItem({ session }: { session: ScheduledSession }) {
             variant="outline"
             size="sm"
             onClick={() =>
-              (document.getElementById(`reschedule-${session.id}`) as HTMLInputElement | null)?.showPicker()
+              (
+                document.getElementById(`reschedule-${session.id}`) as HTMLInputElement | null
+              )?.showPicker()
             }
           >
             <CalendarClock className="size-3.5" /> Replanifier
@@ -66,7 +68,11 @@ export function ScheduledItem({ session }: { session: ScheduledSession }) {
             disabled={skip.isPending}
             onClick={() => skip.mutate(session.id)}
           >
-            {skip.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Ban className="size-3.5" />}
+            {skip.isPending ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <Ban className="size-3.5" />
+            )}
             Sauter
           </Button>
           <Button
@@ -96,7 +102,10 @@ export function ScheduledItem({ session }: { session: ScheduledSession }) {
           <DialogHeader>
             <DialogTitle>Marquer comme terminée</DialogTitle>
           </DialogHeader>
-          <CompleteSessionForm scheduledSessionId={session.id} onDone={() => setCompleteOpen(false)} />
+          <CompleteSessionForm
+            scheduledSessionId={session.id}
+            onDone={() => setCompleteOpen(false)}
+          />
         </DialogContent>
       </Dialog>
     </div>

@@ -26,7 +26,10 @@ export function PendingValidationsPanel() {
         ) : (
           <ul className="space-y-2">
             {sessions.map((s) => (
-              <li key={s.id} className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm">
+              <li
+                key={s.id}
+                className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm"
+              >
                 <div>
                   <p className="font-medium">{s.title}</p>
                   <p className="text-xs text-muted-foreground">

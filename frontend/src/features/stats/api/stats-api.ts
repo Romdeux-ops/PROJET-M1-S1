@@ -38,6 +38,8 @@ export interface WeeklyAdherencePoint {
   planned: number
   done: number
   skipped: number
+  /** Terminees, en attente de validation par le coach. */
+  pending: number
 }
 
 export interface MuscleVolumeShare {
@@ -61,17 +63,22 @@ export const statsApi = {
   overview: () => unwrap(api.GET('/api/stats/overview')) as Promise<StatsOverview>,
   exerciseProgression: (exerciseId: string) =>
     unwrap(
-      api.GET('/api/stats/exercises/{exerciseId}/progression', { params: { path: { exerciseId } } }),
+      api.GET('/api/stats/exercises/{exerciseId}/progression', {
+        params: { path: { exerciseId } },
+      }),
     ) as Promise<ExerciseProgressionPoint[]>,
   weeklyVolume: (weeks = 12) =>
-    unwrap(api.GET('/api/stats/volume/weekly', { params: { query: { weeks } } })) as Promise<WeeklyVolumePoint[]>,
+    unwrap(api.GET('/api/stats/volume/weekly', { params: { query: { weeks } } })) as Promise<
+      WeeklyVolumePoint[]
+    >,
   weeklyAdherence: (weeks = 8) =>
-    unwrap(
-      api.GET('/api/stats/adherence/weekly', { params: { query: { weeks } } }),
-    ) as Promise<WeeklyAdherencePoint[]>,
+    unwrap(api.GET('/api/stats/adherence/weekly', { params: { query: { weeks } } })) as Promise<
+      WeeklyAdherencePoint[]
+    >,
   muscleDistribution: (days = 30) =>
-    unwrap(
-      api.GET('/api/stats/muscle-distribution', { params: { query: { days } } }),
-    ) as Promise<MuscleVolumeShare[]>,
-  progressionScore: () => unwrap(api.GET('/api/stats/progression-score')) as Promise<ProgressionScore>,
+    unwrap(api.GET('/api/stats/muscle-distribution', { params: { query: { days } } })) as Promise<
+      MuscleVolumeShare[]
+    >,
+  progressionScore: () =>
+    unwrap(api.GET('/api/stats/progression-score')) as Promise<ProgressionScore>,
 }

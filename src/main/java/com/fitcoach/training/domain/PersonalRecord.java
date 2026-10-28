@@ -8,10 +8,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.UUID;
+import org.hibernate.annotations.Immutable;
 
+/**
+ * Lecture seule : les records sont une projection des series, ecrite uniquement
+ * par {@code PersonalRecordService} en SQL.
+ */
 @Entity
+@Immutable
 @Table(name = "personal_records")
 @IdClass(PersonalRecordId.class)
 public class PersonalRecord {
@@ -31,24 +36,11 @@ public class PersonalRecord {
     @Column(nullable = false)
     private BigDecimal value;
 
-    @Column(name = "session_set_id")
+    @Column(name = "session_set_id", nullable = false)
     private UUID sessionSetId;
-
-    @Column(name = "achieved_at", nullable = false)
-    private Instant achievedAt;
 
     protected PersonalRecord() {
         // JPA
-    }
-
-    public PersonalRecord(
-            UUID athleteId, UUID exerciseId, PersonalRecordMetric metric, BigDecimal value, UUID sessionSetId, Instant achievedAt) {
-        this.athleteId = athleteId;
-        this.exerciseId = exerciseId;
-        this.metric = metric;
-        this.value = value;
-        this.sessionSetId = sessionSetId;
-        this.achievedAt = achievedAt;
     }
 
     public UUID getAthleteId() {
@@ -67,23 +59,7 @@ public class PersonalRecord {
         return value;
     }
 
-    public void setValue(BigDecimal value) {
-        this.value = value;
-    }
-
     public UUID getSessionSetId() {
         return sessionSetId;
-    }
-
-    public void setSessionSetId(UUID sessionSetId) {
-        this.sessionSetId = sessionSetId;
-    }
-
-    public Instant getAchievedAt() {
-        return achievedAt;
-    }
-
-    public void setAchievedAt(Instant achievedAt) {
-        this.achievedAt = achievedAt;
     }
 }

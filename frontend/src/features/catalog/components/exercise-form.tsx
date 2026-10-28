@@ -3,9 +3,22 @@ import { Loader2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 
 import { useMuscleGroups, useTags } from '../hooks/use-catalog'
@@ -42,7 +55,8 @@ export function ExerciseForm({
       difficulty: exercise?.difficulty ?? 'BEGINNER',
       defaultRestSeconds: exercise?.defaultRestSeconds ?? 90,
       mediaUrl: exercise?.mediaUrl ?? '',
-      muscles: exercise?.muscles.map((m) => ({ muscleGroupId: m.muscleGroupId, role: m.role })) ?? [],
+      muscles:
+        exercise?.muscles.map((m) => ({ muscleGroupId: m.muscleGroupId, role: m.role })) ?? [],
       tagIds: exercise?.tags.map((t) => t.id) ?? [],
       alternativeExerciseIds: exercise?.alternativeExerciseIds ?? [],
     },
@@ -75,7 +89,11 @@ export function ExerciseForm({
             <FormItem>
               <FormLabel>Description / consignes</FormLabel>
               <FormControl>
-                <Textarea rows={3} placeholder="Position, exécution, points de vigilance..." {...field} />
+                <Textarea
+                  rows={3}
+                  placeholder="Position, exécution, points de vigilance..."
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -152,7 +170,10 @@ export function ExerciseForm({
                 {muscleGroups.map((group) => {
                   const current = field.value.find((m) => m.muscleGroupId === group.id)
                   return (
-                    <div key={group.id} className="flex items-center justify-between gap-2 rounded-md border px-2 py-1.5">
+                    <div
+                      key={group.id}
+                      className="flex items-center justify-between gap-2 rounded-md border px-2 py-1.5"
+                    >
                       <label className="flex items-center gap-2 text-sm">
                         <input
                           type="checkbox"
@@ -160,9 +181,14 @@ export function ExerciseForm({
                           checked={Boolean(current)}
                           onChange={(e) => {
                             if (e.target.checked) {
-                              field.onChange([...field.value, { muscleGroupId: group.id, role: 'PRIMARY' }])
+                              field.onChange([
+                                ...field.value,
+                                { muscleGroupId: group.id, role: 'PRIMARY' },
+                              ])
                             } else {
-                              field.onChange(field.value.filter((m) => m.muscleGroupId !== group.id))
+                              field.onChange(
+                                field.value.filter((m) => m.muscleGroupId !== group.id),
+                              )
                             }
                           }}
                         />

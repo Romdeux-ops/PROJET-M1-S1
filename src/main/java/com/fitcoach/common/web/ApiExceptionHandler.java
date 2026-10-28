@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -57,15 +56,16 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
-    @ExceptionHandler(UsernameNotFoundException.class)
-    public ProblemDetail handleUserNotFound(UsernameNotFoundException ex) {
-        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, "Utilisateur introuvable.");
-    }
-
+    /**
+     * Filet de securite pour les contraintes que le code n'a pas verifiees en
+     * amont (doublon concurrent, suppression d'une ressource referencee...) : la
+     * cause reelle est journalisee, jamais renvoyee au client.
+     */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ProblemDetail handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        logger.warn("Contrainte d'integrite violee : " + ex.getMostSpecificCause().getMessage());
         return ProblemDetail.forStatusAndDetail(
-                HttpStatus.CONFLICT, "Cette ressource est utilisee ailleurs et ne peut pas etre supprimee.");
+                HttpStatus.CONFLICT, "L'operation entre en conflit avec des donnees existantes.");
     }
 
     @Override
