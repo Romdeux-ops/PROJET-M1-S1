@@ -1,3 +1,4 @@
+import type { Booking, Slot } from '@/features/booking/schemas'
 import type { CoachPost } from '@/features/coaching/schemas'
 import type { Exercise, MuscleGroup, Tag } from '@/features/catalog/schemas'
 import type { ProfileResponse } from '@/features/identity/schemas'
@@ -236,6 +237,54 @@ function seedCoachAthletes(): MockCoachAthlete[] {
   return [{ coachId: 'u-coach', athleteId: 'u-athlete', status: 'ACTIVE' }]
 }
 
+/** Instant ISO dans `days` jours, a `hour` heure locale. */
+function inDaysAt(days: number, hour: number, minutes = 0) {
+  const d = new Date()
+  d.setDate(d.getDate() + days)
+  d.setHours(hour, minutes, 0, 0)
+  return d.toISOString()
+}
+
+/**
+ * Creneaux du coach de demo, stockes libres : le handler booking derive leur
+ * etat reserve de `bookings` (slot-2 est reserve par Lea).
+ */
+function seedSlots(): Slot[] {
+  const slot = (id: string, days: number, hour: number): Slot => ({
+    id,
+    coachId: 'u-coach',
+    coachName: 'Hugo Bernard',
+    startsAt: inDaysAt(days, hour),
+    endsAt: inDaysAt(days, hour + 1),
+    bookingId: null,
+    athleteId: null,
+    athleteName: null,
+    bookingNote: null,
+  })
+  return [slot('slot-1', 2, 18), slot('slot-2', 3, 10), slot('slot-3', 5, 18)]
+}
+
+function seedBookings(): Booking[] {
+  const startsAt = inDaysAt(3, 10)
+  return [
+    {
+      id: 'booking-1',
+      slotId: 'slot-2',
+      coachId: 'u-coach',
+      coachName: 'Hugo Bernard',
+      athleteId: 'u-athlete',
+      athleteName: 'Léa Martin',
+      startsAt,
+      endsAt: inDaysAt(3, 11),
+      status: 'CONFIRMED',
+      note: null,
+      cancellationDeadline: new Date(new Date(startsAt).getTime() - 24 * 3_600_000).toISOString(),
+      cancelledAt: null,
+      cancelledBy: null,
+    },
+  ]
+}
+
 function seedSessions(): TrainingSession[] {
   const session = (
     id: string,
@@ -274,6 +323,8 @@ export const db = {
   scheduledSessions: seedScheduledSessions(),
   posts: seedPosts(),
   coachAthletes: seedCoachAthletes(),
+  slots: seedSlots(),
+  bookings: seedBookings(),
 }
 
 export function resetDb() {
@@ -286,6 +337,8 @@ export function resetDb() {
   db.scheduledSessions = seedScheduledSessions()
   db.posts = seedPosts()
   db.coachAthletes = seedCoachAthletes()
+  db.slots = seedSlots()
+  db.bookings = seedBookings()
 }
 
 export function tokenFor(userId: string) {
