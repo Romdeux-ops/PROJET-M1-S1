@@ -67,17 +67,21 @@ public class CoachingService implements CoachRelations {
                 .toList();
     }
 
+    @Override
+    public List<UUID> activeCoachIds(UUID athleteId) {
+        return coachAthleteRepository
+                .findByAthleteIdAndStatusOrderByCreatedAtDesc(athleteId, CoachAthleteStatus.ACTIVE)
+                .stream()
+                .map(CoachAthlete::getCoachId)
+                .toList();
+    }
+
     public List<UserSummary> listAthletes(UUID coachId) {
         return summariesInOrder(activeAthleteIds(coachId));
     }
 
     public List<UserSummary> listCoaches(UUID athleteId) {
-        List<UUID> coachIds = coachAthleteRepository
-                .findByAthleteIdAndStatusOrderByCreatedAtDesc(athleteId, CoachAthleteStatus.ACTIVE)
-                .stream()
-                .map(CoachAthlete::getCoachId)
-                .toList();
-        return summariesInOrder(coachIds);
+        return summariesInOrder(activeCoachIds(athleteId));
     }
 
     private List<UserSummary> summariesInOrder(List<UUID> userIds) {

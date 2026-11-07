@@ -14,4 +14,6 @@ public interface CoachRelations {
     boolean hasActiveCoach(UUID athleteId);
 
     List<UUID> activeAthleteIds(UUID coachId);
+
+    List<UUID> activeCoachIds(UUID athleteId);
 }
