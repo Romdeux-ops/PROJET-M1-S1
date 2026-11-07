@@ -205,6 +205,13 @@ Contrats consommes par le front a ce jour :
 | GET     | `/api/coaching/posts/images/{coachId}/{fichier}`  | image (le coach ou ses clients actifs, via `AuthorizedImage`)      |
 | GET     | `/api/coaching/posts/{coachId}`                   | `CoachPost[]` (le coach ou ses clients actifs)                     |
 | DELETE  | `/api/coaching/posts/{postId}`                    | 204 (auteur uniquement)                                            |
+| POST    | `/api/booking/slots`                              | `Slot` (201, role COACH, 15 min a 4 h, sans chevauchement)         |
+| GET     | `/api/booking/slots?from=&to=`                    | `Slot[]` (creneaux du coach, libres ou reserves)                   |
+| GET     | `/api/booking/slots/available?from=&to=`          | `Slot[]` (creneaux libres et a venir des coachs de l'athlete)      |
+| DELETE  | `/api/booking/slots/{slotId}`                     | 204 (coach, 409 si une reservation est confirmee)                  |
+| POST    | `/api/booking/bookings`                           | `Booking` (201, athlete client actif, 409 si deja pris)            |
+| GET     | `/api/booking/bookings?from=&to=`                 | `Booking[]` (comme athlete ou comme coach, annulees comprises)     |
+| PATCH   | `/api/booking/bookings/{id}/cancel`               | `Booking` (athlete ou coach, jusqu'a 24 h avant le debut)          |
 
 Les erreurs sont attendues au format `ProblemDetail` de Spring : `detail` est
 affiche tel quel a l'utilisateur.
