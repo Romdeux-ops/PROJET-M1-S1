@@ -68,9 +68,8 @@ PostgreSQL, creee automatiquement a la premiere initialisation du volume par
 `docker/postgres/init/01-create-test-database.sql`. Un `./gradlew test` ne
 touche donc jamais aux donnees de developpement, et le moteur reste identique a
 celui de production, ce qui compte ici : le schema utilise des specificites
-PostgreSQL (`citext`, `gen_random_uuid`, et plus tard les contraintes
-d'exclusion `gist` du module de reservation) qu'une base en memoire ne sait pas
-reproduire.
+PostgreSQL (`citext`, `gen_random_uuid`, les contraintes d'exclusion `gist`
+du module de reservation) qu'une base en memoire ne sait pas reproduire.
 
 Si la base `fitcoach_test` est absente, le volume a ete cree avant l'ajout du
 script d'init. Pour la creer :
@@ -152,7 +151,7 @@ frontend.
 - [x] Phase 6 — planning
 - [x] Phase 7 — statistiques
 - [ ] Phase 8 — portail de coaching
-- [ ] Phase 9 — reservation de creneaux
+- [x] Phase 9 — reservation de creneaux
 - [ ] Phase 10 — messagerie
 - [ ] Phase 11 — gamification
 - [ ] Phase 12 — generation par IA

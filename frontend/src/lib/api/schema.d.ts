@@ -260,6 +260,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/booking/slots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listMine"];
+        put?: never;
+        post: operations["create_3"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/booking/bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_1"];
+        put?: never;
+        post: operations["book"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/register": {
         parameters: {
             query?: never;
@@ -402,6 +434,22 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["complete"];
+        trace?: never;
+    };
+    "/api/booking/bookings/{bookingId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["cancel"];
         trace?: never;
     };
     "/api/users/me": {
@@ -635,7 +683,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_1"];
+        get: operations["list_2"];
         put?: never;
         post?: never;
         delete?: never;
@@ -651,7 +699,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_2"];
+        get: operations["list_3"];
         put?: never;
         post?: never;
         delete?: never;
@@ -667,7 +715,23 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_3"];
+        get: operations["list_4"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/booking/slots/available": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listAvailable"];
         put?: never;
         post?: never;
         delete?: never;
@@ -751,6 +815,22 @@ export interface paths {
         put?: never;
         post?: never;
         delete: operations["delete_3"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/booking/slots/{slotId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["delete_4"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1018,6 +1098,59 @@ export interface components {
             lastName?: string;
             roles?: ("ATHLETE" | "COACH" | "ADMIN")[];
             avatarUrl?: string;
+        };
+        SlotRequest: {
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: string;
+        };
+        SlotResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            coachId?: string;
+            coachName?: string;
+            /** Format: date-time */
+            startsAt?: string;
+            /** Format: date-time */
+            endsAt?: string;
+            /** Format: uuid */
+            bookingId?: string;
+            /** Format: uuid */
+            athleteId?: string;
+            athleteName?: string;
+            bookingNote?: string;
+        };
+        BookingRequest: {
+            /** Format: uuid */
+            slotId: string;
+            note?: string;
+        };
+        BookingResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            slotId?: string;
+            /** Format: uuid */
+            coachId?: string;
+            coachName?: string;
+            /** Format: uuid */
+            athleteId?: string;
+            athleteName?: string;
+            /** Format: date-time */
+            startsAt?: string;
+            /** Format: date-time */
+            endsAt?: string;
+            /** @enum {string} */
+            status?: "CONFIRMED" | "CANCELLED";
+            note?: string;
+            /** Format: date-time */
+            cancellationDeadline?: string;
+            /** Format: date-time */
+            cancelledAt?: string;
+            /** Format: uuid */
+            cancelledBy?: string;
         };
         RegisterRequest: {
             firstName: string;
@@ -1845,6 +1978,100 @@ export interface operations {
             };
         };
     };
+    listMine: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SlotResponse"][];
+                };
+            };
+        };
+    };
+    create_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SlotRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SlotResponse"];
+                };
+            };
+        };
+    };
+    list_1: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BookingResponse"][];
+                };
+            };
+        };
+    };
+    book: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BookingRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BookingResponse"];
+                };
+            };
+        };
+    };
     register: {
         parameters: {
             query?: never;
@@ -2082,6 +2309,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ScheduledSessionResponse"];
+                };
+            };
+        };
+    };
+    cancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BookingResponse"];
                 };
             };
         };
@@ -2381,7 +2630,7 @@ export interface operations {
             };
         };
     };
-    list_1: {
+    list_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -2401,7 +2650,7 @@ export interface operations {
             };
         };
     };
-    list_2: {
+    list_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -2421,7 +2670,7 @@ export interface operations {
             };
         };
     };
-    list_3: {
+    list_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -2437,6 +2686,29 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["MuscleGroupResponse"][];
+                };
+            };
+        };
+    };
+    listAvailable: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SlotResponse"][];
                 };
             };
         };
@@ -2537,6 +2809,26 @@ export interface operations {
             header?: never;
             path: {
                 postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    delete_4: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slotId: string;
             };
             cookie?: never;
         };

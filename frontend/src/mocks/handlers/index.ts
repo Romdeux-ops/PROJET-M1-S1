@@ -1,3 +1,4 @@
+import { bookingHandlers } from './booking'
 import { catalogHandlers } from './catalog'
 import { coachingHandlers } from './coaching'
 import { identityHandlers } from './identity'
@@ -15,4 +16,5 @@ export const handlers = [
   ...programHandlers,
   ...planningHandlers,
   ...coachingHandlers,
+  ...bookingHandlers,
 ]

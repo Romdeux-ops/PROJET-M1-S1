@@ -8,6 +8,7 @@ const shortDateFormatter = new Intl.DateTimeFormat('fr-FR', {
   day: 'numeric',
   month: 'short',
 })
+const timeFormatter = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' })
 const numberFormatter = new Intl.NumberFormat('fr-FR')
 
 /** Accepte une date ISO (`2026-09-29` ou `2026-09-29T10:00:00Z`). */
@@ -17,6 +18,11 @@ export function formatDate(value: string | Date) {
 
 export function formatShortDate(value: string | Date) {
   return shortDateFormatter.format(typeof value === 'string' ? new Date(value) : value)
+}
+
+/** Heure locale `18:30` d'un instant ISO. */
+export function formatTime(value: string | Date) {
+  return timeFormatter.format(typeof value === 'string' ? new Date(value) : value)
 }
 
 export function formatNumber(value: number) {
@@ -32,7 +38,13 @@ export function formatDuration(minutes: number) {
 
 /** Date du jour au format `yyyy-mm-dd` (valeur d'un input type="date"). */
 export function todayIso() {
+  return isoInDays(0)
+}
+
+/** Date locale dans `days` jours (negatif = passe), au format `yyyy-mm-dd`. */
+export function isoInDays(days: number) {
   const d = new Date()
+  d.setDate(d.getDate() + days)
   d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
   return d.toISOString().slice(0, 10)
 }

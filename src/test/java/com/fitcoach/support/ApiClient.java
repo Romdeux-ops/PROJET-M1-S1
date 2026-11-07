@@ -109,6 +109,13 @@ public final class ApiClient {
                 .asText();
     }
 
+    public String createSlot(Registered coach, Instant startsAt, Instant endsAt) throws Exception {
+        Map<String, Object> body = Map.of("startsAt", startsAt.toString(), "endsAt", endsAt.toString());
+        return json(post(coach, "/api/booking/slots", body).andExpect(status().isCreated()))
+                .get("id")
+                .asText();
+    }
+
     private MockHttpServletRequestBuilder withJson(MockHttpServletRequestBuilder request, Object body)
             throws Exception {
         return request.with(csrf())
