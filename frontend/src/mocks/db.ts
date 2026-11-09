@@ -2,6 +2,7 @@ import type { Booking, Slot } from '@/features/booking/schemas'
 import type { CoachPost } from '@/features/coaching/schemas'
 import type { Exercise, MuscleGroup, Tag } from '@/features/catalog/schemas'
 import type { ProfileResponse } from '@/features/identity/schemas'
+import type { Message } from '@/features/messaging/schemas'
 import type { ScheduledSession } from '@/features/planning/schemas'
 import type { Program } from '@/features/program/schemas'
 import type { TrainingSession } from '@/features/training'
@@ -22,6 +23,14 @@ export interface MockCoachAthlete {
   coachId: string
   athleteId: string
   status: 'ACTIVE' | 'ENDED'
+}
+
+/** Conversation telle que stockee ; le handler en derive la vue de chaque participant. */
+export interface MockConversation {
+  id: string
+  coachId: string
+  athleteId: string
+  createdAt: string
 }
 
 export function defaultProfile(): MockUser['profile'] {
@@ -285,6 +294,37 @@ function seedBookings(): Booking[] {
   ]
 }
 
+function hoursAgo(hours: number) {
+  return new Date(Date.now() - hours * 3_600_000).toISOString()
+}
+
+function seedConversations(): MockConversation[] {
+  return [{ id: 'conv-1', coachId: 'u-coach', athleteId: 'u-athlete', createdAt: hoursAgo(50) }]
+}
+
+/** Le dernier message du coach n'est pas encore lu par Lea. */
+function seedMessages(): Message[] {
+  const message = (
+    id: string,
+    senderId: string,
+    body: string,
+    sentHoursAgo: number,
+    read: boolean,
+  ): Message => ({
+    id,
+    conversationId: 'conv-1',
+    senderId,
+    body,
+    sentAt: hoursAgo(sentHoursAgo),
+    readAt: read ? hoursAgo(sentHoursAgo - 1) : null,
+  })
+  return [
+    message('msg-1', 'u-coach', 'Bienvenue Léa ! Ton programme est prêt.', 48, true),
+    message('msg-2', 'u-athlete', 'Merci ! Je commence demain.', 47, true),
+    message('msg-3', 'u-coach', 'Pense à noter tes charges à chaque séance.', 2, false),
+  ]
+}
+
 function seedSessions(): TrainingSession[] {
   const session = (
     id: string,
@@ -325,6 +365,8 @@ export const db = {
   coachAthletes: seedCoachAthletes(),
   slots: seedSlots(),
   bookings: seedBookings(),
+  conversations: seedConversations(),
+  messages: seedMessages(),
 }
 
 export function resetDb() {
@@ -339,6 +381,8 @@ export function resetDb() {
   db.coachAthletes = seedCoachAthletes()
   db.slots = seedSlots()
   db.bookings = seedBookings()
+  db.conversations = seedConversations()
+  db.messages = seedMessages()
 }
 
 export function tokenFor(userId: string) {
