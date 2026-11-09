@@ -39,7 +39,9 @@ export function MessageThread({ conversationId }: { conversationId: string }) {
 
   if (isLoading) return <Loader2 className="size-5 animate-spin text-muted-foreground" />
   if (messages.length === 0) {
-    return <EmptyState icon={MessageCircle} title="Aucun message" description="Lancez la discussion." />
+    return (
+      <EmptyState icon={MessageCircle} title="Aucun message" description="Lancez la discussion." />
+    )
   }
 
   const lastMine = messages.findLast((m) => m.senderId === userId)

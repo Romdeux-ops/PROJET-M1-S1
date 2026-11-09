@@ -8,7 +8,8 @@ import { networkDelay, problem } from '../utils'
 const DEFAULT_PAGE_SIZE = 30
 const MAX_PAGE_SIZE = 100
 const PREVIEW_LENGTH = 120
-const NOT_ACTIVE = "La messagerie n'est ouverte qu'entre un coach et un athlète qu'il suit activement."
+const NOT_ACTIVE =
+  "La messagerie n'est ouverte qu'entre un coach et un athlète qu'il suit activement."
 
 function isActiveClient(coachId: string, athleteId: string) {
   return db.coachAthletes.some(
@@ -25,7 +26,9 @@ function messagesOf(conversationId: string) {
 }
 
 function participantConversation(id: string, user: MockUser) {
-  return db.conversations.find((c) => c.id === id && (c.coachId === user.id || c.athleteId === user.id))
+  return db.conversations.find(
+    (c) => c.id === id && (c.coachId === user.id || c.athleteId === user.id),
+  )
 }
 
 function toView(conversation: MockConversation, viewerId: string): Conversation {
@@ -115,7 +118,8 @@ export const messagingHandlers = [
       await networkDelay()
       const user = userFromRequest(request)
       if (!user) return problem(401, 'Session invalide.')
-      if (!participantConversation(params.id, user)) return problem(404, 'Conversation introuvable.')
+      if (!participantConversation(params.id, user))
+        return problem(404, 'Conversation introuvable.')
       const url = new URL(request.url)
       const size = Number(url.searchParams.get('size') ?? DEFAULT_PAGE_SIZE)
       if (!Number.isInteger(size) || size < 1 || size > MAX_PAGE_SIZE) {
@@ -163,17 +167,25 @@ export const messagingHandlers = [
     },
   ),
 
-  http.patch<{ id: string }>('*/api/messaging/conversations/:id/read', async ({ request, params }) => {
-    await networkDelay()
-    const user = userFromRequest(request)
-    if (!user) return problem(401, 'Session invalide.')
-    if (!participantConversation(params.id, user)) return problem(404, 'Conversation introuvable.')
-    const now = new Date().toISOString()
-    for (const message of db.messages) {
-      if (message.conversationId === params.id && message.senderId !== user.id && !message.readAt) {
-        message.readAt = now
+  http.patch<{ id: string }>(
+    '*/api/messaging/conversations/:id/read',
+    async ({ request, params }) => {
+      await networkDelay()
+      const user = userFromRequest(request)
+      if (!user) return problem(401, 'Session invalide.')
+      if (!participantConversation(params.id, user))
+        return problem(404, 'Conversation introuvable.')
+      const now = new Date().toISOString()
+      for (const message of db.messages) {
+        if (
+          message.conversationId === params.id &&
+          message.senderId !== user.id &&
+          !message.readAt
+        ) {
+          message.readAt = now
+        }
       }
-    }
-    return new HttpResponse(null, { status: 204 })
-  }),
+      return new HttpResponse(null, { status: 204 })
+    },
+  ),
 ]

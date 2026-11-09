@@ -36,9 +36,7 @@ describe('MessagingPage', () => {
       await user.type(screen.getByRole('textbox', { name: 'Message' }), 'Séance faite !')
       await user.click(screen.getByRole('button', { name: 'Envoyer' }))
 
-      await waitFor(() =>
-        expect(screen.getByRole('textbox', { name: 'Message' })).toHaveValue(''),
-      )
+      await waitFor(() => expect(screen.getByRole('textbox', { name: 'Message' })).toHaveValue(''))
       expect(screen.getByText('Séance faite !')).toBeInTheDocument()
     })
 
@@ -66,7 +64,11 @@ describe('MessagingPage', () => {
       server.use(
         http.post('*/api/messaging/conversations/:id/messages', () =>
           HttpResponse.json(
-            { status: 403, detail: "La messagerie n'est ouverte qu'entre un coach et un athlète qu'il suit activement." },
+            {
+              status: 403,
+              detail:
+                "La messagerie n'est ouverte qu'entre un coach et un athlète qu'il suit activement.",
+            },
             { status: 403, headers: { 'Content-Type': 'application/problem+json' } },
           ),
         ),
@@ -100,7 +102,9 @@ describe('MessagingPage', () => {
       renderWithProviders(<MessagingPage />)
 
       expect(await screen.findByRole('button', { name: /léa martin/i })).toBeInTheDocument()
-      expect(screen.getByText('Vous : Pense à noter tes charges à chaque séance.')).toBeInTheDocument()
+      expect(
+        screen.getByText('Vous : Pense à noter tes charges à chaque séance.'),
+      ).toBeInTheDocument()
       expect(screen.queryByLabelText(/non lu/)).not.toBeInTheDocument()
     })
   })

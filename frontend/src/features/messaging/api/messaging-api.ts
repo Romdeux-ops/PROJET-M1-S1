@@ -16,7 +16,9 @@ export const messagingApi = {
   listConversations: () =>
     unwrap(api.GET('/api/messaging/conversations')) as Promise<Conversation[]>,
   startConversation: (counterpartId: string) =>
-    unwrap(api.POST('/api/messaging/conversations', { body: { counterpartId } })) as Promise<Conversation>,
+    unwrap(
+      api.POST('/api/messaging/conversations', { body: { counterpartId } }),
+    ) as Promise<Conversation>,
   listMessages: (conversationId: string, before?: string) =>
     unwrap(
       api.GET('/api/messaging/conversations/{conversationId}/messages', {
