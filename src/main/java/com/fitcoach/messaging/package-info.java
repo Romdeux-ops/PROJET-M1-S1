@@ -1,9 +1,18 @@
 /**
  * Messagerie entre coach et athlete.
  *
- * <p>Le contrat est d'abord REST (historique paginable depuis un curseur,
- * envoi par POST, accuses de lecture), ce qui permet au frontend de commencer
- * en polling simple. Le transport WebSocket se branche ensuite par-dessus comme
+ * <p>Une conversation par paire (coach, athlete), creee a la demande et
+ * idempotente : l'unicite de la paire est garantie par la base, y compris sous
+ * acces concurrent. Seuls ses deux participants la voient. L'ouvrir ou y
+ * ecrire exige une relation coach / athlete active ; une fois la relation
+ * terminee, l'historique reste lisible mais l'envoi est refuse. Les messages
+ * sont immuables (1 a 2000 caracteres).
+ *
+ * <p>Le contrat est REST : historique pagine par curseur (keyset sur
+ * {@code (created_at, id)}, stable quand de nouveaux messages arrivent), envoi
+ * par POST, accuse de lecture par conversation ({@code messages.read_at},
+ * chaque message n'ayant qu'un destinataire). Le frontend interroge l'API a
+ * intervalle regulier ; un transport WebSocket pourra se brancher ensuite comme
  * simple canal de notification, sans modifier ni la persistance ni les DTO.
  *
  * <p>Tables : {@code conversations}, {@code messages}.
