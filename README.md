@@ -1,4 +1,4 @@
-# FitCoach — Backend
+# FitCoach - Backend
 
 Backend de l'application fitness mettant en relation athletes et coachs : carnet
 d'entrainement, programmes, planning, statistiques, portail de coaching,
