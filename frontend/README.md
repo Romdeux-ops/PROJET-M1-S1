@@ -212,6 +212,11 @@ Contrats consommes par le front a ce jour :
 | POST    | `/api/booking/bookings`                           | `Booking` (201, athlete client actif, 409 si deja pris)            |
 | GET     | `/api/booking/bookings?from=&to=`                 | `Booking[]` (comme athlete ou comme coach, annulees comprises)     |
 | PATCH   | `/api/booking/bookings/{id}/cancel`               | `Booking` (athlete ou coach, jusqu'a 24 h avant le debut)          |
+| GET     | `/api/messaging/conversations`                    | `Conversation[]` (les plus recemment actives d'abord)              |
+| POST    | `/api/messaging/conversations`                    | `Conversation` (201 si creee, 200 si la paire existait)            |
+| GET     | `/api/messaging/conversations/{id}/messages`      | `{ items, nextCursor }` (plus recent d'abord, `before` = curseur)  |
+| POST    | `/api/messaging/conversations/{id}/messages`      | `Message` (201, relation coach / athlete active)                   |
+| PATCH   | `/api/messaging/conversations/{id}/read`          | 204 (messages recus uniquement)                                    |
 
 Les erreurs sont attendues au format `ProblemDetail` de Spring : `detail` est
 affiche tel quel a l'utilisateur.

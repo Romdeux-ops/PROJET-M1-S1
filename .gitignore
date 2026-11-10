@@ -26,6 +26,7 @@ npm-debug.log*
 .project
 .settings/
 nbproject/
+/bin/
 
 # OS
 .DS_Store

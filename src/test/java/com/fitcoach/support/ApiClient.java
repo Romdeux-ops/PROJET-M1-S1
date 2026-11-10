@@ -116,6 +116,20 @@ public final class ApiClient {
                 .asText();
     }
 
+    /** Ouvre (ou retrouve) la conversation de {@code user} avec {@code counterpart}. */
+    public String startConversation(Registered user, Registered counterpart) throws Exception {
+        return json(post(user, "/api/messaging/conversations", Map.of("counterpartId", counterpart.id().toString())))
+                .get("id")
+                .asText();
+    }
+
+    public String sendMessage(Registered sender, String conversationId, String body) throws Exception {
+        return json(post(sender, "/api/messaging/conversations/" + conversationId + "/messages", Map.of("body", body))
+                        .andExpect(status().isCreated()))
+                .get("id")
+                .asText();
+    }
+
     private MockHttpServletRequestBuilder withJson(MockHttpServletRequestBuilder request, Object body)
             throws Exception {
         return request.with(csrf())

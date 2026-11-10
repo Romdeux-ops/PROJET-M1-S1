@@ -196,6 +196,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/messaging/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list"];
+        put?: never;
+        post: operations["start"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/messaging/conversations/{conversationId}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["messages"];
+        put?: never;
+        post: operations["send"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/coaching/posts": {
         parameters: {
             query?: never;
@@ -235,7 +267,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list"];
+        get: operations["list_1"];
         put?: never;
         post: operations["add"];
         delete?: never;
@@ -283,7 +315,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_1"];
+        get: operations["list_2"];
         put?: never;
         post: operations["book"];
         delete?: never;
@@ -434,6 +466,22 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["complete"];
+        trace?: never;
+    };
+    "/api/messaging/conversations/{conversationId}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["markRead"];
         trace?: never;
     };
     "/api/booking/bookings/{bookingId}/cancel": {
@@ -683,7 +731,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_2"];
+        get: operations["list_3"];
         put?: never;
         post?: never;
         delete?: never;
@@ -699,7 +747,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_3"];
+        get: operations["list_4"];
         put?: never;
         post?: never;
         delete?: never;
@@ -715,7 +763,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_4"];
+        get: operations["list_5"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1065,6 +1113,40 @@ export interface components {
             athleteId?: string;
             athleteName?: string;
         };
+        StartConversationRequest: {
+            /** Format: uuid */
+            counterpartId: string;
+        };
+        ConversationResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            counterpartId?: string;
+            counterpartName?: string;
+            lastMessagePreview?: string;
+            /** Format: uuid */
+            lastMessageSenderId?: string;
+            /** Format: date-time */
+            lastMessageAt?: string;
+            /** Format: int64 */
+            unreadCount?: number;
+        };
+        SendMessageRequest: {
+            body: string;
+        };
+        MessageResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            conversationId?: string;
+            /** Format: uuid */
+            senderId?: string;
+            body?: string;
+            /** Format: date-time */
+            sentAt?: string;
+            /** Format: date-time */
+            readAt?: string;
+        };
         PostRequest: {
             content: string;
             imageUrl?: string;
@@ -1303,6 +1385,11 @@ export interface components {
             totalElements?: number;
             /** Format: int32 */
             totalPages?: number;
+        };
+        MessagePageResponse: {
+            items?: components["schemas"]["MessageResponse"][];
+            /** Format: uuid */
+            nextCursor?: string;
         };
         MuscleGroupResponse: {
             /** Format: uuid */
@@ -1832,6 +1919,101 @@ export interface operations {
             };
         };
     };
+    list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConversationResponse"][];
+                };
+            };
+        };
+    };
+    start: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartConversationRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConversationResponse"];
+                };
+            };
+        };
+    };
+    messages: {
+        parameters: {
+            query?: {
+                before?: string;
+                size?: number;
+            };
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MessagePageResponse"];
+                };
+            };
+        };
+    };
+    send: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MessageResponse"];
+                };
+            };
+        };
+    };
     create_1: {
         parameters: {
             query?: never;
@@ -1883,7 +2065,7 @@ export interface operations {
             };
         };
     };
-    list: {
+    list_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -2025,7 +2207,7 @@ export interface operations {
             };
         };
     };
-    list_1: {
+    list_2: {
         parameters: {
             query: {
                 from: string;
@@ -2310,6 +2492,26 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["ScheduledSessionResponse"];
                 };
+            };
+        };
+    };
+    markRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -2630,7 +2832,7 @@ export interface operations {
             };
         };
     };
-    list_2: {
+    list_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -2650,7 +2852,7 @@ export interface operations {
             };
         };
     };
-    list_3: {
+    list_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -2670,7 +2872,7 @@ export interface operations {
             };
         };
     };
-    list_4: {
+    list_5: {
         parameters: {
             query?: never;
             header?: never;
