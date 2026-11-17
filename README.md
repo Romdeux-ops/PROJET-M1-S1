@@ -40,11 +40,22 @@ absent, mais un jar lance ailleurs exige `SPRING_PROFILES_ACTIVE` et
 `JWT_SECRET` explicites. `APP_TIME_ZONE` (defaut `Europe/Paris`) fixe le fuseau
 des notions "aujourd'hui" et "semaine" ; les instants sont stockes en UTC.
 
-La generation de programmes par IA (phase 12) appelle l'API Claude cote serveur :
-renseigner `ANTHROPIC_API_KEY` dans `.env` pour l'activer (modele par defaut
-`claude-opus-5-5`, surchargeable avec `ANTHROPIC_MODEL`). Sans cle, l'endpoint
-`POST /api/ai/program-generation` repond 503 et le reste de l'application
-fonctionne normalement.
+La generation de programmes (phase 12, `POST /api/ai/program-generation`) marche
+sans aucune cle : un generateur deterministe a base de regles compose les seances
+a partir du vrai catalogue (groupes musculaires primaires, niveau, materiel,
+objectif). Claude reste branche mais optionnel. `FITCOACH_AI_STRATEGY`
+(`fitcoach.ai.strategy`) choisit le generateur :
+
+| Valeur | Comportement |
+| --- | --- |
+| `auto` (defaut) | Claude si `ANTHROPIC_API_KEY` est renseignee, sinon les regles. Un echec de Claude reste un 503, sans repli silencieux. |
+| `rules` | toujours les regles, meme avec une cle. |
+| `claude` | toujours Claude ; 503 sans cle. |
+
+Pour activer Claude, renseigner `ANTHROPIC_API_KEY` dans `.env` (modele par defaut
+`claude-opus-5-5`, surchargeable avec `ANTHROPIC_MODEL`). La reponse indique son
+origine dans `source` (`RULES` ou `CLAUDE`) ; `variant` (entier >= 0) fait tourner
+la selection des regles pour obtenir un autre programme a entree egale.
 
 | Service | URL |
 | --- | --- |

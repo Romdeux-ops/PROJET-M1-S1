@@ -5,10 +5,12 @@ import type { GeneratedProgram, GenerationFormInput } from '../schemas'
 
 /**
  * Contrat attendu du module IA (backend) :
- *   POST /api/ai/program-generation -> GeneratedProgram (brouillon, rien n'est écrit en base ; 503 si l'IA n'est pas configurée)
+ *   POST /api/ai/program-generation -> GeneratedProgram (brouillon, rien n'est écrit en base). `source` vaut RULES (générateur à règles,
+ *   sans clé) ou CLAUDE (clé ANTHROPIC_API_KEY côté serveur) ; `variant` fait tourner la sélection des règles (Régénérer = variant + 1).
+ *   503 si la stratégie `claude` est forcée sans clé, ou si Claude est indisponible.
  */
 export const aiApi = {
-  generate: (input: GenerationFormInput) =>
+  generate: (input: GenerationFormInput, variant = 0) =>
     unwrap(
       api.POST('/api/ai/program-generation', {
         body: {
@@ -17,6 +19,7 @@ export const aiApi = {
           sessionsPerWeek: input.sessionsPerWeek,
           equipment: input.equipment || undefined,
           constraints: input.constraints || undefined,
+          variant,
         },
       }),
     ) as Promise<GeneratedProgram>,

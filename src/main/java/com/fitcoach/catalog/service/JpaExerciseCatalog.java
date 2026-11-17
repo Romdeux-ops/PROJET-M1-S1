@@ -62,26 +62,33 @@ class JpaExerciseCatalog implements ExerciseCatalog {
     public List<CatalogExercise> listAll() {
         List<Exercise> exercises = exerciseRepository.findAll();
         List<UUID> ids = exercises.stream().map(Exercise::getId).toList();
-        Map<UUID, String> muscleNames = muscleGroupRepository.findAll().stream()
-                .collect(Collectors.toMap(MuscleGroup::getId, MuscleGroup::getName));
-        Map<UUID, String> tagNames =
-                tagRepository.findAll().stream().collect(Collectors.toMap(Tag::getId, Tag::getName));
-        Map<UUID, List<String>> primaryMuscles = exerciseMuscleRepository.findByExerciseIdIn(ids).stream()
+        Map<UUID, MuscleGroup> muscles =
+                muscleGroupRepository.findAll().stream().collect(Collectors.toMap(MuscleGroup::getId, m -> m));
+        Map<UUID, Tag> tags = tagRepository.findAll().stream().collect(Collectors.toMap(Tag::getId, t -> t));
+        Map<UUID, List<MuscleGroup>> primaryMuscles = exerciseMuscleRepository.findByExerciseIdIn(ids).stream()
                 .filter(em -> em.getRole() == MuscleRole.PRIMARY)
                 .collect(Collectors.groupingBy(
                         ExerciseMuscle::getExerciseId,
-                        Collectors.mapping(em -> muscleNames.get(em.getMuscleGroupId()), Collectors.toList())));
-        Map<UUID, List<String>> tags = exerciseTagRepository.findByExerciseIdIn(ids).stream()
+                        Collectors.mapping(em -> muscles.get(em.getMuscleGroupId()), Collectors.toList())));
+        Map<UUID, List<Tag>> exerciseTags = exerciseTagRepository.findByExerciseIdIn(ids).stream()
                 .collect(Collectors.groupingBy(
                         ExerciseTag::getExerciseId,
-                        Collectors.mapping(et -> tagNames.get(et.getTagId()), Collectors.toList())));
+                        Collectors.mapping(et -> tags.get(et.getTagId()), Collectors.toList())));
         return exercises.stream()
-                .map(e -> new CatalogExercise(
-                        e.getId(),
-                        e.getName(),
-                        e.getDifficulty().name(),
-                        primaryMuscles.getOrDefault(e.getId(), List.of()),
-                        tags.getOrDefault(e.getId(), List.of())))
+                .map(e -> {
+                    List<MuscleGroup> primary = primaryMuscles.getOrDefault(e.getId(), List.of());
+                    List<Tag> tagList = exerciseTags.getOrDefault(e.getId(), List.of());
+                    return new CatalogExercise(
+                            e.getId(),
+                            e.getName(),
+                            e.getDifficulty().name(),
+                            primary.stream().map(MuscleGroup::getName).toList(),
+                            tagList.stream().map(Tag::getName).toList(),
+                            e.getDescription(),
+                            e.getEquipment(),
+                            primary.stream().map(MuscleGroup::getCode).toList(),
+                            tagList.stream().map(Tag::getCode).toList());
+                })
                 .toList();
     }
 }

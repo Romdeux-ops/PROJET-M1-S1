@@ -1,6 +1,7 @@
 package com.fitcoach.ai.service;
 
 import com.fitcoach.ai.dto.GeneratedProgramResponse;
+import com.fitcoach.ai.dto.GenerationSource;
 import com.fitcoach.ai.dto.ProgramGenerationRequest;
 import com.fitcoach.ai.exception.AiGenerationFailedException;
 import com.fitcoach.ai.exception.AiNotConfiguredException;
@@ -10,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -74,13 +77,44 @@ public class ProgramGenerationService {
 
     private final LanguageModel languageModel;
     private final ExerciseCatalog exerciseCatalog;
+    private final RuleBasedProgramGenerator ruleBasedGenerator;
+    private final GenerationStrategy strategy;
 
-    public ProgramGenerationService(LanguageModel languageModel, ExerciseCatalog exerciseCatalog) {
-        this.languageModel = languageModel;
-        this.exerciseCatalog = exerciseCatalog;
+    @Autowired
+    public ProgramGenerationService(
+            LanguageModel languageModel,
+            ExerciseCatalog exerciseCatalog,
+            RuleBasedProgramGenerator ruleBasedGenerator,
+            @Value("${fitcoach.ai.strategy:auto}") String strategy) {
+        this(languageModel, exerciseCatalog, ruleBasedGenerator, GenerationStrategy.parse(strategy));
     }
 
+    public ProgramGenerationService(
+            LanguageModel languageModel,
+            ExerciseCatalog exerciseCatalog,
+            RuleBasedProgramGenerator ruleBasedGenerator,
+            GenerationStrategy strategy) {
+        this.languageModel = languageModel;
+        this.exerciseCatalog = exerciseCatalog;
+        this.ruleBasedGenerator = ruleBasedGenerator;
+        this.strategy = strategy;
+    }
+
+    /**
+     * {@code auto} : Claude si la cle d'API est renseignee, sinon les regles.
+     * Un echec de Claude reste un 503 : pas de repli silencieux vers les regles.
+     */
     public GeneratedProgramResponse generate(ProgramGenerationRequest request) {
+        boolean useClaude =
+                switch (strategy) {
+                    case CLAUDE -> true;
+                    case RULES -> false;
+                    case AUTO -> languageModel.isConfigured();
+                };
+        return useClaude ? generateWithClaude(request) : ruleBasedGenerator.generate(request);
+    }
+
+    private GeneratedProgramResponse generateWithClaude(ProgramGenerationRequest request) {
         if (!languageModel.isConfigured()) {
             throw new AiNotConfiguredException();
         }
@@ -92,7 +126,7 @@ public class ProgramGenerationService {
         Map<UUID, String> names = offered.stream().collect(Collectors.toMap(CatalogExercise::id, CatalogExercise::name));
 
         String json = languageModel.generateJson(SYSTEM_PROMPT, userPrompt(request, offered), JSON_SCHEMA);
-        return ProgramDraftParser.parse(json, names, request.level(), request.sessionsPerWeek());
+        return ProgramDraftParser.parse(json, names, request.level(), request.sessionsPerWeek(), GenerationSource.CLAUDE);
     }
 
     static String userPrompt(ProgramGenerationRequest request, List<CatalogExercise> catalog) {

@@ -39,11 +39,14 @@ export interface GeneratedDay {
   exercises: GeneratedExercise[]
 }
 
+export type GenerationSource = 'RULES' | 'CLAUDE'
+
 /** Brouillon renvoyé par l'API : rien n'est enregistré tant que l'utilisateur ne le confirme pas. */
 export interface GeneratedProgram {
   name: string
   description: string
   category: ProgramCategory
   level: ProgramLevel
+  source: GenerationSource
   days: GeneratedDay[]
 }

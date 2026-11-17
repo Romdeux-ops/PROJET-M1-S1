@@ -12,12 +12,20 @@ import type { GeneratedProgram, GenerationFormInput } from '../schemas'
 export function AiPage({ onSaved }: { onSaved?: () => void }) {
   const [draft, setDraft] = useState<GeneratedProgram | null>(null)
   const [lastInput, setLastInput] = useState<GenerationFormInput | null>(null)
+  const [variant, setVariant] = useState(0)
   const generate = useGenerateProgram()
   const save = useSaveGeneratedProgram()
 
-  function handleGenerate(input: GenerationFormInput) {
+  function runGeneration(input: GenerationFormInput, nextVariant: number) {
     setLastInput(input)
-    generate.mutate(input, { onSuccess: setDraft })
+    setVariant(nextVariant)
+    generate.mutate({ input, variant: nextVariant }, { onSuccess: setDraft })
+  }
+
+  /** Une nouvelle demande repart de la variante 0 ; « Régénérer » passe à la suivante. */
+  const handleGenerate = (input: GenerationFormInput) => runGeneration(input, 0)
+  const handleRegenerate = () => {
+    if (lastInput) runGeneration(lastInput, variant + 1)
   }
 
   function handleSave() {
@@ -54,7 +62,7 @@ export function AiPage({ onSaved }: { onSaved?: () => void }) {
             ) : draft ? (
               <GeneratedProgramPreview
                 draft={draft}
-                onRegenerate={() => lastInput && handleGenerate(lastInput)}
+                onRegenerate={handleRegenerate}
                 onSave={handleSave}
                 isRegenerating={generate.isPending}
                 isSaving={save.isPending}

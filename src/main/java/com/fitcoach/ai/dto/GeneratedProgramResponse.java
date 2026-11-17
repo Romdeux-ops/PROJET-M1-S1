@@ -9,7 +9,12 @@ import java.util.UUID;
  * celles de l'API des programmes, pour que l'enregistrement ne puisse pas echouer.
  */
 public record GeneratedProgramResponse(
-        String name, String description, GenerationCategory category, GenerationLevel level, List<Day> days) {
+        String name,
+        String description,
+        GenerationCategory category,
+        GenerationLevel level,
+        GenerationSource source,
+        List<Day> days) {
 
     public record Day(String label, List<Item> exercises) {}
 

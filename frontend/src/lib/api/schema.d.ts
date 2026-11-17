@@ -1585,6 +1585,8 @@ export interface components {
             sessionsPerWeek?: number;
             equipment?: string;
             constraints?: string;
+            /** Format: int32 */
+            variant?: number;
         };
         Day: {
             label?: string;
@@ -1597,6 +1599,8 @@ export interface components {
             category?: "STRENGTH" | "CARDIO" | "HIIT" | "YOGA" | "STRETCHING";
             /** @enum {string} */
             level?: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
+            /** @enum {string} */
+            source?: "RULES" | "CLAUDE";
             days?: components["schemas"]["Day"][];
         };
         Item: {

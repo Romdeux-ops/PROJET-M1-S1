@@ -5,7 +5,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fitcoach.ai.dto.GeneratedProgramResponse;
 import com.fitcoach.ai.exception.AiGenerationFailedException;
+import com.fitcoach.ai.service.GenerationStrategy;
 import com.fitcoach.ai.service.ProgramGenerationService;
+import com.fitcoach.ai.service.RuleBasedProgramGenerator;
 import com.fitcoach.catalog.api.CatalogExercise;
 import com.fitcoach.catalog.api.ExerciseCatalog;
 import com.fitcoach.ai.dto.GenerationCategory;
@@ -46,7 +48,11 @@ class ProgramDraftParserTests {
     };
 
     private GeneratedProgramResponse generate(String modelOutput, int sessionsPerWeek) {
-        ProgramGenerationService service = new ProgramGenerationService(new FakeModel(modelOutput, true), catalog);
+        ProgramGenerationService service = new ProgramGenerationService(
+                new FakeModel(modelOutput, true),
+                catalog,
+                new RuleBasedProgramGenerator(catalog),
+                GenerationStrategy.AUTO);
         return service.generate(FakeModel.request(sessionsPerWeek));
     }
 
@@ -74,6 +80,7 @@ class ProgramDraftParserTests {
         assertThat(squat.restSeconds()).isEqualTo(600);
         assertThat(draft.days().get(0).exercises().get(1).reps()).isEqualTo("10");
         assertThat(draft.level()).isEqualTo(GenerationLevel.BEGINNER);
+        assertThat(draft.source()).isEqualTo(com.fitcoach.ai.dto.GenerationSource.CLAUDE);
     }
 
     @Test
