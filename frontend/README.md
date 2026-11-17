@@ -174,7 +174,7 @@ Contrats consommes par le front a ce jour :
 | PATCH   | `/api/programs/{id}/days/positions`               | `Program` (corps `{ orderedIds }` : tous les jours, une fois)                                                |
 | POST    | `/api/programs/{id}/days/{dayId}/exercises`       | `Program` (proprietaire)                                                                                     |
 | DELETE  | `/api/programs/{id}/days/{dayId}/exercises/{eid}` | `Program` (proprietaire)                                                                                     |
-| POST    | `/api/programs/{id}/ratings`                      | `Program` (non-proprietaire, programme public)                                                               |
+| POST    | `/api/programs/{id}/ratings`                      | `Program` (non-proprietaire ; `PUBLIC`, ou `CLIENTS` avec relation active, sinon 404 ; `PRIVATE` : 400)      |
 | GET     | `/api/training/sessions`                          | `TrainingSession[]`                                                                                          |
 | GET     | `/api/training/sessions/{id}`                     | `TrainingSession`                                                                                            |
 | POST    | `/api/training/sessions`                          | `TrainingSession` (201)                                                                                      |

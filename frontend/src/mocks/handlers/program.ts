@@ -294,9 +294,10 @@ export const programHandlers = [
       if (!user) return problem(401, 'Session invalide.')
       const program = db.programs.find((p) => p.id === params.id)
       if (!program) return problem(404, 'Programme introuvable.')
+      if (program.visibility === 'PRIVATE') return problem(409, 'Ce programme n’est pas public.')
       if (program.ownerId === user.id)
         return problem(409, 'Vous ne pouvez pas noter votre propre programme.')
-      if (program.visibility !== 'PUBLIC') return problem(409, 'Ce programme n’est pas public.')
+      if (!canView(program, user)) return problem(404, 'Programme introuvable.')
       const body = await request.json()
       program.ratingsCount += 1
       program.averageRating =

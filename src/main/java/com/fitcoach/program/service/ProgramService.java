@@ -207,11 +207,16 @@ public class ProgramService {
     @Transactional
     public ProgramResponse rate(UUID programId, UUID userId, RatingRequest request) {
         Program program = programRepository.findById(programId).orElseThrow(ProgramNotFoundException::new);
-        if (program.getVisibility() != ProgramVisibility.PUBLIC) {
+        if (program.getVisibility() == ProgramVisibility.PRIVATE) {
             throw new ProgramNotPublicException();
         }
         if (program.isOwnedBy(userId)) {
             throw new CannotRateOwnProgramException();
+        }
+        // CLIENTS : relation ACTIVE relue maintenant ; une fois terminee, la note deja donnee reste comptee
+        // dans la moyenne mais ne peut plus etre modifiee (404 comme pour la lecture).
+        if (!canView(program, userId)) {
+            throw new ProgramNotFoundException();
         }
         ProgramRating rating = programRatingRepository
                 .findByProgramIdAndUserId(programId, userId)

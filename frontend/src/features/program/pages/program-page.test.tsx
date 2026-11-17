@@ -60,6 +60,25 @@ describe('ProgramPage', () => {
     ).toBeInTheDocument()
   })
 
+  it('permet à l’athlète de noter un programme de son coach', async () => {
+    const { user } = renderWithProviders(<ProgramPage />)
+    await screen.findByText('Full body débutant')
+    await user.click(screen.getByRole('button', { name: /programmes de mon coach/i }))
+    await screen.findByText('Prise de masse sur mesure')
+
+    await user.click(screen.getByRole('button', { name: /voir/i }))
+    const label = await screen.findByText('Noter ce programme :')
+    const stars = within(label.parentElement!).getAllByRole('button')
+    expect(stars).toHaveLength(5)
+    await user.click(stars[2]!)
+
+    expect(await screen.findByText('3.0 / 5 (1 note)')).toBeInTheDocument()
+    expect(db.programs.find((p) => p.id === 'prog-2')).toMatchObject({
+      ratingsCount: 1,
+      averageRating: 3,
+    })
+  })
+
   it('ne propose pas la visibilité "Mes athlètes" à un athlète', async () => {
     const { user } = renderWithProviders(<ProgramPage />)
     await screen.findByText('Full body débutant')
@@ -75,6 +94,22 @@ describe('ProgramPage', () => {
 
 describe('ProgramPage (coach)', () => {
   beforeEach(() => loginAs('COACH'))
+
+  it('montre au coach la note moyenne de son programme "Mes athlètes", sans widget de notation', async () => {
+    const program = db.programs.find((p) => p.id === 'prog-2')!
+    program.averageRating = 4.5
+    program.ratingsCount = 2
+    const { user } = renderWithProviders(<ProgramPage />)
+    const card = (await screen.findByText('Prise de masse sur mesure')).closest(
+      '[data-slot="card"]',
+    ) as HTMLElement
+    expect(within(card).getByText('(2)')).toBeInTheDocument()
+
+    await user.click(within(card).getByRole('button', { name: /voir/i }))
+
+    expect(await screen.findByText('4.5 / 5 (2 notes)')).toBeInTheDocument()
+    expect(screen.queryByText('Noter ce programme :')).not.toBeInTheDocument()
+  })
 
   it('permet à un coach de créer un programme visible par ses athlètes', async () => {
     const { user } = renderWithProviders(<ProgramPage />)

@@ -149,7 +149,7 @@ class ProgramClientsVisibilityTests {
     }
 
     @Test
-    void editingDeletingAndRatingStayRestricted() throws Exception {
+    void editingAndDeletingStayOwnerOnly() throws Exception {
         Registered coach = api.register("COACH");
         Registered athlete = api.register("ATHLETE");
         api.attachCoach(coach, athlete);
@@ -158,7 +158,6 @@ class ProgramClientsVisibilityTests {
 
         api.put(athlete, path, programBody("PRIVATE")).andExpect(status().isForbidden());
         api.delete(athlete, path).andExpect(status().isForbidden());
-        api.post(athlete, path + "/ratings", Map.of("stars", 5, "comment", "top")).andExpect(status().isBadRequest());
         api.get(coach, path).andExpect(status().isOk());
     }
 

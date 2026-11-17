@@ -2,7 +2,7 @@ import { Loader2 } from 'lucide-react'
 
 import { useProgram } from '../hooks/use-programs'
 import { ProgramDayList } from './program-day-list'
-import { RatingWidget } from './rating-widget'
+import { RatingWidget, StaticStars } from './rating-widget'
 
 export function ProgramDetail({ programId }: { programId: string }) {
   const { data: program, isLoading } = useProgram(programId)
@@ -19,7 +19,18 @@ export function ProgramDetail({ programId }: { programId: string }) {
         </p>
       )}
 
-      {!program.mine && program.visibility === 'PUBLIC' && (
+      {program.visibility !== 'PRIVATE' && (
+        <div className="flex items-center gap-2 text-sm">
+          <StaticStars value={program.averageRating} />
+          <span className="text-muted-foreground">
+            {program.ratingsCount > 0
+              ? `${program.averageRating.toFixed(1)} / 5 (${program.ratingsCount} note${program.ratingsCount > 1 ? 's' : ''})`
+              : 'Pas encore de note'}
+          </span>
+        </div>
+      )}
+
+      {!program.mine && program.visibility !== 'PRIVATE' && (
         <div className="flex items-center gap-2 text-sm">
           <span className="text-muted-foreground">Noter ce programme :</span>
           <RatingWidget programId={program.id} />
