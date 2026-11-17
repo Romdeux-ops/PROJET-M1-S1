@@ -4,7 +4,12 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { LEVEL_LABELS } from '@/features/program'
 
-import type { GeneratedProgram } from '../schemas'
+import type { GeneratedProgram, GenerationSource } from '../schemas'
+
+const SOURCE_LABELS: Record<GenerationSource, string> = {
+  RULES: 'Généré par règles',
+  CLAUDE: 'Généré par Claude',
+}
 
 export function GeneratedProgramPreview({
   draft,
@@ -25,8 +30,15 @@ export function GeneratedProgramPreview({
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-lg font-semibold">{draft.name}</h2>
           <Badge variant="secondary">{LEVEL_LABELS[draft.level]}</Badge>
+          <Badge variant="outline">{SOURCE_LABELS[draft.source]}</Badge>
         </div>
         {draft.description && <p className="text-sm text-muted-foreground">{draft.description}</p>}
+        {draft.source === 'RULES' && (
+          <p className="text-xs text-muted-foreground">
+            La génération par IA se branche en renseignant <code>ANTHROPIC_API_KEY</code> côté
+            serveur ; sans clé, le programme est composé par règles à partir du catalogue.
+          </p>
+        )}
       </div>
 
       <div className="space-y-3">

@@ -217,7 +217,7 @@ Contrats consommes par le front a ce jour :
 | GET     | `/api/messaging/conversations/{id}/messages`      | `{ items, nextCursor }` (plus recent d'abord, `before` = curseur)  |
 | POST    | `/api/messaging/conversations/{id}/messages`      | `Message` (201, relation coach / athlete active)                   |
 | PATCH   | `/api/messaging/conversations/{id}/read`          | 204 (messages recus uniquement)                                    |
-| POST    | `/api/ai/program-generation`                      | `GeneratedProgram` (brouillon sans ecriture en base, 503 sans cle IA) |
+| POST    | `/api/ai/program-generation`                      | `GeneratedProgram` (brouillon sans ecriture en base ; `source` RULES ou CLAUDE, `variant` fait tourner les regles ; 503 si `strategy=claude` sans cle) |
 
 Les erreurs sont attendues au format `ProblemDetail` de Spring : `detail` est
 affiche tel quel a l'utilisateur.

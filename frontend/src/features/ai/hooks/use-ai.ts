@@ -7,7 +7,8 @@ import type { GeneratedProgram, GenerationFormInput } from '../schemas'
 
 export function useGenerateProgram() {
   return useMutation({
-    mutationFn: (input: GenerationFormInput) => aiApi.generate(input),
+    mutationFn: ({ input, variant }: { input: GenerationFormInput; variant: number }) =>
+      aiApi.generate(input, variant),
   })
 }
 

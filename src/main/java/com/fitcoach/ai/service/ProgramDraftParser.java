@@ -6,6 +6,7 @@ import com.fitcoach.ai.dto.GeneratedProgramResponse.Item;
 import com.fitcoach.ai.exception.AiGenerationFailedException;
 import com.fitcoach.ai.dto.GenerationCategory;
 import com.fitcoach.ai.dto.GenerationLevel;
+import com.fitcoach.ai.dto.GenerationSource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +30,11 @@ final class ProgramDraftParser {
     private ProgramDraftParser() {}
 
     static GeneratedProgramResponse parse(
-            String json, Map<UUID, String> catalogNames, GenerationLevel level, int sessionsPerWeek) {
+            String json,
+            Map<UUID, String> catalogNames,
+            GenerationLevel level,
+            int sessionsPerWeek,
+            GenerationSource source) {
         JsonNode root;
         try {
             root = MAPPER.readTree(json);
@@ -73,6 +78,7 @@ final class ProgramDraftParser {
                 truncate(text(root, "description", ""), 5000),
                 category(text(root, "category", "")),
                 level,
+                source,
                 List.copyOf(days));
     }
 
