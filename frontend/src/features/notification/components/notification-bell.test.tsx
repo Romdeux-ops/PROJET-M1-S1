@@ -58,6 +58,14 @@ describe('NotificationBell', () => {
       expect(screen.queryByLabelText('Non lue')).not.toBeInTheDocument()
     })
 
+    it('affiche le rappel de rendez-vous', async () => {
+      const { user } = renderWithProviders(<NotificationBell />)
+
+      await user.click(await screen.findByRole('button', { name: /^Notifications/ }))
+
+      expect(await screen.findByText('Rendez-vous demain')).toBeInTheDocument()
+    })
+
     it("n'affiche aucune notification des autres utilisateurs", async () => {
       db.notifications = db.notifications.filter((n) => n.userId !== 'u-athlete')
       const { user } = renderWithProviders(<NotificationBell />)
@@ -78,6 +86,25 @@ describe('NotificationBell', () => {
       await user.click(await screen.findByRole('button', { name: /^Notifications/ }))
 
       expect(await screen.findByText('Séance à valider')).toBeInTheDocument()
+    })
+
+    it('est prévenu des réservations et annulations de créneaux', async () => {
+      const { user } = renderWithProviders(<NotificationBell />)
+
+      await user.click(await screen.findByRole('button', { name: /^Notifications/ }))
+
+      expect(await screen.findByText('Nouvelle réservation')).toBeInTheDocument()
+      expect(screen.getByText('Réservation annulée')).toBeInTheDocument()
+    })
+
+    it('ouvre la page de réservation depuis une notification de réservation', async () => {
+      const onNavigate = vi.fn()
+      const { user } = renderWithProviders(<NotificationBell onNavigate={onNavigate} />)
+      await user.click(await screen.findByRole('button', { name: /^Notifications/ }))
+
+      await user.click(await screen.findByText('Nouvelle réservation'))
+
+      expect(onNavigate).toHaveBeenCalledWith('/booking')
     })
   })
 })

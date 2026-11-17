@@ -1454,7 +1454,7 @@ export interface components {
             /** Format: uuid */
             id?: string;
             /** @enum {string} */
-            type?: "SESSION_REMINDER" | "SESSION_PENDING_VALIDATION" | "SESSION_VALIDATED";
+            type?: "SESSION_REMINDER" | "SESSION_PENDING_VALIDATION" | "SESSION_VALIDATED" | "BOOKING_CREATED" | "BOOKING_CANCELLED" | "BOOKING_REMINDER";
             title?: string;
             body?: string;
             link?: string;

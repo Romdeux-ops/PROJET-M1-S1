@@ -1,5 +1,5 @@
 -- =============================================================================
--- V12 : centre de notifications (rappels de seance et evenements du planning)
+-- V12 : centre de notifications (rappels de seance, planning et reservations)
 --
 -- Notifications in-app, privees a leur destinataire. dedupe_key rend la creation
 -- idempotente : un meme rappel (ex. 'reminder:<seance>:<date>') n'est jamais
@@ -12,7 +12,9 @@ CREATE TABLE notifications (
     id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id    uuid NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     type       text NOT NULL
-               CHECK (type IN ('SESSION_REMINDER', 'SESSION_PENDING_VALIDATION', 'SESSION_VALIDATED')),
+               CHECK (type IN (
+                   'SESSION_REMINDER', 'SESSION_PENDING_VALIDATION', 'SESSION_VALIDATED',
+                   'BOOKING_CREATED', 'BOOKING_CANCELLED', 'BOOKING_REMINDER')),
     title      text NOT NULL CHECK (char_length(title) BETWEEN 1 AND 200),
     body       text NOT NULL CHECK (char_length(body) BETWEEN 1 AND 1000),
     link       text,

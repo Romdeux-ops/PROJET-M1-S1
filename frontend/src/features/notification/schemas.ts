@@ -2,6 +2,9 @@ export const NOTIFICATION_TYPES = [
   'SESSION_REMINDER',
   'SESSION_PENDING_VALIDATION',
   'SESSION_VALIDATED',
+  'BOOKING_CREATED',
+  'BOOKING_CANCELLED',
+  'BOOKING_REMINDER',
 ] as const
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number]
 

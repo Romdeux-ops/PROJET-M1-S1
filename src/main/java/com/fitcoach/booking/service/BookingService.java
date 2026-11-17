@@ -21,14 +21,18 @@ import com.fitcoach.booking.repository.BookingRepository;
 import com.fitcoach.coaching.api.CoachRelations;
 import com.fitcoach.identity.api.UserDirectory;
 import com.fitcoach.identity.api.UserSummary;
+import com.fitcoach.notification.api.NotificationType;
+import com.fitcoach.notification.api.Notifier;
 import java.sql.SQLException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
@@ -53,6 +57,12 @@ public class BookingService {
     private static final Duration MIN_SLOT_DURATION = Duration.ofMinutes(15);
     private static final Duration MAX_SLOT_DURATION = Duration.ofHours(4);
 
+    /** Route frontend de la page de reservation, ouverte au clic sur la notification. */
+    private static final String BOOKING_LINK = "/booking";
+
+    private static final DateTimeFormatter START_FORMAT =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm", Locale.FRENCH);
+
     private static final String UNIQUE_VIOLATION = "23505";
     private static final String FOREIGN_KEY_VIOLATION = "23503";
     private static final String EXCLUSION_VIOLATION = "23P01";
@@ -61,6 +71,7 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final CoachRelations coachRelations;
     private final UserDirectory userDirectory;
+    private final Notifier notifier;
     private final Clock clock;
 
     public BookingService(
@@ -68,11 +79,13 @@ public class BookingService {
             BookingRepository bookingRepository,
             CoachRelations coachRelations,
             UserDirectory userDirectory,
+            Notifier notifier,
             Clock clock) {
         this.slotRepository = slotRepository;
         this.bookingRepository = bookingRepository;
         this.coachRelations = coachRelations;
         this.userDirectory = userDirectory;
+        this.notifier = notifier;
         this.clock = clock;
     }
 
@@ -185,6 +198,13 @@ public class BookingService {
             }
             throw e;
         }
+        notifier.notify(
+                booking.getCoachId(),
+                NotificationType.BOOKING_CREATED,
+                "Nouvelle réservation",
+                displayName(athleteId) + " a réservé le créneau du " + formatStart(booking) + ".",
+                BOOKING_LINK,
+                "booking-created:" + booking.getId());
         return toResponse(booking);
     }
 
@@ -209,7 +229,21 @@ public class BookingService {
                 .filter(b -> b.involves(userId))
                 .orElseThrow(BookingNotFoundException::new);
         booking.cancel(userId, clock.instant());
+        // L'autre partie est prevenue : le coach quand l'athlete annule, l'athlete quand c'est le coach.
+        UUID recipientId = booking.getCoachId().equals(userId) ? booking.getAthleteId() : booking.getCoachId();
+        notifier.notify(
+                recipientId,
+                NotificationType.BOOKING_CANCELLED,
+                "Réservation annulée",
+                displayName(userId) + " a annulé la réservation du " + formatStart(booking) + ".",
+                BOOKING_LINK,
+                "booking-cancelled:" + booking.getId() + ":" + recipientId);
         return toResponse(booking);
+    }
+
+    /** Debut du creneau au fuseau metier, ex. {@code 12/01/2026 à 18:30}. */
+    private String formatStart(Booking booking) {
+        return START_FORMAT.format(booking.getStartsAt().atZone(clock.getZone()));
     }
 
     private BookingResponse toResponse(Booking booking) {

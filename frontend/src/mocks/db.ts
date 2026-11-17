@@ -72,6 +72,36 @@ function seedNotifications(): MockNotification[] {
       createdAt: minutesAgo(45),
       readAt: null,
     },
+    {
+      id: 'notif-4',
+      userId: 'u-coach',
+      type: 'BOOKING_CREATED',
+      title: 'Nouvelle réservation',
+      body: 'Léa Martin a réservé le créneau du 20/01/2026 à 18:30.',
+      link: '/booking',
+      createdAt: minutesAgo(10),
+      readAt: null,
+    },
+    {
+      id: 'notif-5',
+      userId: 'u-coach',
+      type: 'BOOKING_CANCELLED',
+      title: 'Réservation annulée',
+      body: 'Léa Martin a annulé la réservation du 18/01/2026 à 10:00.',
+      link: '/booking',
+      createdAt: minutesAgo(3 * 60),
+      readAt: minutesAgo(2 * 60),
+    },
+    {
+      id: 'notif-6',
+      userId: 'u-athlete',
+      type: 'BOOKING_REMINDER',
+      title: 'Rendez-vous demain',
+      body: 'Rendez-vous avec Hugo Bernard demain à 18:30.',
+      link: '/booking',
+      createdAt: minutesAgo(5 * 60),
+      readAt: minutesAgo(4 * 60),
+    },
   ]
 }
 

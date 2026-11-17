@@ -1,4 +1,11 @@
-import { Bell, CalendarCheck, CalendarClock, CheckCheck } from 'lucide-react'
+import {
+  Bell,
+  CalendarCheck,
+  CalendarClock,
+  CalendarPlus,
+  CalendarX,
+  CheckCheck,
+} from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -20,8 +27,17 @@ import type { AppNotification, NotificationType } from '../schemas'
 
 const MAX_BADGE = 99
 
+const TYPE_ICONS: Record<NotificationType, typeof Bell> = {
+  SESSION_REMINDER: CalendarClock,
+  SESSION_PENDING_VALIDATION: CalendarCheck,
+  SESSION_VALIDATED: CalendarCheck,
+  BOOKING_CREATED: CalendarPlus,
+  BOOKING_CANCELLED: CalendarX,
+  BOOKING_REMINDER: CalendarClock,
+}
+
 function TypeIcon({ type }: { type: NotificationType }) {
-  const Icon = type === 'SESSION_REMINDER' ? CalendarClock : CalendarCheck
+  const Icon = TYPE_ICONS[type]
   return <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
 }
 
