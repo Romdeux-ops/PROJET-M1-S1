@@ -17,6 +17,9 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
 
     boolean existsBySlotIdAndStatus(UUID slotId, BookingStatus status);
 
+    List<Booking> findByStatusAndStartsAtGreaterThanEqualAndStartsAtLessThanOrderByStartsAt(
+            BookingStatus status, Instant from, Instant to);
+
     @Modifying
     @Query("DELETE FROM Booking b WHERE b.slotId = :slotId AND b.status = :status")
     void deleteBySlotIdAndStatus(@Param("slotId") UUID slotId, @Param("status") BookingStatus status);
