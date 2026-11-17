@@ -3,6 +3,7 @@ import type { CoachPost } from '@/features/coaching/schemas'
 import type { Exercise, MuscleGroup, Tag } from '@/features/catalog/schemas'
 import type { ProfileResponse } from '@/features/identity/schemas'
 import type { Message } from '@/features/messaging/schemas'
+import type { AppNotification } from '@/features/notification/schemas'
 import type { ScheduledSession } from '@/features/planning/schemas'
 import type { Program } from '@/features/program/schemas'
 import type { TrainingSession } from '@/features/training'
@@ -31,6 +32,47 @@ export interface MockConversation {
   coachId: string
   athleteId: string
   createdAt: string
+}
+
+/** Notification telle que stockee ; le handler ne renvoie que celles du destinataire. */
+export interface MockNotification extends AppNotification {
+  userId: string
+}
+
+function seedNotifications(): MockNotification[] {
+  const minutesAgo = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString()
+  return [
+    {
+      id: 'notif-1',
+      userId: 'u-athlete',
+      type: 'SESSION_REMINDER',
+      title: "Séance prévue aujourd'hui",
+      body: "« Push day » est au programme aujourd'hui.",
+      link: '/planning',
+      createdAt: minutesAgo(20),
+      readAt: null,
+    },
+    {
+      id: 'notif-2',
+      userId: 'u-athlete',
+      type: 'SESSION_VALIDATED',
+      title: 'Séance validée',
+      body: 'Votre coach a validé « Leg day ».',
+      link: '/planning',
+      createdAt: minutesAgo(26 * 60),
+      readAt: minutesAgo(25 * 60),
+    },
+    {
+      id: 'notif-3',
+      userId: 'u-coach',
+      type: 'SESSION_PENDING_VALIDATION',
+      title: 'Séance à valider',
+      body: 'Léa Martin a terminé « Pull day » : elle attend votre validation.',
+      link: '/coaching',
+      createdAt: minutesAgo(45),
+      readAt: null,
+    },
+  ]
 }
 
 export function defaultProfile(): MockUser['profile'] {
@@ -367,6 +409,7 @@ export const db = {
   bookings: seedBookings(),
   conversations: seedConversations(),
   messages: seedMessages(),
+  notifications: seedNotifications(),
 }
 
 export function resetDb() {
@@ -383,6 +426,7 @@ export function resetDb() {
   db.bookings = seedBookings()
   db.conversations = seedConversations()
   db.messages = seedMessages()
+  db.notifications = seedNotifications()
 }
 
 export function tokenFor(userId: string) {

@@ -13,6 +13,9 @@ public interface ScheduledSessionRepository extends JpaRepository<ScheduledSessi
 
     List<ScheduledSession> findByAthleteIdAndScheduledDateOrderByCreatedAt(UUID athleteId, LocalDate date);
 
+    List<ScheduledSession> findByStatusAndScheduledDateBetween(
+            ScheduledSessionStatus status, LocalDate from, LocalDate to);
+
     List<ScheduledSession> findByAthleteIdInAndStatusOrderByScheduledDate(
             List<UUID> athleteIds, ScheduledSessionStatus status);
 }
