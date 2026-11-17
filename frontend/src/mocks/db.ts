@@ -1,5 +1,5 @@
 import type { Booking, Slot } from '@/features/booking/schemas'
-import type { CoachPost } from '@/features/coaching/schemas'
+import type { CoachNote, CoachPost } from '@/features/coaching/schemas'
 import type { Exercise, MuscleGroup, Tag } from '@/features/catalog/schemas'
 import type { ProfileResponse } from '@/features/identity/schemas'
 import type { Message } from '@/features/messaging/schemas'
@@ -23,7 +23,13 @@ export interface MockUser extends SessionUser {
 export interface MockCoachAthlete {
   coachId: string
   athleteId: string
-  status: 'ACTIVE' | 'ENDED'
+  status: 'PENDING' | 'ACTIVE' | 'DECLINED' | 'ENDED'
+  invitedAt?: string
+}
+
+/** Note privee d'un coach ; `coachId` n'est jamais renvoye par l'API. */
+export interface MockCoachNote extends CoachNote {
+  coachId: string
 }
 
 /** Conversation telle que stockee ; le handler en derive la vue de chaque participant. */
@@ -315,7 +321,30 @@ function seedPosts(): CoachPost[] {
 }
 
 function seedCoachAthletes(): MockCoachAthlete[] {
-  return [{ coachId: 'u-coach', athleteId: 'u-athlete', status: 'ACTIVE' }]
+  return [
+    { coachId: 'u-coach', athleteId: 'u-athlete', status: 'ACTIVE' },
+    // Invitation en attente : visible dans l'espace coaching de l'athlete de demo.
+    {
+      coachId: 'u-admin',
+      athleteId: 'u-athlete',
+      status: 'PENDING',
+      invitedAt: new Date().toISOString(),
+    },
+  ]
+}
+
+function seedCoachNotes(): MockCoachNote[] {
+  const now = new Date().toISOString()
+  return [
+    {
+      id: 'note-1',
+      coachId: 'u-coach',
+      athleteId: 'u-athlete',
+      content: 'Reprise après une gêne à l’épaule : charges légères sur le développé.',
+      createdAt: now,
+      updatedAt: now,
+    },
+  ]
 }
 
 /** Instant ISO dans `days` jours, a `hour` heure locale. */
@@ -435,6 +464,7 @@ export const db = {
   scheduledSessions: seedScheduledSessions(),
   posts: seedPosts(),
   coachAthletes: seedCoachAthletes(),
+  coachNotes: seedCoachNotes(),
   slots: seedSlots(),
   bookings: seedBookings(),
   conversations: seedConversations(),
@@ -452,6 +482,7 @@ export function resetDb() {
   db.scheduledSessions = seedScheduledSessions()
   db.posts = seedPosts()
   db.coachAthletes = seedCoachAthletes()
+  db.coachNotes = seedCoachNotes()
   db.slots = seedSlots()
   db.bookings = seedBookings()
   db.conversations = seedConversations()
