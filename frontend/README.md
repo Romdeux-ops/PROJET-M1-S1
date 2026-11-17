@@ -233,6 +233,7 @@ Contrats consommes par le front a ce jour :
 | GET     | `/api/gamification/me`                            | `GamificationProfile` (XP, niveau, badges obtenus ou verrouilles)  |
 | GET     | `/api/gamification/badges`                        | `Badge[]` (catalogue, `awardedAt` nul)                             |
 | GET     | `/api/gamification/leaderboard`                   | `LeaderboardEntry[]` (top 20 + ligne de l'utilisateur, `you`)      |
+| POST    | `/api/ai/program-generation`                      | `GeneratedProgram` (brouillon sans ecriture en base, 503 sans cle IA) |
 
 Les erreurs sont attendues au format `ProblemDetail` de Spring : `detail` est
 affiche tel quel a l'utilisateur.

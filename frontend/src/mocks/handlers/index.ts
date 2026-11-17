@@ -1,3 +1,4 @@
+import { aiHandlers } from './ai'
 import { bookingHandlers } from './booking'
 import { catalogHandlers } from './catalog'
 import { coachingHandlers } from './coaching'
@@ -23,4 +24,5 @@ export const handlers = [
   ...messagingHandlers,
   ...gamificationHandlers,
   ...notificationHandlers,
+  ...aiHandlers,
 ]
