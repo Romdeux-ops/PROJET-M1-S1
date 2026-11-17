@@ -49,7 +49,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth.requestMatchers(PUBLIC_ROUTES).permitAll().anyRequest().authenticated())
                 .exceptionHandling(eh -> eh.authenticationEntryPoint(
                                 (request, response, ex) -> response.sendError(HttpStatus.UNAUTHORIZED.value()))
-                        .accessDeniedHandler((request, response, ex) -> response.sendError(HttpStatus.FORBIDDEN.value())))
+                        .accessDeniedHandler((request, response, ex) -> response.setStatus(HttpStatus.FORBIDDEN.value())))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
