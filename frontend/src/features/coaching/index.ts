@@ -1,11 +1,30 @@
 export { coachingApi } from './api/coaching-api'
 export {
-  useAddAthlete,
+  useAcceptInvitation,
+  useAthleteOverview,
+  useCancelInvitation,
+  useCreateNote,
   useCreatePost,
+  useDeclineInvitation,
+  useDeleteNote,
   useDeletePost,
+  useEndAthlete,
+  useEndCoach,
+  useInviteAthlete,
   useMyAthletes,
   useMyCoaches,
+  useNotes,
   usePosts,
+  useReceivedInvitations,
+  useSentInvitations,
+  useUpdateNote,
 } from './hooks/use-coaching'
 export { CoachingPage } from './pages/coaching-page'
-export type { AddAthleteInput, CoachPost, CreatePostInput } from './schemas'
+export type {
+  AthleteOverview,
+  CoachNote,
+  CoachPost,
+  CreatePostInput,
+  InviteAthleteInput,
+  Invitation,
+} from './schemas'

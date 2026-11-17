@@ -97,9 +97,15 @@ public final class ApiClient {
                 .andExpect(status().isOk()));
     }
 
+    /** Le coach invite l'athlete et celui-ci accepte : la relation est ACTIVE. */
     public void attachCoach(Registered coach, Registered athlete) throws Exception {
-        post(coach, "/api/coaching/athletes", Map.of("athleteEmail", athlete.email()))
-                .andExpect(status().isCreated());
+        invite(coach, athlete);
+        post(athlete, "/api/coaching/invitations/received/" + coach.id() + "/accept", Map.of())
+                .andExpect(status().isNoContent());
+    }
+
+    public ResultActions invite(Registered coach, Registered athlete) throws Exception {
+        return post(coach, "/api/coaching/athletes", Map.of("athleteEmail", athlete.email()));
     }
 
     public String schedule(Registered athlete, LocalDate date) throws Exception {

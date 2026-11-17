@@ -11,11 +11,11 @@ import java.time.Instant;
 import java.util.UUID;
 
 /**
- * Relation coach-athlete (table {@code coach_athlete}, V3).
+ * Relation coach-athlete (table {@code coach_athlete}, V3 puis V13).
  *
- * <p>Version minimale anticipee sur la phase 8 : pas de flux d'invitation,
- * une relation nait directement ACTIVE. Sert pour l'instant uniquement a
- * restreindre la visibilite des publications d'un coach a ses clients.
+ * <p>Nait PENDING sur invitation du coach ; l'athlete l'accepte ou la refuse.
+ * Les transitions sont portees par le domaine : un appelant ne peut pas
+ * produire un etat que le cycle de vie interdit.
  */
 @Entity
 @Table(name = "coach_athlete")
@@ -32,10 +32,16 @@ public class CoachAthlete {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private CoachAthleteStatus status = CoachAthleteStatus.ACTIVE;
+    private CoachAthleteStatus status = CoachAthleteStatus.PENDING;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
+
+    @Column(name = "invited_at", nullable = false)
+    private Instant invitedAt = Instant.now();
+
+    @Column(name = "responded_at")
+    private Instant respondedAt;
 
     protected CoachAthlete() {
         // JPA
@@ -58,11 +64,39 @@ public class CoachAthlete {
         return status;
     }
 
-    public void setStatus(CoachAthleteStatus status) {
-        this.status = status;
+    public Instant getInvitedAt() {
+        return invitedAt;
     }
 
     public boolean isActive() {
         return status == CoachAthleteStatus.ACTIVE;
+    }
+
+    public boolean isPending() {
+        return status == CoachAthleteStatus.PENDING;
+    }
+
+    /** Relance une invitation (depuis DECLINED ou ENDED) ; une relation PENDING ou ACTIVE se suffit. */
+    public void invite() {
+        status = CoachAthleteStatus.PENDING;
+        invitedAt = Instant.now();
+        respondedAt = null;
+    }
+
+    public void accept() {
+        respond(CoachAthleteStatus.ACTIVE);
+    }
+
+    public void decline() {
+        respond(CoachAthleteStatus.DECLINED);
+    }
+
+    public void end() {
+        respond(CoachAthleteStatus.ENDED);
+    }
+
+    private void respond(CoachAthleteStatus outcome) {
+        status = outcome;
+        respondedAt = Instant.now();
     }
 }
