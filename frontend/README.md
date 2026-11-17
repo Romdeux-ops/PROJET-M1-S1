@@ -161,19 +161,20 @@ Contrats consommes par le front a ce jour :
 | POST    | `/api/catalog/exercises`                               | `Exercise` (201, role COACH/ADMIN)                                  |
 | PUT     | `/api/catalog/exercises/{id}`                          | `Exercise` (role COACH/ADMIN)                                       |
 | DELETE  | `/api/catalog/exercises/{id}`                          | 204 (role COACH/ADMIN)                                              |
-| GET     | `/api/programs`                                        | `Program[]` (filtres en query string)                               |
-| GET     | `/api/programs/{id}`                                   | `Program`                                                           |
-| GET     | `/api/programs/shared/{token}`                         | `Program` (public, sans auth)                                       |
-| POST    | `/api/programs`                                        | `Program` (201)                                                     |
-| PUT     | `/api/programs/{id}`                                   | `Program` (proprietaire)                                            |
-| DELETE  | `/api/programs/{id}`                                   | 204 (proprietaire)                                                  |
-| POST    | `/api/programs/{id}/duplicate`                         | `Program` (201)                                                     |
-| POST    | `/api/programs/{id}/days`                              | `Program` (proprietaire)                                            |
-| DELETE  | `/api/programs/{id}/days/{dayId}`                      | `Program` (proprietaire)                                            |
-| PATCH   | `/api/programs/{id}/days/positions`                    | `Program` (corps `{ orderedIds }` : tous les jours, une fois)       |
-| POST    | `/api/programs/{id}/days/{dayId}/exercises`            | `Program` (proprietaire)                                            |
-| DELETE  | `/api/programs/{id}/days/{dayId}/exercises/{eid}`      | `Program` (proprietaire)                                            |
-| POST    | `/api/programs/{id}/ratings`                           | `Program` (non-proprietaire, programme public)                      |
+| GET     | `/api/programs`                                   | `Program[]` (filtres en query string)                                                                        |
+| GET     | `/api/programs/from-my-coaches`                   | `Program[]` (programmes `CLIENTS` des coachs actifs ; filtres `category`, `level`, pagination `page`/`size`) |
+| GET     | `/api/programs/{id}`                              | `Program` (404 si `PRIVATE` d'autrui, ou `CLIENTS` sans relation active)                                     |
+| GET     | `/api/programs/shared/{token}`                    | `Program` (public, sans auth)                                                                                |
+| POST    | `/api/programs`                                   | `Program` (201 ; visibilite `CLIENTS` reservee aux coachs, sinon 403)                                        |
+| PUT     | `/api/programs/{id}`                              | `Program` (proprietaire ; `CLIENTS` reservee aux coachs)                                                     |
+| DELETE  | `/api/programs/{id}`                              | 204 (proprietaire)                                                                                           |
+| POST    | `/api/programs/{id}/duplicate`                    | `Program` (201)                                                                                              |
+| POST    | `/api/programs/{id}/days`                         | `Program` (proprietaire)                                                                                     |
+| DELETE  | `/api/programs/{id}/days/{dayId}`                 | `Program` (proprietaire)                                                                                     |
+| PATCH   | `/api/programs/{id}/days/positions`               | `Program` (corps `{ orderedIds }` : tous les jours, une fois)                                                |
+| POST    | `/api/programs/{id}/days/{dayId}/exercises`       | `Program` (proprietaire)                                                                                     |
+| DELETE  | `/api/programs/{id}/days/{dayId}/exercises/{eid}` | `Program` (proprietaire)                                                                                     |
+| POST    | `/api/programs/{id}/ratings`                      | `Program` (non-proprietaire ; `PUBLIC`, ou `CLIENTS` avec relation active, sinon 404 ; `PRIVATE` : 400)      |
 | GET     | `/api/training/sessions`                               | `TrainingSession[]`                                                 |
 | GET     | `/api/training/sessions/{id}`                          | `TrainingSession`                                                   |
 | POST    | `/api/training/sessions`                               | `TrainingSession` (201)                                             |

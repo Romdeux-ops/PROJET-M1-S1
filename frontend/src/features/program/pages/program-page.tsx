@@ -11,10 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useHasRole } from '@/lib/auth/session'
 
 import { ProgramCard } from '../components/program-card'
 import { ProgramForm } from '../components/program-form'
-import { useCreateProgram, usePrograms } from '../hooks/use-programs'
+import { useCoachPrograms, useCreateProgram, usePrograms } from '../hooks/use-programs'
 import {
   CATEGORY_LABELS,
   LEVEL_LABELS,
@@ -29,7 +30,15 @@ const ALL = '__all__'
 export function ProgramPage() {
   const [filters, setFilters] = useState<ProgramSearchFilters>({})
   const [createOpen, setCreateOpen] = useState(false)
-  const { data: programs = [], isLoading } = usePrograms(filters)
+  const [view, setView] = useState<'all' | 'coach'>('all')
+  const isAthlete = useHasRole('ATHLETE')
+  const coachView = isAthlete && view === 'coach'
+  const allPrograms = usePrograms(filters)
+  const coachPrograms = useCoachPrograms(
+    { category: filters.category, level: filters.level },
+    coachView,
+  )
+  const { data: programs = [], isLoading } = coachView ? coachPrograms : allPrograms
   const createProgram = useCreateProgram()
 
   function handleCreate(values: ProgramFormInput) {
@@ -50,14 +59,26 @@ export function ProgramPage() {
 
       <div className="space-y-4">
         <div className="flex flex-wrap gap-3">
-          <Button
-            type="button"
-            variant={filters.mineOnly ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setFilters((f) => ({ ...f, mineOnly: !f.mineOnly }))}
-          >
-            Mes programmes
-          </Button>
+          {isAthlete && (
+            <Button
+              type="button"
+              variant={coachView ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setView(coachView ? 'all' : 'coach')}
+            >
+              Programmes de mon coach
+            </Button>
+          )}
+          {!coachView && (
+            <Button
+              type="button"
+              variant={filters.mineOnly ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setFilters((f) => ({ ...f, mineOnly: !f.mineOnly }))}
+            >
+              Mes programmes
+            </Button>
+          )}
 
           <Select
             value={filters.category ?? ALL}
@@ -108,7 +129,9 @@ export function ProgramPage() {
           <Loader2 className="size-5 animate-spin text-muted-foreground" />
         ) : programs.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Aucun programme ne correspond à ces critères.
+            {coachView
+              ? 'Aucun programme partagé par vos coachs pour le moment.'
+              : 'Aucun programme ne correspond à ces critères.'}
           </p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

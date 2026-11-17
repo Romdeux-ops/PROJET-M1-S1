@@ -1,6 +1,7 @@
 package com.fitcoach.program.service;
 
 import com.fitcoach.catalog.api.ExerciseCatalog;
+import com.fitcoach.coaching.api.CoachRelations;
 import com.fitcoach.common.domain.Positions;
 import com.fitcoach.identity.api.UserDirectory;
 import com.fitcoach.identity.api.UserSummary;
@@ -49,6 +50,7 @@ public class ProgramService {
     private final ProgramRatingRepository programRatingRepository;
     private final ExerciseCatalog exerciseCatalog;
     private final UserDirectory userDirectory;
+    private final CoachRelations coachRelations;
 
     public ProgramService(
             ProgramRepository programRepository,
@@ -56,13 +58,15 @@ public class ProgramService {
             ProgramExerciseRepository programExerciseRepository,
             ProgramRatingRepository programRatingRepository,
             ExerciseCatalog exerciseCatalog,
-            UserDirectory userDirectory) {
+            UserDirectory userDirectory,
+            CoachRelations coachRelations) {
         this.programRepository = programRepository;
         this.programDayRepository = programDayRepository;
         this.programExerciseRepository = programExerciseRepository;
         this.programRatingRepository = programRatingRepository;
         this.exerciseCatalog = exerciseCatalog;
         this.userDirectory = userDirectory;
+        this.coachRelations = coachRelations;
     }
 
     public Page<ProgramResponse> search(
@@ -70,6 +74,17 @@ public class ProgramService {
         Page<Program> page = programRepository.search(viewerId, mineOnly, category, level, pageable);
         List<ProgramResponse> content = toResponseList(page.getContent(), viewerId);
         return new PageImpl<>(content, pageable, page.getTotalElements());
+    }
+
+    /** Programmes CLIENTS des coachs ayant une relation ACTIVE avec {@code athleteId} (relue a chaque appel). */
+    public Page<ProgramResponse> searchFromMyCoaches(
+            UUID athleteId, ProgramCategory category, ProgramLevel level, Pageable pageable) {
+        List<UUID> coachIds = coachRelations.activeCoachIds(athleteId);
+        if (coachIds.isEmpty()) {
+            return new PageImpl<>(List.of(), pageable, 0);
+        }
+        Page<Program> page = programRepository.searchSharedByOwners(coachIds, category, level, pageable);
+        return new PageImpl<>(toResponseList(page.getContent(), athleteId), pageable, page.getTotalElements());
     }
 
     public ProgramResponse get(UUID programId, UUID viewerId) {
@@ -192,11 +207,16 @@ public class ProgramService {
     @Transactional
     public ProgramResponse rate(UUID programId, UUID userId, RatingRequest request) {
         Program program = programRepository.findById(programId).orElseThrow(ProgramNotFoundException::new);
-        if (program.getVisibility() != ProgramVisibility.PUBLIC) {
+        if (program.getVisibility() == ProgramVisibility.PRIVATE) {
             throw new ProgramNotPublicException();
         }
         if (program.isOwnedBy(userId)) {
             throw new CannotRateOwnProgramException();
+        }
+        // CLIENTS : relation ACTIVE relue maintenant ; une fois terminee, la note deja donnee reste comptee
+        // dans la moyenne mais ne peut plus etre modifiee (404 comme pour la lecture).
+        if (!canView(program, userId)) {
+            throw new ProgramNotFoundException();
         }
         ProgramRating rating = programRatingRepository
                 .findByProgramIdAndUserId(programId, userId)
@@ -225,10 +245,18 @@ public class ProgramService {
 
     private Program findVisibleOrThrow(UUID programId, UUID viewerId) {
         Program program = programRepository.findById(programId).orElseThrow(ProgramNotFoundException::new);
-        if (!program.isVisibleTo(viewerId)) {
+        if (!canView(program, viewerId)) {
             throw new ProgramNotFoundException();
         }
         return program;
+    }
+
+    private boolean canView(Program program, UUID viewerId) {
+        if (program.isOwnedBy(viewerId) || program.getVisibility() == ProgramVisibility.PUBLIC) {
+            return true;
+        }
+        return program.getVisibility() == ProgramVisibility.CLIENTS
+                && coachRelations.isActiveClient(program.getOwnerId(), viewerId);
     }
 
     private ProgramDay findDayOrThrow(UUID dayId, UUID programId) {

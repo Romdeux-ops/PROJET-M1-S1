@@ -2,6 +2,7 @@ export { programApi } from './api/program-api'
 export {
   useAddDay,
   useAddExercise,
+  useCoachPrograms,
   useCreateProgram,
   useDeleteDay,
   useDeleteExerciseEntry,

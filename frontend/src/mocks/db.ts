@@ -285,6 +285,31 @@ function seedPrograms(): Program[] {
       createdAt: now,
       updatedAt: now,
     },
+    {
+      id: 'prog-2',
+      ownerId: 'u-coach',
+      ownerName: 'Hugo Bernard',
+      title: 'Prise de masse sur mesure',
+      description: 'Programme réservé à mes athlètes.',
+      category: 'STRENGTH',
+      level: 'INTERMEDIATE',
+      visibility: 'CLIENTS',
+      shareToken: 'share-prog-2',
+      averageRating: 0,
+      ratingsCount: 0,
+      mine: false,
+      days: [
+        {
+          id: 'day-2',
+          position: 0,
+          name: 'Haut du corps',
+          restDay: false,
+          exercises: [],
+        },
+      ],
+      createdAt: now,
+      updatedAt: now,
+    },
   ]
 }
 
