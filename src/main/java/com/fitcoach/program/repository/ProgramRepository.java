@@ -3,6 +3,7 @@ package com.fitcoach.program.repository;
 import com.fitcoach.program.domain.Program;
 import com.fitcoach.program.domain.ProgramCategory;
 import com.fitcoach.program.domain.ProgramLevel;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -26,6 +27,20 @@ public interface ProgramRepository extends JpaRepository<Program, UUID> {
     Page<Program> search(
             @Param("viewerId") UUID viewerId,
             @Param("mineOnly") boolean mineOnly,
+            @Param("category") ProgramCategory category,
+            @Param("level") ProgramLevel level,
+            Pageable pageable);
+
+    @Query(
+            """
+            SELECT p FROM Program p
+            WHERE p.visibility = 'CLIENTS'
+              AND p.ownerId IN :ownerIds
+              AND (:category IS NULL OR p.category = :category)
+              AND (:level IS NULL OR p.level = :level)
+            """)
+    Page<Program> searchSharedByOwners(
+            @Param("ownerIds") Collection<UUID> ownerIds,
             @Param("category") ProgramCategory category,
             @Param("level") ProgramLevel level,
             Pageable pageable);
