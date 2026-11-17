@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { useHasRole } from '@/lib/auth/session'
 
 import {
   CATEGORY_LABELS,
@@ -42,6 +43,10 @@ export function ProgramForm({
   onSubmit: (values: ProgramFormInput) => void
   isPending: boolean
 }) {
+  const canShareWithClients = useHasRole('COACH', 'ADMIN')
+  const visibilityOptions = programVisibilities.filter(
+    (v) => v !== 'CLIENTS' || canShareWithClients,
+  )
   const form = useForm<ProgramFormInput>({
     resolver: zodResolver(programFormSchema),
     defaultValues: {
@@ -150,7 +155,7 @@ export function ProgramForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {programVisibilities.map((v) => (
+                    {visibilityOptions.map((v) => (
                       <SelectItem key={v} value={v}>
                         {VISIBILITY_LABELS[v]}
                       </SelectItem>

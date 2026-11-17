@@ -660,6 +660,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/programs/from-my-coaches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["fromMyCoaches"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/planning/scheduled/today": {
         parameters: {
             query?: never;
@@ -945,7 +961,7 @@ export interface components {
             /** @enum {string} */
             level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
             /** @enum {string} */
-            visibility: "PUBLIC" | "PRIVATE";
+            visibility: "PUBLIC" | "PRIVATE" | "CLIENTS";
         };
         ProgramDayResponse: {
             /** Format: uuid */
@@ -984,7 +1000,7 @@ export interface components {
             /** @enum {string} */
             level?: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
             /** @enum {string} */
-            visibility?: "PUBLIC" | "PRIVATE";
+            visibility?: "PUBLIC" | "PRIVATE" | "CLIENTS";
             shareToken?: string;
             /** Format: double */
             averageRating?: number;
@@ -2743,6 +2759,31 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ProgramResponse"];
+                };
+            };
+        };
+    };
+    fromMyCoaches: {
+        parameters: {
+            query?: {
+                category?: "STRENGTH" | "CARDIO" | "HIIT" | "YOGA" | "STRETCHING";
+                level?: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageResponseProgramResponse"];
                 };
             };
         };

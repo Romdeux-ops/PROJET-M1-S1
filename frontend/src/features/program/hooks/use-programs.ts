@@ -2,6 +2,7 @@ import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/r
 
 import { programApi } from '../api/program-api'
 import type {
+  CoachProgramFilters,
   DayFormInput,
   ExerciseEntryFormInput,
   ProgramFormInput,
@@ -11,6 +12,8 @@ import type {
 export const programKeys = {
   all: ['programs'] as const,
   list: (filters: ProgramSearchFilters) => [...programKeys.all, 'list', filters] as const,
+  fromCoaches: (filters: CoachProgramFilters) =>
+    [...programKeys.all, 'from-coaches', filters] as const,
   detail: (id: string) => [...programKeys.all, 'detail', id] as const,
   shared: (token: string) => [...programKeys.all, 'shared', token] as const,
 }
@@ -20,6 +23,14 @@ export const programsQuery = (filters: ProgramSearchFilters) =>
 
 export function usePrograms(filters: ProgramSearchFilters) {
   return useQuery(programsQuery(filters))
+}
+
+export function useCoachPrograms(filters: CoachProgramFilters, enabled = true) {
+  return useQuery({
+    queryKey: programKeys.fromCoaches(filters),
+    queryFn: () => programApi.fromMyCoaches(filters),
+    enabled,
+  })
 }
 
 export const programQuery = (programId: string) =>
