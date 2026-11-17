@@ -1,7 +1,7 @@
 # FitCoach — Dossier de lancement
 
 **Projet M1 S1 — Rendu 2 : v0.1.0 de l'application** · Plateforme fitness pour athlètes et coachs
-Romain (`Romdeux-ops`), Youcef (`kratos-web`) et Mathieu (`Mathieuleboss`)
+Romain (`Romdeux-ops`), Youcef (`Krat0s-web`) et Mathieu (`Mathieuleboss`)
 
 | Version | Date | Objet |
 | --- | --- | --- |
@@ -21,10 +21,10 @@ conflits de fusion.
 | Membre | Compte GitHub | Feature majeure | État dans la v0.1.0 |
 | --- | --- | --- | --- |
 | Romain | `Romdeux-ops` (propriétaire du dépôt) | Messagerie coach ↔ athlète, et socle commun (architecture, JWT, Flyway, outillage frontend) | **Livrée** : conversation unique par paire, historique paginé par curseur, accusés de lecture, envoi conditionné à une relation active |
-| Youcef | `kratos-web` | Portail de coaching | **Livré** : invitations coach → athlète (acceptation, refus, annulation, fin de suivi), notes privées, suivi d'un athlète, publications à images protégées, validation hiérarchique des séances, programmes visibles par les athlètes du coach avec notation |
-| Mathieu | `Mathieuleboss` | Nutrition (plans alimentaires, journal des repas, besoins caloriques, recettes) | **Non livrée dans la v0.1.0** : aucun code de nutrition n'est présent dans le dépôt. Le module est volontairement isolé (aucun autre module n'en dépend) ; sa route et son entrée de menu existent côté frontend avec un écran d'attente |
+| Youcef | `Krat0s-web` | Portail de coaching | **Livré** : invitations coach → athlète (acceptation, refus, annulation, fin de suivi), notes privées, suivi d'un athlète, publications à images protégées, validation hiérarchique des séances, programmes visibles par les athlètes du coach avec notation |
+| Mathieu | `Mathieuleboss` | Nutrition (plans alimentaires, journal des repas, besoins caloriques, recettes) | **En cours de développement, prévue dans la prochaine version** : le code de nutrition n'est pas dans la v0.1.0, que l'équipe livre sans elle d'un commun accord avec Mathieu. Le module est volontairement isolé (aucun autre module n'en dépend) ; sa route et son entrée de menu existent côté frontend avec un écran d'attente |
 
-Ce dossier présente l'état réel de la v0.1.0 : la nutrition est prévue et non commencée.
+Ce dossier présente l'état réel de la v0.1.0 : la nutrition de Mathieu est en cours de développement et sera ajoutée à la prochaine version.
 Une fonctionnalité supplémentaire (génération de programmes, gamification, notifications) a
 été développée par l'équipe en plus des fonctionnalités majeures individuelles.
 
@@ -104,7 +104,7 @@ Trois rôles : ATHLETE, COACH, ADMIN.
    aujourd'hui ou demain, les séances à valider ou validées et les réservations.
 6. **La progression gamifiée (livré)** — badges (première séance, 10 et 50 séances, premier
    programme, séries de 7 et 30 jours, premier record, 10 records), niveaux et classement.
-7. **La nutrition (prévu)** — plans alimentaires, journal des repas et besoins caloriques.
+7. **La nutrition (en cours, prochaine version)** — plans alimentaires, journal des repas et besoins caloriques.
 8. **L'administrateur (prévu)** — back-office pour superviser les comptes et modérer les
    contenus publics.
 
@@ -127,7 +127,7 @@ Pull Request, sa migration Flyway et ses tests.
 | 10 | Messagerie coach ↔ athlète | Livrée |
 | 11 | Gamification : badges, expérience, niveaux, classement | Livrée (défis non faits) |
 | 12 | Génération de programmes (règles, Claude en option) | Livrée |
-| 13 | Nutrition (bonus) | Non livrée |
+| 13 | Nutrition (bonus) | En cours (Mathieu), prochaine version |
 | 14 | Back-office, CI, déploiement | CI livrée ; back-office et déploiement non réalisés |
 
 Hors plan numéroté : notifications et rappels (migration V12) et programmes visibles par les
@@ -242,7 +242,7 @@ avec un programme visible par les athlètes et une séance prévue aujourd'hui.
 
 ## 10. Limites connues et feuille de route
 
-- **Nutrition** (Mathieu) : non commencée dans cette version.
+- **Nutrition** (Mathieu) : en cours de développement, absente de la v0.1.0 et prévue dans la prochaine version.
 - **Back-office d'administration** et **déploiement** : non réalisés.
 - **Défis** de la gamification : non implémentés (badges, expérience et classement le sont).
 - **Badges dynamiques** de couverture et de qualité de code : à brancher par le

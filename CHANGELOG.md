@@ -104,7 +104,7 @@ Premiere version livrable (Rendu 2). Le schema de base de donnees va de `V1` a
   `dev`.
 
 ### Connu / non inclus
-- **Nutrition** (phase 13) : non commencee, aucun code dans cette version.
+- **Nutrition** (phase 13, Mathieu) : en cours de developpement, absente de cette version et prevue dans la suivante.
 - **Back-office d'administration** et deploiement (phase 14) : non realises.
 - **Defis** de la gamification : non implementes (badges, XP et classement le sont).
 - Badges **dynamiques** de couverture et de qualite de code : demandent un compte

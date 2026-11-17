@@ -197,6 +197,18 @@ GitHub ; il sera branche a ce moment-la. La qualite du frontend est controlee
 par `oxlint` et `prettier` dans la CI. Aucun badge de licence n'est affiche
 tant que le depot ne contient pas de fichier `LICENSE`.
 
+## Equipe et features majeures
+
+Une feature majeure par etudiant, dans son module (backend `com.fitcoach.<module>`,
+frontend `frontend/src/features/<module>`). Le detail est dans
+[doc/dossier-lancement.md](doc/dossier-lancement.md), section 1.
+
+| Membre | Compte GitHub | Feature majeure | v0.1.0 |
+| --- | --- | --- | --- |
+| Romain | `Romdeux-ops` | Messagerie coach / athlete (module `messaging`) et socle commun | Livree |
+| Youcef | `Krat0s-web` | Portail de coaching : invitations, notes privees, suivi, programmes pour les athletes du coach (modules `coaching`, `program`) | Livree |
+| Mathieu | `Mathieuleboss` | Nutrition (module `nutrition`) | En cours, prochaine version |
+
 ## Organisation du code
 
 Le projet est un monolithe modulaire decoupe **par fonctionnalite** et non par
