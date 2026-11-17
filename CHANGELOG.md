@@ -115,5 +115,5 @@ Premiere version livrable (Rendu 2). Le schema de base de donnees va de `V1` a
 - Le chemin **Claude** de la generation n'a pas ete execute contre la vraie API
   (aucun appel reel dans les tests) ; seul le generateur a regles est verifie de
   bout en bout.
-- Les workflows GitHub Actions n'ont pas encore ete executes sur GitHub au moment de
-  cette version (ils tournent a l'ouverture d'une Pull Request).
+- Les workflows GitHub Actions tournent a l'ouverture d'une Pull Request ; sur la
+  Pull Request #15 de la release, backend et frontend sont verts.

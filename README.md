@@ -23,9 +23,9 @@ Le frontend React / TypeScript / Tailwind vit dans [`frontend/`](frontend/README
 
 ## Tester la v0.1.0
 
-Version livree pour le Rendu 2. En attendant la fusion dans `main`, elle est sur
-la branche `release/v0.1.0` ; une fois le tag `v0.1.0` cree, `git checkout v0.1.0`
-donne exactement la meme version, figee. Le detail des changements est dans
+Version livree pour le Rendu 2, figee par le tag `v0.1.0`
+([release GitHub](https://github.com/Romdeux-ops/PROJET-M1-S1/releases/tag/v0.1.0)). En attendant la fusion dans `main`, le meme code est sur la
+branche `release/v0.1.0`. Le detail des changements est dans
 [CHANGELOG.md](CHANGELOG.md).
 
 **Prerequis** : JDK 21, Docker Desktop **lance**, Node.js 22 ou plus, Git.
@@ -33,7 +33,7 @@ donne exactement la meme version, figee. Le detail des changements est dans
 ```bash
 git clone https://github.com/Romdeux-ops/PROJET-M1-S1.git
 cd PROJET-M1-S1
-git checkout release/v0.1.0        # ou : git checkout v0.1.0 (apres creation du tag)
+git checkout v0.1.0
 cp .env.example .env               # PowerShell : Copy-Item .env.example .env
 docker compose up -d               # PostgreSQL (5432) et pgAdmin (5050)
 ./gradlew bootRun                  # Windows : .\gradlew.bat bootRun

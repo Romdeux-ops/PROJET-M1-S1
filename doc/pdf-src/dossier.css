@@ -27,3 +27,4 @@ pre code { background: transparent; padding: 0; }
 a { color: #0e5c8c; text-decoration: none; }
 strong { color: #0e4d5c; }
 .rule { background: #e8f2f5; border-left: 2.5pt solid #0e4d5c; padding: 5pt 8pt; margin: 6pt 0; }
+.banner a { color: #ffffff; text-decoration: underline; }

@@ -2,6 +2,7 @@
 
 **Projet M1 S1 — Rendu 2 : v0.1.0 de l'application** · Plateforme fitness pour athlètes et coachs
 Romain (`Romdeux-ops`), Youcef (`Krat0s-web`) et Mathieu (`Mathieuleboss`)
+Release : <https://github.com/Romdeux-ops/PROJET-M1-S1/releases/tag/v0.1.0>
 
 | Version | Date | Objet |
 | --- | --- | --- |
@@ -32,8 +33,10 @@ Une fonctionnalité supplémentaire (génération de programmes, gamification, n
 
 - Dépôt principal (backend, frontend, documentation) :
   <https://github.com/Romdeux-ops/PROJET-M1-S1>
-- Version à tester : branche **`release/v0.1.0`**, puis tag **`v0.1.0`** une fois créé
-  (`git checkout v0.1.0` donne alors exactement la même version, figée par un commit).
+- **Release GitHub de la v0.1.0** (tag `v0.1.0`) :
+  <https://github.com/Romdeux-ops/PROJET-M1-S1/releases/tag/v0.1.0>
+- Version figée par le tag **`v0.1.0`** : `git checkout v0.1.0` donne exactement la version
+  livrée. La branche `release/v0.1.0` (Pull Request brouillon #15) porte le même code.
 - Monorepo : backend Spring Boot à la racine, frontend React dans `frontend/`.
 
 **Règles d'équipe.** Aucun commit direct sur `main` : chaque fonctionnalité a sa branche
@@ -41,7 +44,8 @@ Une fonctionnalité supplémentaire (génération de programmes, gamification, n
 membre. Une migration de base de données n'est jamais modifiée après sa fusion. Rien ne
 se fusionne sans tests verts (`./gradlew test` et CI frontend).
 
-**Pull Requests de la v0.1.0** (ouvertes, non fusionnées à la date du dossier) : #7 dossier,
+**Pull Requests de la v0.1.0** (ouvertes, non fusionnées à la date du dossier ; #15 est la
+Pull Request brouillon de la branche `release/v0.1.0`) : #7 dossier,
 #8 gamification (V11), #9 correction du statut 403, #10 rappels et notifications (V12),
 #11 invitations et suivi (V13), #12 programmes pour les athlètes (V14), #13 génération de
 programmes, #14 intégration continue et couverture. Elles sont fusionnées dans l'ordre des
@@ -178,9 +182,9 @@ vérifié ; erreurs d'intégrité journalisées sans détail exposé au client.
 | `backend.yml` | modifications de `src/**`, `build.gradle`, `gradle/**` | Java 21, PostgreSQL 16 en service, `./gradlew build` (tests + JaCoCo), rapport de couverture en artefact |
 | `frontend.yml` | modifications de `frontend/**` | lint, format, typecheck, tests avec couverture, build, rapport en artefact |
 
-Ils s'exécutent à chaque Pull Request concernée. Au moment de ce dossier, les workflows
-n'ont pas encore été exécutés sur GitHub : le premier résultat apparaît à l'ouverture de la
-Pull Request correspondante.
+Ils s'exécutent à chaque Pull Request concernée. Sur la Pull Request brouillon #15, les
+deux workflows (backend et frontend) sont **passés au vert** sur le commit `407cd7c`, celui
+que désigne le tag `v0.1.0`.
 
 **Tests et couverture, mesurés sur la v0.1.0** (2026-11-17) :
 
@@ -229,7 +233,7 @@ En résumé :
 
 ```
 git clone https://github.com/Romdeux-ops/PROJET-M1-S1.git && cd PROJET-M1-S1
-git checkout release/v0.1.0        # puis : git checkout v0.1.0 une fois le tag créé
+git checkout v0.1.0
 cp .env.example .env && docker compose up -d
 ./gradlew bootRun                  # terminal 1
 cd frontend && npm install && npm run dev    # terminal 2 : http://localhost:5173
