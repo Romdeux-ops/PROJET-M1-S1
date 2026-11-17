@@ -1,6 +1,6 @@
 # FitCoach - Backend
 
-![Version](https://img.shields.io/badge/version-0.1.0--SNAPSHOT-blue)
+![Version](https://img.shields.io/badge/version-0.1.0-blue)
 [![Backend CI](https://github.com/Romdeux-ops/PROJET-M1-S1/actions/workflows/backend.yml/badge.svg)](https://github.com/Romdeux-ops/PROJET-M1-S1/actions/workflows/backend.yml)
 [![Frontend CI](https://github.com/Romdeux-ops/PROJET-M1-S1/actions/workflows/frontend.yml/badge.svg)](https://github.com/Romdeux-ops/PROJET-M1-S1/actions/workflows/frontend.yml)
 
@@ -20,6 +20,73 @@ reservation de creneaux, messagerie et generation de programmes par IA.
 | springdoc-openapi | 3.1.1 | la ligne 3.x est celle compatible Boot 4 |
 
 Le frontend React / TypeScript / Tailwind vit dans [`frontend/`](frontend/README.md).
+
+## Tester la v0.1.0
+
+Version livree pour le Rendu 2. En attendant la fusion dans `main`, elle est sur
+la branche `release/v0.1.0` ; une fois le tag `v0.1.0` cree, `git checkout v0.1.0`
+donne exactement la meme version, figee. Le detail des changements est dans
+[CHANGELOG.md](CHANGELOG.md).
+
+**Prerequis** : JDK 21, Docker Desktop **lance**, Node.js 22 ou plus, Git.
+
+```bash
+git clone https://github.com/Romdeux-ops/PROJET-M1-S1.git
+cd PROJET-M1-S1
+git checkout release/v0.1.0        # ou : git checkout v0.1.0 (apres creation du tag)
+cp .env.example .env               # PowerShell : Copy-Item .env.example .env
+docker compose up -d               # PostgreSQL (5432) et pgAdmin (5050)
+./gradlew bootRun                  # Windows : .\gradlew.bat bootRun
+```
+
+Dans un **second terminal** :
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+| Quoi | Ou |
+| --- | --- |
+| Application | http://localhost:5173 |
+| API et Swagger UI | http://localhost:8080 et http://localhost:8080/swagger-ui.html |
+
+Au premier demarrage en profil `dev` (`./gradlew bootRun`), des **comptes de demo**
+sont crees sur une base vide (mot de passe `Password1`) : `coach@fitcoach.dev` et
+`athlete@fitcoach.dev`, deja relies, avec un programme visible par les athletes du
+coach et une seance prevue aujourd'hui. Sans backend, `npm run dev:mock` (dans
+`frontend/`) lance l'application avec une API simulee et les memes comptes de demo
+(les donnees y sont perdues a chaque rechargement).
+
+**Parcours de test conseille**
+
+1. Se connecter en `athlete@fitcoach.dev` : la cloche affiche le rappel de la
+   seance du jour (le job de rappels tourne ~10 s apres le demarrage, puis toutes
+   les 15 min) ; la page *Progression* (« Defis & badges ») montre XP et badges.
+2. *Programmes* > *Programmes de mon coach* : ouvrir le programme du coach, le noter
+   (etoiles) ou le dupliquer.
+3. *Carnet* : creer une seance et ajouter des series (+XP, badge « Premiere seance »,
+   record personnel).
+4. *Generation IA* : generer un programme (sans cle API : generateur a regles), le
+   regenerer, l'enregistrer.
+5. Se deconnecter, creer un **nouveau compte coach** et un **nouveau compte athlete**
+   sur `/register` ; en coach, *Coaching* > inviter l'athlete par e-mail ; en athlete,
+   accepter l'invitation ; en coach, ouvrir la fiche de l'athlete (suivi, notes
+   privees), creer un programme en visibilite « Mes athletes », publier un creneau
+   (*Reservation*) ; en athlete, le reserver : le coach recoit la notification.
+
+**Tests** : `./gradlew test` (backend, PostgreSQL requis, voir plus bas) et
+`cd frontend && npm test`.
+
+**En cas de probleme**
+
+| Symptome | Remede |
+| --- | --- |
+| `Cannot connect to the Docker daemon` | lancer Docker Desktop, attendre qu'il soit pret, puis `docker compose up -d` |
+| Erreur Flyway « checksum » ou « migration not resolved » (base creee avec une autre version) | repartir d'une base vierge : `docker compose down -v && docker compose up -d` |
+| `Port 8080` ou `5173` deja utilise | arreter le processus qui l'occupe (`lsof -i :8080` sous macOS/Linux, `netstat -ano \| findstr 8080` sous Windows) |
+| Les comptes de demo n'existent pas | ils ne sont crees que sur une base vide en profil `dev` ; sinon `docker compose down -v` |
 
 ## Demarrer en local
 
@@ -121,8 +188,8 @@ Couverture en local :
 cd frontend && npm run test:coverage # frontend/coverage/index.html
 ```
 
-Couverture mesuree le 2026-11-17 (a titre indicatif, pas un seuil) : backend
-73,1 % des lignes (71 tests), frontend 42,3 % des lignes (34 tests). Ces
+Couverture mesuree le 2026-11-17 sur la v0.1.0 (a titre indicatif, pas un seuil) :
+backend 81,0 % des lignes (146 tests), frontend 53,8 % des lignes (70 tests). Ces
 chiffres sont donnes en clair et non sous forme de badge : un badge de
 couverture ou de qualite de code dynamique (Codecov, SonarCloud) exige que le
 proprietaire du depot cree un compte et ajoute un jeton dans les secrets
