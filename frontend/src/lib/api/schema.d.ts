@@ -468,7 +468,7 @@ export interface paths {
         patch: operations["complete"];
         trace?: never;
     };
-    "/api/messaging/conversations/{conversationId}/read": {
+    "/api/notifications/{notificationId}/read": {
         parameters: {
             query?: never;
             header?: never;
@@ -482,6 +482,38 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["markRead"];
+        trace?: never;
+    };
+    "/api/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["markAllRead"];
+        trace?: never;
+    };
+    "/api/messaging/conversations/{conversationId}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["markRead_1"];
         trace?: never;
     };
     "/api/booking/bookings/{bookingId}/cancel": {
@@ -692,14 +724,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/gamification/me": {
+    "/api/notifications": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["me_1"];
+        get: operations["list_3"];
         put?: never;
         post?: never;
         delete?: never;
@@ -708,30 +740,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/gamification/leaderboard": {
+    "/api/notifications/unread-count": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["leaderboard"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/gamification/badges": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["badges"];
+        get: operations["unreadCount"];
         put?: never;
         post?: never;
         delete?: never;
@@ -779,7 +795,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_3"];
+        get: operations["list_4"];
         put?: never;
         post?: never;
         delete?: never;
@@ -795,7 +811,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_4"];
+        get: operations["list_5"];
         put?: never;
         post?: never;
         delete?: never;
@@ -811,7 +827,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_5"];
+        get: operations["list_6"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1434,44 +1450,38 @@ export interface components {
             /** Format: int32 */
             totalPages?: number;
         };
+        NotificationResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** @enum {string} */
+            type?: "SESSION_REMINDER" | "SESSION_PENDING_VALIDATION" | "SESSION_VALIDATED" | "BOOKING_CREATED" | "BOOKING_CANCELLED" | "BOOKING_REMINDER";
+            title?: string;
+            body?: string;
+            link?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            readAt?: string;
+        };
+        PageResponseNotificationResponse: {
+            content?: components["schemas"]["NotificationResponse"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
+        UnreadCountResponse: {
+            /** Format: int64 */
+            count?: number;
+        };
         MessagePageResponse: {
             items?: components["schemas"]["MessageResponse"][];
             /** Format: uuid */
             nextCursor?: string;
-        };
-        BadgeResponse: {
-            /** Format: uuid */
-            id?: string;
-            code?: string;
-            name?: string;
-            description?: string;
-            /** Format: int32 */
-            threshold?: number;
-            /** Format: date-time */
-            awardedAt?: string;
-        };
-        GamificationProfileResponse: {
-            /** Format: int64 */
-            xp?: number;
-            /** Format: int32 */
-            level?: number;
-            /** Format: int64 */
-            levelStartXp?: number;
-            /** Format: int64 */
-            nextLevelXp?: number;
-            badges?: components["schemas"]["BadgeResponse"][];
-        };
-        LeaderboardEntryResponse: {
-            /** Format: int32 */
-            rank?: number;
-            /** Format: uuid */
-            userId?: string;
-            displayName?: string;
-            /** Format: int64 */
-            xp?: number;
-            /** Format: int32 */
-            level?: number;
-            you?: boolean;
         };
         MuscleGroupResponse: {
             /** Format: uuid */
@@ -2582,6 +2592,44 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                notificationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    markAllRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    markRead_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
                 conversationId: string;
             };
             cookie?: never;
@@ -2869,9 +2917,12 @@ export interface operations {
             };
         };
     };
-    me_1: {
+    list_3: {
         parameters: {
-            query?: never;
+            query?: {
+                page?: number;
+                size?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -2884,12 +2935,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["GamificationProfileResponse"];
+                    "*/*": components["schemas"]["PageResponseNotificationResponse"];
                 };
             };
         };
     };
-    leaderboard: {
+    unreadCount: {
         parameters: {
             query?: never;
             header?: never;
@@ -2904,27 +2955,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["LeaderboardEntryResponse"][];
-                };
-            };
-        };
-    };
-    badges: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["BadgeResponse"][];
+                    "*/*": components["schemas"]["UnreadCountResponse"];
                 };
             };
         };
@@ -2974,7 +3005,7 @@ export interface operations {
             };
         };
     };
-    list_3: {
+    list_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -2994,7 +3025,7 @@ export interface operations {
             };
         };
     };
-    list_4: {
+    list_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -3014,7 +3045,7 @@ export interface operations {
             };
         };
     };
-    list_5: {
+    list_6: {
         parameters: {
             query?: never;
             header?: never;

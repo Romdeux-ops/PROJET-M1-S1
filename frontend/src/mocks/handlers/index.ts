@@ -4,6 +4,7 @@ import { coachingHandlers } from './coaching'
 import { gamificationHandlers } from './gamification'
 import { identityHandlers } from './identity'
 import { messagingHandlers } from './messaging'
+import { notificationHandlers } from './notification'
 import { planningHandlers } from './planning'
 import { programHandlers } from './program'
 import { statsHandlers } from './stats'
@@ -21,4 +22,5 @@ export const handlers = [
   ...bookingHandlers,
   ...messagingHandlers,
   ...gamificationHandlers,
+  ...notificationHandlers,
 ]
