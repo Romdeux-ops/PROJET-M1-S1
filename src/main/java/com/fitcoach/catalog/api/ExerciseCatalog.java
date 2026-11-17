@@ -1,6 +1,7 @@
 package com.fitcoach.catalog.api;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -11,4 +12,7 @@ public interface ExerciseCatalog {
 
     /** Les identifiants inconnus sont simplement absents de la map. */
     Map<UUID, String> namesOf(Collection<UUID> exerciseIds);
+
+    /** Tout le catalogue, avec muscles primaires et tags, pour composer un programme. */
+    List<CatalogExercise> listAll();
 }

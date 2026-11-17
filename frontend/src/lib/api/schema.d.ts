@@ -356,6 +356,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ai/program-generation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["generate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/users/me/profile": {
         parameters: {
             query?: never;
@@ -1251,6 +1267,43 @@ export interface components {
             /** Format: email */
             email: string;
             password: string;
+        };
+        ProgramGenerationRequest: {
+            /** @enum {string} */
+            goal: "WEIGHT_LOSS" | "MUSCLE_GAIN" | "ENDURANCE" | "GENERAL_FITNESS";
+            /** @enum {string} */
+            level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
+            /** Format: int32 */
+            sessionsPerWeek?: number;
+            equipment?: string;
+            constraints?: string;
+            /** Format: int32 */
+            variant?: number;
+        };
+        Day: {
+            label?: string;
+            exercises?: components["schemas"]["Item"][];
+        };
+        GeneratedProgramResponse: {
+            name?: string;
+            description?: string;
+            /** @enum {string} */
+            category?: "STRENGTH" | "CARDIO" | "HIIT" | "YOGA" | "STRETCHING";
+            /** @enum {string} */
+            level?: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
+            /** @enum {string} */
+            source?: "RULES" | "CLAUDE";
+            days?: components["schemas"]["Day"][];
+        };
+        Item: {
+            /** Format: uuid */
+            exerciseId?: string;
+            exerciseName?: string;
+            /** Format: int32 */
+            sets?: number;
+            reps?: string;
+            /** Format: int32 */
+            restSeconds?: number;
         };
         UpdateProfileRequest: {
             firstName?: string;
@@ -2298,6 +2351,30 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["AuthResponse"];
+                };
+            };
+        };
+    };
+    generate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProgramGenerationRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["GeneratedProgramResponse"];
                 };
             };
         };

@@ -69,3 +69,13 @@ app:
     expiration-minutes: ${JWT_EXPIRATION_MINUTES:60}
   uploads:
     dir: ${UPLOADS_DIR:./uploads}
+
+# Generation de programmes (phase 12). strategy : auto (Claude si une cle est
+# fournie, sinon regles), rules (toujours les regles) ou claude (503 sans cle).
+fitcoach:
+  ai:
+    strategy: ${FITCOACH_AI_STRATEGY:auto}
+    api-key: ${ANTHROPIC_API_KEY:}
+    model: ${ANTHROPIC_MODEL:claude-opus-5-5}
+    base-url: https://api.anthropic.com
+    timeout-seconds: 120

@@ -4,6 +4,7 @@ import com.fitcoach.common.exception.BusinessRuleException;
 import com.fitcoach.common.exception.ConflictException;
 import com.fitcoach.common.exception.ForbiddenException;
 import com.fitcoach.common.exception.NotFoundException;
+import com.fitcoach.common.exception.ServiceUnavailableException;
 import com.fitcoach.common.exception.UnauthorizedException;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -49,6 +50,11 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ConflictException.class)
     public ProblemDetail handleConflict(ConflictException ex) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(ServiceUnavailableException.class)
+    public ProblemDetail handleServiceUnavailable(ServiceUnavailableException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
     }
 
     @ExceptionHandler(UnauthorizedException.class)
