@@ -36,6 +36,12 @@ absent, mais un jar lance ailleurs exige `SPRING_PROFILES_ACTIVE` et
 `JWT_SECRET` explicites. `APP_TIME_ZONE` (defaut `Europe/Paris`) fixe le fuseau
 des notions "aujourd'hui" et "semaine" ; les instants sont stockes en UTC.
 
+La generation de programmes par IA (phase 12) appelle l'API Claude cote serveur :
+renseigner `ANTHROPIC_API_KEY` dans `.env` pour l'activer (modele par defaut
+`claude-opus-5-5`, surchargeable avec `ANTHROPIC_MODEL`). Sans cle, l'endpoint
+`POST /api/ai/program-generation` repond 503 et le reste de l'application
+fonctionne normalement.
+
 | Service | URL |
 | --- | --- |
 | API | http://localhost:8080 |
@@ -154,6 +160,6 @@ frontend.
 - [x] Phase 9 — reservation de creneaux
 - [x] Phase 10 — messagerie
 - [ ] Phase 11 — gamification
-- [ ] Phase 12 — generation par IA
+- [x] Phase 12 — generation par IA
 - [ ] Phase 13 — nutrition (bonus)
 - [ ] Phase 14 — back-office, CI, deploiement

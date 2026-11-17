@@ -69,3 +69,12 @@ app:
     expiration-minutes: ${JWT_EXPIRATION_MINUTES:60}
   uploads:
     dir: ${UPLOADS_DIR:./uploads}
+
+# Generation de programmes par IA (phase 12). Sans cle, l'endpoint repond 503 et
+# le reste de l'application fonctionne normalement.
+fitcoach:
+  ai:
+    api-key: ${ANTHROPIC_API_KEY:}
+    model: ${ANTHROPIC_MODEL:claude-opus-5-5}
+    base-url: https://api.anthropic.com
+    timeout-seconds: 120

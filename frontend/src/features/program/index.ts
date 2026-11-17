@@ -8,10 +8,18 @@ export {
   useDeleteProgram,
   useDuplicateProgram,
   useProgram,
+  programKeys,
   usePrograms,
   useRateProgram,
   useSharedProgram,
   useUpdateProgram,
 } from './hooks/use-programs'
 export { ProgramPage } from './pages/program-page'
-export type { Program, ProgramFormInput, ProgramSearchFilters } from './schemas'
+export type {
+  Program,
+  ProgramCategory,
+  ProgramFormInput,
+  ProgramLevel,
+  ProgramSearchFilters,
+} from './schemas'
+export { LEVEL_LABELS, programLevels } from './schemas'
