@@ -1,13 +1,19 @@
 /**
  * Generation de programmes personnalises.
  *
- * <p>Deux implementations derriere une meme interface : une strategie a base de
- * regles, deterministe et testable, qui fonctionne hors ligne et garantit une
- * demonstration fiable, et une strategie appuyee sur un modele de langage.
+ * <p>Deux generateurs derriere {@code POST /api/ai/program-generation} : un
+ * generateur a base de regles ({@code RuleBasedProgramGenerator}), deterministe,
+ * sans appel reseau, qui compose les seances a partir des groupes musculaires
+ * primaires du catalogue reel ; et un modele de langage (Claude, via l'API
+ * Messages). {@code fitcoach.ai.strategy} choisit : {@code auto} (defaut) prend
+ * Claude si {@code ANTHROPIC_API_KEY} est renseignee, sinon les regles ;
+ * {@code rules} et {@code claude} forcent l'un des deux. Un echec de Claude reste
+ * un 503, sans repli silencieux.
  *
- * <p>Contrainte de securite : la sortie du modele est un JSON valide contre un
- * schema puis convertie en entites du package {@code program}. Le modele ne
- * produit jamais de SQL et n'ecrit jamais directement en base.
+ * <p>Contrainte de securite : les deux brouillons passent par le meme
+ * {@code ProgramDraftParser} (exercices du catalogue uniquement, series, repetitions
+ * et repos bornes). Le module ne produit jamais de SQL et n'ecrit jamais en base :
+ * l'enregistrement passe par l'API des programmes.
  *
  * <p>Phase 12.
  */

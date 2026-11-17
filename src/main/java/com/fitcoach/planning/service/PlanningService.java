@@ -3,6 +3,8 @@ package com.fitcoach.planning.service;
 import com.fitcoach.coaching.api.CoachRelations;
 import com.fitcoach.identity.api.UserDirectory;
 import com.fitcoach.identity.api.UserSummary;
+import com.fitcoach.notification.api.NotificationType;
+import com.fitcoach.notification.api.Notifier;
 import com.fitcoach.planning.domain.ScheduledSession;
 import com.fitcoach.planning.domain.ScheduledSessionStatus;
 import com.fitcoach.planning.dto.CompleteRequest;
@@ -35,6 +37,7 @@ public class PlanningService {
     private final CoachRelations coachRelations;
     private final UserDirectory userDirectory;
     private final WorkoutSessions workoutSessions;
+    private final Notifier notifier;
     private final Clock clock;
 
     public PlanningService(
@@ -42,11 +45,13 @@ public class PlanningService {
             CoachRelations coachRelations,
             UserDirectory userDirectory,
             WorkoutSessions workoutSessions,
+            Notifier notifier,
             Clock clock) {
         this.scheduledSessionRepository = scheduledSessionRepository;
         this.coachRelations = coachRelations;
         this.userDirectory = userDirectory;
         this.workoutSessions = workoutSessions;
+        this.notifier = notifier;
         this.clock = clock;
     }
 
@@ -99,7 +104,24 @@ public class PlanningService {
             throw new UnknownWorkoutSessionException();
         }
         session.complete(request.workoutSessionId(), coachRelations.hasActiveCoach(athleteId));
+        if (session.getStatus() == ScheduledSessionStatus.PENDING_VALIDATION) {
+            notifyCoachesToValidate(session);
+        }
         return ScheduledSessionResponse.from(session);
+    }
+
+    private void notifyCoachesToValidate(ScheduledSession session) {
+        String athleteName = displayName(userDirectory.findById(session.getAthleteId()).orElse(null));
+        String who = athleteName.isBlank() ? "Un athlète" : athleteName;
+        for (UUID coachId : coachRelations.activeCoachIds(session.getAthleteId())) {
+            notifier.notify(
+                    coachId,
+                    NotificationType.SESSION_PENDING_VALIDATION,
+                    "Séance à valider",
+                    who + " a terminé « " + session.getTitle() + " » : elle attend votre validation.",
+                    "/coaching",
+                    "pending-validation:" + session.getId() + ":" + coachId);
+        }
     }
 
     public List<ScheduledSessionResponse> listPendingValidations(UUID coachId) {
@@ -124,6 +146,13 @@ public class PlanningService {
             throw new NotValidatingCoachException();
         }
         session.validate();
+        notifier.notify(
+                session.getAthleteId(),
+                NotificationType.SESSION_VALIDATED,
+                "Séance validée",
+                "Votre coach a validé « " + session.getTitle() + " ».",
+                "/planning",
+                "validated:" + session.getId());
         return ScheduledSessionResponse.from(
                 session, displayName(userDirectory.findById(session.getAthleteId()).orElse(null)));
     }

@@ -1,23 +1,23 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2, UserPlus } from 'lucide-react'
+import { Loader2, Send } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 
-import { useAddAthlete } from '../hooks/use-coaching'
-import { type AddAthleteInput, addAthleteSchema } from '../schemas'
+import { useInviteAthlete } from '../hooks/use-coaching'
+import { type InviteAthleteInput, inviteAthleteSchema } from '../schemas'
 
-export function AddAthleteForm() {
-  const addAthlete = useAddAthlete()
-  const form = useForm<AddAthleteInput>({
-    resolver: zodResolver(addAthleteSchema),
+export function InviteAthleteForm() {
+  const invite = useInviteAthlete()
+  const form = useForm<InviteAthleteInput>({
+    resolver: zodResolver(inviteAthleteSchema),
     defaultValues: { athleteEmail: '' },
   })
 
   const onSubmit = form.handleSubmit((values) => {
-    addAthlete.mutate(values, {
+    invite.mutate(values, {
       onSuccess: () => form.reset(),
       onError: (error) => form.setError('athleteEmail', { message: error.message }),
     })
@@ -38,9 +38,9 @@ export function AddAthleteForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={addAthlete.isPending}>
-          {addAthlete.isPending ? <Loader2 className="animate-spin" /> : <UserPlus />}
-          Rattacher
+        <Button type="submit" disabled={invite.isPending}>
+          {invite.isPending ? <Loader2 className="animate-spin" /> : <Send />}
+          Inviter
         </Button>
       </form>
     </Form>

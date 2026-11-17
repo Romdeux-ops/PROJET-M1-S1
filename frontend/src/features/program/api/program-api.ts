@@ -1,6 +1,7 @@
 import { api, unwrap } from '@/lib/api/client'
 
 import type {
+  CoachProgramFilters,
   DayFormInput,
   ExerciseEntryFormInput,
   Program,
@@ -21,7 +22,8 @@ function toProgramBody(input: ProgramFormInput) {
 /**
  * Contrat attendu du module programmes (backend) :
  *   GET    /api/programs                                  -> PageResponse<Program> (filtres en query string ; .content extrait cote client, size=100)
- *   GET    /api/programs/{id}                              -> Program
+ *   GET    /api/programs/from-my-coaches                   -> PageResponse<Program> (programmes CLIENTS des coachs actifs ; .content extrait cote client)
+ *   GET    /api/programs/{id}                              -> Program (404 si PRIVATE d'autrui, ou CLIENTS sans relation active)
  *   GET    /api/programs/shared/{token}                    -> Program (public, sans auth)
  *   POST   /api/programs                                   -> Program (201)
  *   PUT    /api/programs/{id}                               -> Program      (proprietaire)
@@ -49,6 +51,15 @@ export const programApi = {
             size: 100,
           },
         },
+      }),
+    )
+    return (page.content ?? []) as Program[]
+  },
+  /** Programmes "Mes athlètes" des coachs avec qui l'utilisateur a une relation active. */
+  fromMyCoaches: async (filters: CoachProgramFilters) => {
+    const page = await unwrap(
+      api.GET('/api/programs/from-my-coaches', {
+        params: { query: { category: filters.category, level: filters.level, size: 100 } },
       }),
     )
     return (page.content ?? []) as Program[]

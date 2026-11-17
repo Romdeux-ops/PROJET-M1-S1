@@ -1,8 +1,9 @@
 import type { Booking, Slot } from '@/features/booking/schemas'
-import type { CoachPost } from '@/features/coaching/schemas'
+import type { CoachNote, CoachPost } from '@/features/coaching/schemas'
 import type { Exercise, MuscleGroup, Tag } from '@/features/catalog/schemas'
 import type { ProfileResponse } from '@/features/identity/schemas'
 import type { Message } from '@/features/messaging/schemas'
+import type { AppNotification } from '@/features/notification/schemas'
 import type { ScheduledSession } from '@/features/planning/schemas'
 import type { Program } from '@/features/program/schemas'
 import type { TrainingSession } from '@/features/training'
@@ -22,7 +23,13 @@ export interface MockUser extends SessionUser {
 export interface MockCoachAthlete {
   coachId: string
   athleteId: string
-  status: 'ACTIVE' | 'ENDED'
+  status: 'PENDING' | 'ACTIVE' | 'DECLINED' | 'ENDED'
+  invitedAt?: string
+}
+
+/** Note privee d'un coach ; `coachId` n'est jamais renvoye par l'API. */
+export interface MockCoachNote extends CoachNote {
+  coachId: string
 }
 
 /** Conversation telle que stockee ; le handler en derive la vue de chaque participant. */
@@ -31,6 +38,77 @@ export interface MockConversation {
   coachId: string
   athleteId: string
   createdAt: string
+}
+
+/** Notification telle que stockee ; le handler ne renvoie que celles du destinataire. */
+export interface MockNotification extends AppNotification {
+  userId: string
+}
+
+function seedNotifications(): MockNotification[] {
+  const minutesAgo = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString()
+  return [
+    {
+      id: 'notif-1',
+      userId: 'u-athlete',
+      type: 'SESSION_REMINDER',
+      title: "Séance prévue aujourd'hui",
+      body: "« Push day » est au programme aujourd'hui.",
+      link: '/planning',
+      createdAt: minutesAgo(20),
+      readAt: null,
+    },
+    {
+      id: 'notif-2',
+      userId: 'u-athlete',
+      type: 'SESSION_VALIDATED',
+      title: 'Séance validée',
+      body: 'Votre coach a validé « Leg day ».',
+      link: '/planning',
+      createdAt: minutesAgo(26 * 60),
+      readAt: minutesAgo(25 * 60),
+    },
+    {
+      id: 'notif-3',
+      userId: 'u-coach',
+      type: 'SESSION_PENDING_VALIDATION',
+      title: 'Séance à valider',
+      body: 'Léa Martin a terminé « Pull day » : elle attend votre validation.',
+      link: '/coaching',
+      createdAt: minutesAgo(45),
+      readAt: null,
+    },
+    {
+      id: 'notif-4',
+      userId: 'u-coach',
+      type: 'BOOKING_CREATED',
+      title: 'Nouvelle réservation',
+      body: 'Léa Martin a réservé le créneau du 20/01/2026 à 18:30.',
+      link: '/booking',
+      createdAt: minutesAgo(10),
+      readAt: null,
+    },
+    {
+      id: 'notif-5',
+      userId: 'u-coach',
+      type: 'BOOKING_CANCELLED',
+      title: 'Réservation annulée',
+      body: 'Léa Martin a annulé la réservation du 18/01/2026 à 10:00.',
+      link: '/booking',
+      createdAt: minutesAgo(3 * 60),
+      readAt: minutesAgo(2 * 60),
+    },
+    {
+      id: 'notif-6',
+      userId: 'u-athlete',
+      type: 'BOOKING_REMINDER',
+      title: 'Rendez-vous demain',
+      body: 'Rendez-vous avec Hugo Bernard demain à 18:30.',
+      link: '/booking',
+      createdAt: minutesAgo(5 * 60),
+      readAt: minutesAgo(4 * 60),
+    },
+  ]
 }
 
 export function defaultProfile(): MockUser['profile'] {
@@ -207,6 +285,31 @@ function seedPrograms(): Program[] {
       createdAt: now,
       updatedAt: now,
     },
+    {
+      id: 'prog-2',
+      ownerId: 'u-coach',
+      ownerName: 'Hugo Bernard',
+      title: 'Prise de masse sur mesure',
+      description: 'Programme réservé à mes athlètes.',
+      category: 'STRENGTH',
+      level: 'INTERMEDIATE',
+      visibility: 'CLIENTS',
+      shareToken: 'share-prog-2',
+      averageRating: 0,
+      ratingsCount: 0,
+      mine: false,
+      days: [
+        {
+          id: 'day-2',
+          position: 0,
+          name: 'Haut du corps',
+          restDay: false,
+          exercises: [],
+        },
+      ],
+      createdAt: now,
+      updatedAt: now,
+    },
   ]
 }
 
@@ -243,7 +346,30 @@ function seedPosts(): CoachPost[] {
 }
 
 function seedCoachAthletes(): MockCoachAthlete[] {
-  return [{ coachId: 'u-coach', athleteId: 'u-athlete', status: 'ACTIVE' }]
+  return [
+    { coachId: 'u-coach', athleteId: 'u-athlete', status: 'ACTIVE' },
+    // Invitation en attente : visible dans l'espace coaching de l'athlete de demo.
+    {
+      coachId: 'u-admin',
+      athleteId: 'u-athlete',
+      status: 'PENDING',
+      invitedAt: new Date().toISOString(),
+    },
+  ]
+}
+
+function seedCoachNotes(): MockCoachNote[] {
+  const now = new Date().toISOString()
+  return [
+    {
+      id: 'note-1',
+      coachId: 'u-coach',
+      athleteId: 'u-athlete',
+      content: 'Reprise après une gêne à l’épaule : charges légères sur le développé.',
+      createdAt: now,
+      updatedAt: now,
+    },
+  ]
 }
 
 /** Instant ISO dans `days` jours, a `hour` heure locale. */
@@ -363,10 +489,12 @@ export const db = {
   scheduledSessions: seedScheduledSessions(),
   posts: seedPosts(),
   coachAthletes: seedCoachAthletes(),
+  coachNotes: seedCoachNotes(),
   slots: seedSlots(),
   bookings: seedBookings(),
   conversations: seedConversations(),
   messages: seedMessages(),
+  notifications: seedNotifications(),
 }
 
 export function resetDb() {
@@ -379,10 +507,12 @@ export function resetDb() {
   db.scheduledSessions = seedScheduledSessions()
   db.posts = seedPosts()
   db.coachAthletes = seedCoachAthletes()
+  db.coachNotes = seedCoachNotes()
   db.slots = seedSlots()
   db.bookings = seedBookings()
   db.conversations = seedConversations()
   db.messages = seedMessages()
+  db.notifications = seedNotifications()
 }
 
 export function tokenFor(userId: string) {

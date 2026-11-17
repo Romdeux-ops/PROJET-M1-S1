@@ -126,7 +126,4 @@ public class Program {
         return ownerId.equals(userId);
     }
 
-    public boolean isVisibleTo(UUID userId) {
-        return visibility == ProgramVisibility.PUBLIC || isOwnedBy(userId);
-    }
 }

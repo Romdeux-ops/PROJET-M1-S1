@@ -7,8 +7,24 @@ import type {
   ProgramFormInput,
 } from '@/features/program/schemas'
 
-import { db, userFromRequest } from '../db'
+import { db, type MockUser, userFromRequest } from '../db'
 import { networkDelay, problem } from '../utils'
+
+function isActiveClient(coachId: string, athleteId: string) {
+  return db.coachAthletes.some(
+    (r) => r.coachId === coachId && r.athleteId === athleteId && r.status === 'ACTIVE',
+  )
+}
+
+/** Meme regle que le backend : proprietaire, PUBLIC, ou CLIENTS avec relation ACTIVE. */
+function canView(program: Program, user: MockUser) {
+  if (program.ownerId === user.id || program.visibility === 'PUBLIC') return true
+  return program.visibility === 'CLIENTS' && isActiveClient(program.ownerId, user.id)
+}
+
+function canShareWithClients(user: MockUser) {
+  return user.roles.includes('COACH') || user.roles.includes('ADMIN')
+}
 
 export const programHandlers = [
   http.get('*/api/programs', async ({ request }) => {
@@ -33,13 +49,35 @@ export const programHandlers = [
     })
   }),
 
+  // Avant `:id`, sinon "from-my-coaches" serait lu comme un identifiant.
+  http.get('*/api/programs/from-my-coaches', async ({ request }) => {
+    await networkDelay()
+    const user = userFromRequest(request)
+    if (!user) return problem(401, 'Session invalide.')
+    const url = new URL(request.url)
+    const category = url.searchParams.get('category')
+    const level = url.searchParams.get('level')
+    let results = db.programs.filter(
+      (p) => p.visibility === 'CLIENTS' && isActiveClient(p.ownerId, user.id),
+    )
+    if (category) results = results.filter((p) => p.category === category)
+    if (level) results = results.filter((p) => p.level === level)
+    const content = results.map((p) => ({ ...p, mine: false, shareToken: null }))
+    return HttpResponse.json({
+      content,
+      page: 0,
+      size: content.length,
+      totalElements: content.length,
+      totalPages: 1,
+    })
+  }),
+
   http.get<{ id: string }>('*/api/programs/:id', async ({ request, params }) => {
     await networkDelay()
     const user = userFromRequest(request)
     if (!user) return problem(401, 'Session invalide.')
     const program = db.programs.find((p) => p.id === params.id)
-    if (!program || (program.visibility !== 'PUBLIC' && program.ownerId !== user.id))
-      return problem(404, 'Programme introuvable.')
+    if (!program || !canView(program, user)) return problem(404, 'Programme introuvable.')
     return HttpResponse.json({ ...program, mine: program.ownerId === user.id })
   }),
 
@@ -56,6 +94,8 @@ export const programHandlers = [
     const user = userFromRequest(request)
     if (!user) return problem(401, 'Session invalide.')
     const body = await request.json()
+    if (body.visibility === 'CLIENTS' && !canShareWithClients(user))
+      return problem(403, 'Seuls les coachs peuvent partager un programme avec leurs athletes.')
     const program: Program = {
       id: crypto.randomUUID(),
       ownerId: user.id,
@@ -85,6 +125,8 @@ export const programHandlers = [
     if (!program) return problem(404, 'Programme introuvable.')
     if (program.ownerId !== user.id) return problem(403, 'Réservé au propriétaire.')
     const body = await request.json()
+    if (body.visibility === 'CLIENTS' && !canShareWithClients(user))
+      return problem(403, 'Seuls les coachs peuvent partager un programme avec leurs athletes.')
     Object.assign(program, {
       title: body.title,
       description: body.description || null,
@@ -112,7 +154,7 @@ export const programHandlers = [
     const user = userFromRequest(request)
     if (!user) return problem(401, 'Session invalide.')
     const source = db.programs.find((p) => p.id === params.id)
-    if (!source) return problem(404, 'Programme introuvable.')
+    if (!source || !canView(source, user)) return problem(404, 'Programme introuvable.')
     const copy: Program = {
       ...source,
       id: crypto.randomUUID(),
@@ -252,9 +294,10 @@ export const programHandlers = [
       if (!user) return problem(401, 'Session invalide.')
       const program = db.programs.find((p) => p.id === params.id)
       if (!program) return problem(404, 'Programme introuvable.')
+      if (program.visibility === 'PRIVATE') return problem(409, 'Ce programme n’est pas public.')
       if (program.ownerId === user.id)
         return problem(409, 'Vous ne pouvez pas noter votre propre programme.')
-      if (program.visibility !== 'PUBLIC') return problem(409, 'Ce programme n’est pas public.')
+      if (!canView(program, user)) return problem(404, 'Programme introuvable.')
       const body = await request.json()
       program.ratingsCount += 1
       program.averageRating =

@@ -1,5 +1,9 @@
 # FitCoach - Backend
 
+![Version](https://img.shields.io/badge/version-0.1.0-blue)
+[![Backend CI](https://github.com/Romdeux-ops/PROJET-M1-S1/actions/workflows/backend.yml/badge.svg)](https://github.com/Romdeux-ops/PROJET-M1-S1/actions/workflows/backend.yml)
+[![Frontend CI](https://github.com/Romdeux-ops/PROJET-M1-S1/actions/workflows/frontend.yml/badge.svg)](https://github.com/Romdeux-ops/PROJET-M1-S1/actions/workflows/frontend.yml)
+
 Backend de l'application fitness mettant en relation athletes et coachs : carnet
 d'entrainement, programmes, planning, statistiques, portail de coaching,
 reservation de creneaux, messagerie et generation de programmes par IA.
@@ -16,6 +20,73 @@ reservation de creneaux, messagerie et generation de programmes par IA.
 | springdoc-openapi | 3.1.1 | la ligne 3.x est celle compatible Boot 4 |
 
 Le frontend React / TypeScript / Tailwind vit dans [`frontend/`](frontend/README.md).
+
+## Tester la v0.1.0
+
+Version livree pour le Rendu 2, figee par le tag `v0.1.0`
+([release GitHub](https://github.com/Romdeux-ops/PROJET-M1-S1/releases/tag/v0.1.0)). En attendant la fusion dans `main`, le meme code est sur la
+branche `release/v0.1.0`. Le detail des changements est dans
+[CHANGELOG.md](CHANGELOG.md).
+
+**Prerequis** : JDK 21, Docker Desktop **lance**, Node.js 22 ou plus, Git.
+
+```bash
+git clone https://github.com/Romdeux-ops/PROJET-M1-S1.git
+cd PROJET-M1-S1
+git checkout v0.1.0
+cp .env.example .env               # PowerShell : Copy-Item .env.example .env
+docker compose up -d               # PostgreSQL (5432) et pgAdmin (5050)
+./gradlew bootRun                  # Windows : .\gradlew.bat bootRun
+```
+
+Dans un **second terminal** :
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+| Quoi | Ou |
+| --- | --- |
+| Application | http://localhost:5173 |
+| API et Swagger UI | http://localhost:8080 et http://localhost:8080/swagger-ui.html |
+
+Au premier demarrage en profil `dev` (`./gradlew bootRun`), des **comptes de demo**
+sont crees sur une base vide (mot de passe `Password1`) : `coach@fitcoach.dev` et
+`athlete@fitcoach.dev`, deja relies, avec un programme visible par les athletes du
+coach et une seance prevue aujourd'hui. Sans backend, `npm run dev:mock` (dans
+`frontend/`) lance l'application avec une API simulee et les memes comptes de demo
+(les donnees y sont perdues a chaque rechargement).
+
+**Parcours de test conseille**
+
+1. Se connecter en `athlete@fitcoach.dev` : la cloche affiche le rappel de la
+   seance du jour (le job de rappels tourne ~10 s apres le demarrage, puis toutes
+   les 15 min) ; la page *Progression* (« Defis & badges ») montre XP et badges.
+2. *Programmes* > *Programmes de mon coach* : ouvrir le programme du coach, le noter
+   (etoiles) ou le dupliquer.
+3. *Carnet* : creer une seance et ajouter des series (+XP, badge « Premiere seance »,
+   record personnel).
+4. *Generation IA* : generer un programme (sans cle API : generateur a regles), le
+   regenerer, l'enregistrer.
+5. Se deconnecter, creer un **nouveau compte coach** et un **nouveau compte athlete**
+   sur `/register` ; en coach, *Coaching* > inviter l'athlete par e-mail ; en athlete,
+   accepter l'invitation ; en coach, ouvrir la fiche de l'athlete (suivi, notes
+   privees), creer un programme en visibilite « Mes athletes », publier un creneau
+   (*Reservation*) ; en athlete, le reserver : le coach recoit la notification.
+
+**Tests** : `./gradlew test` (backend, PostgreSQL requis, voir plus bas) et
+`cd frontend && npm test`.
+
+**En cas de probleme**
+
+| Symptome | Remede |
+| --- | --- |
+| `Cannot connect to the Docker daemon` | lancer Docker Desktop, attendre qu'il soit pret, puis `docker compose up -d` |
+| Erreur Flyway « checksum » ou « migration not resolved » (base creee avec une autre version) | repartir d'une base vierge : `docker compose down -v && docker compose up -d` |
+| `Port 8080` ou `5173` deja utilise | arreter le processus qui l'occupe (`lsof -i :8080` sous macOS/Linux, `netstat -ano \| findstr 8080` sous Windows) |
+| Les comptes de demo n'existent pas | ils ne sont crees que sur une base vide en profil `dev` ; sinon `docker compose down -v` |
 
 ## Demarrer en local
 
@@ -35,6 +106,23 @@ active `dev` (secret JWT de repli, logs SQL) si `SPRING_PROFILES_ACTIVE` est
 absent, mais un jar lance ailleurs exige `SPRING_PROFILES_ACTIVE` et
 `JWT_SECRET` explicites. `APP_TIME_ZONE` (defaut `Europe/Paris`) fixe le fuseau
 des notions "aujourd'hui" et "semaine" ; les instants sont stockes en UTC.
+
+La generation de programmes (phase 12, `POST /api/ai/program-generation`) marche
+sans aucune cle : un generateur deterministe a base de regles compose les seances
+a partir du vrai catalogue (groupes musculaires primaires, niveau, materiel,
+objectif). Claude reste branche mais optionnel. `FITCOACH_AI_STRATEGY`
+(`fitcoach.ai.strategy`) choisit le generateur :
+
+| Valeur | Comportement |
+| --- | --- |
+| `auto` (defaut) | Claude si `ANTHROPIC_API_KEY` est renseignee, sinon les regles. Un echec de Claude reste un 503, sans repli silencieux. |
+| `rules` | toujours les regles, meme avec une cle. |
+| `claude` | toujours Claude ; 503 sans cle. |
+
+Pour activer Claude, renseigner `ANTHROPIC_API_KEY` dans `.env` (modele par defaut
+`claude-opus-5-5`, surchargeable avec `ANTHROPIC_MODEL`). La reponse indique son
+origine dans `source` (`RULES` ou `CLAUDE`) ; `variant` (entier >= 0) fait tourner
+la selection des regles pour obtenir un autre programme a entree egale.
 
 | Service | URL |
 | --- | --- |
@@ -78,10 +166,48 @@ script d'init. Pour la creer :
 docker compose down -v && docker compose up -d
 ```
 
-> Testcontainers, qui serait la solution la plus propre, est reporte a la phase
-> 14 avec la CI : la version 1.21.3 (la plus recente a ce jour) echoue a
-> negocier l'API de Docker Engine 29 et ne detecte aucun environnement Docker
-> valide.
+> Testcontainers n'est pas utilise : la version 1.21.3 (la plus recente a ce
+> jour) echoue a negocier l'API de Docker Engine 29 et ne detecte aucun
+> environnement Docker valide. La CI s'appuie sur un conteneur de service
+> PostgreSQL 16 declare dans le workflow.
+
+### Integration continue et couverture
+
+Deux workflows GitHub Actions tournent sur chaque Pull Request qui touche le
+code concerne :
+
+| Workflow | Declencheur | Contenu |
+| --- | --- | --- |
+| `backend.yml` | `src/**`, `build.gradle`, `gradle/**` | PostgreSQL 16 en service, `./gradlew build` (tests + JaCoCo), rapport en artefact `jacoco-report` |
+| `frontend.yml` | `frontend/**` | lint, format, typecheck, tests avec couverture, build, rapport en artefact `vitest-coverage` |
+
+Couverture en local :
+
+```bash
+./gradlew test jacocoTestReport     # build/reports/jacoco/test/html/index.html
+cd frontend && npm run test:coverage # frontend/coverage/index.html
+```
+
+Couverture mesuree le 2026-11-17 sur la v0.1.0 (a titre indicatif, pas un seuil) :
+backend 81,0 % des lignes (146 tests), frontend 53,8 % des lignes (70 tests). Ces
+chiffres sont donnes en clair et non sous forme de badge : un badge de
+couverture ou de qualite de code dynamique (Codecov, SonarCloud) exige que le
+proprietaire du depot cree un compte et ajoute un jeton dans les secrets
+GitHub ; il sera branche a ce moment-la. La qualite du frontend est controlee
+par `oxlint` et `prettier` dans la CI. Aucun badge de licence n'est affiche
+tant que le depot ne contient pas de fichier `LICENSE`.
+
+## Equipe et features majeures
+
+Une feature majeure par etudiant, dans son module (backend `com.fitcoach.<module>`,
+frontend `frontend/src/features/<module>`). Le detail est dans
+[doc/dossier-lancement.md](doc/dossier-lancement.md), section 1.
+
+| Membre | Compte GitHub | Feature majeure | v0.1.0 |
+| --- | --- | --- | --- |
+| Romain | `Romdeux-ops` | Messagerie coach / athlete (module `messaging`) et socle commun | Livree |
+| Youcef | `Krat0s-web` | Portail de coaching : invitations, notes privees, suivi, programmes pour les athletes du coach (modules `coaching`, `program`) | Livree |
+| Mathieu | `Mathieuleboss` | Nutrition (module `nutrition`) | En cours, prochaine version |
 
 ## Organisation du code
 
@@ -150,10 +276,10 @@ frontend.
 - [x] Phase 5 — carnet d'entrainement
 - [x] Phase 6 — planning
 - [x] Phase 7 — statistiques
-- [ ] Phase 8 — portail de coaching
+- [x] Phase 8 — portail de coaching
 - [x] Phase 9 — reservation de creneaux
 - [x] Phase 10 — messagerie
-- [ ] Phase 11 — gamification
-- [ ] Phase 12 — generation par IA
+- [x] Phase 11 — gamification
+- [x] Phase 12 — generation par IA
 - [ ] Phase 13 — nutrition (bonus)
 - [ ] Phase 14 — back-office, CI, deploiement
