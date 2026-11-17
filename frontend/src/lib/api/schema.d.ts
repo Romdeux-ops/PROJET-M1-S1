@@ -692,6 +692,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/gamification/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["me_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/gamification/leaderboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["leaderboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/gamification/badges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["badges"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/coaching/posts/{coachId}": {
         parameters: {
             query?: never;
@@ -1390,6 +1438,40 @@ export interface components {
             items?: components["schemas"]["MessageResponse"][];
             /** Format: uuid */
             nextCursor?: string;
+        };
+        BadgeResponse: {
+            /** Format: uuid */
+            id?: string;
+            code?: string;
+            name?: string;
+            description?: string;
+            /** Format: int32 */
+            threshold?: number;
+            /** Format: date-time */
+            awardedAt?: string;
+        };
+        GamificationProfileResponse: {
+            /** Format: int64 */
+            xp?: number;
+            /** Format: int32 */
+            level?: number;
+            /** Format: int64 */
+            levelStartXp?: number;
+            /** Format: int64 */
+            nextLevelXp?: number;
+            badges?: components["schemas"]["BadgeResponse"][];
+        };
+        LeaderboardEntryResponse: {
+            /** Format: int32 */
+            rank?: number;
+            /** Format: uuid */
+            userId?: string;
+            displayName?: string;
+            /** Format: int64 */
+            xp?: number;
+            /** Format: int32 */
+            level?: number;
+            you?: boolean;
         };
         MuscleGroupResponse: {
             /** Format: uuid */
@@ -2783,6 +2865,66 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ScheduledSessionResponse"][];
+                };
+            };
+        };
+    };
+    me_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["GamificationProfileResponse"];
+                };
+            };
+        };
+    };
+    leaderboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LeaderboardEntryResponse"][];
+                };
+            };
+        };
+    };
+    badges: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BadgeResponse"][];
                 };
             };
         };
