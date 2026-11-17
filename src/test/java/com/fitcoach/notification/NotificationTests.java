@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fitcoach.notification.service.SessionReminderService;
+import com.fitcoach.support.ApiClient;
 import com.fitcoach.support.TestUsers;
 import com.fitcoach.support.TestUsers.Registered;
 import java.time.Clock;
@@ -78,14 +79,7 @@ class NotificationTests {
     }
 
     private void attachCoach(Registered coach, Registered athlete) throws Exception {
-        ObjectNode body = objectMapper.createObjectNode();
-        body.put("athleteEmail", athlete.email());
-        mockMvc.perform(post("/api/coaching/athletes")
-                        .with(csrf())
-                        .header("Authorization", "Bearer " + coach.token())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(body)))
-                .andExpect(status().isCreated());
+        new ApiClient(mockMvc).attachCoach(coach, athlete);
     }
 
     private void completeScheduled(Registered athlete, String scheduledSessionId) throws Exception {

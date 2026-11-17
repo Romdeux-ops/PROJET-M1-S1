@@ -146,94 +146,94 @@ L'authentification est centralisee : le JWT est ajoute a chaque requete, et un
 
 Contrats consommes par le front a ce jour :
 
-| Methode | URL                                                    | Reponse                                                             |
-| ------- | ------------------------------------------------------ | ------------------------------------------------------------------- |
-| POST    | `/api/auth/login`                                      | `{ accessToken, user }`                                             |
-| POST    | `/api/auth/register`                                   | `{ accessToken, user }`                                             |
-| GET     | `/api/users/me`                                        | `user` (`id, email, firstName, lastName, roles[], avatarUrl`)       |
-| GET     | `/api/users/me/profile`                                | `ProfileResponse`                                                   |
-| PATCH   | `/api/users/me/profile`                                | `ProfileResponse`                                                   |
-| POST    | `/api/users/me/profile/avatar`                         | `{ avatarUrl }`                                                     |
-| GET     | `/api/catalog/muscle-groups`                           | `MuscleGroup[]`                                                     |
-| GET     | `/api/catalog/tags`                                    | `Tag[]`                                                             |
-| GET     | `/api/catalog/exercises`                               | `Exercise[]` (filtres en query string)                              |
-| GET     | `/api/catalog/exercises/{id}`                          | `Exercise`                                                          |
-| POST    | `/api/catalog/exercises`                               | `Exercise` (201, role COACH/ADMIN)                                  |
-| PUT     | `/api/catalog/exercises/{id}`                          | `Exercise` (role COACH/ADMIN)                                       |
-| DELETE  | `/api/catalog/exercises/{id}`                          | 204 (role COACH/ADMIN)                                              |
-| GET     | `/api/programs`                                   | `Program[]` (filtres en query string)                                                                        |
-| GET     | `/api/programs/from-my-coaches`                   | `Program[]` (programmes `CLIENTS` des coachs actifs ; filtres `category`, `level`, pagination `page`/`size`) |
-| GET     | `/api/programs/{id}`                              | `Program` (404 si `PRIVATE` d'autrui, ou `CLIENTS` sans relation active)                                     |
-| GET     | `/api/programs/shared/{token}`                    | `Program` (public, sans auth)                                                                                |
-| POST    | `/api/programs`                                   | `Program` (201 ; visibilite `CLIENTS` reservee aux coachs, sinon 403)                                        |
-| PUT     | `/api/programs/{id}`                              | `Program` (proprietaire ; `CLIENTS` reservee aux coachs)                                                     |
-| DELETE  | `/api/programs/{id}`                              | 204 (proprietaire)                                                                                           |
-| POST    | `/api/programs/{id}/duplicate`                    | `Program` (201)                                                                                              |
-| POST    | `/api/programs/{id}/days`                         | `Program` (proprietaire)                                                                                     |
-| DELETE  | `/api/programs/{id}/days/{dayId}`                 | `Program` (proprietaire)                                                                                     |
-| PATCH   | `/api/programs/{id}/days/positions`               | `Program` (corps `{ orderedIds }` : tous les jours, une fois)                                                |
-| POST    | `/api/programs/{id}/days/{dayId}/exercises`       | `Program` (proprietaire)                                                                                     |
-| DELETE  | `/api/programs/{id}/days/{dayId}/exercises/{eid}` | `Program` (proprietaire)                                                                                     |
-| POST    | `/api/programs/{id}/ratings`                      | `Program` (non-proprietaire ; `PUBLIC`, ou `CLIENTS` avec relation active, sinon 404 ; `PRIVATE` : 400)      |
-| GET     | `/api/training/sessions`                               | `TrainingSession[]`                                                 |
-| GET     | `/api/training/sessions/{id}`                          | `TrainingSession`                                                   |
-| POST    | `/api/training/sessions`                               | `TrainingSession` (201)                                             |
-| DELETE  | `/api/training/sessions/{id}`                          | 204                                                                 |
-| POST    | `/api/training/sessions/{id}/sets`                     | `TrainingSession`                                                   |
-| DELETE  | `/api/training/sessions/{id}/sets/{setId}`             | `TrainingSession`                                                   |
-| GET     | `/api/training/personal-records`                       | `PersonalRecord[]`                                                  |
-| GET     | `/api/planning/scheduled?from=&to=`                    | `ScheduledSession[]`                                                |
-| GET     | `/api/planning/scheduled/today`                        | `ScheduledSession[]`                                                |
-| POST    | `/api/planning/scheduled`                              | `ScheduledSession` (201)                                            |
-| PATCH   | `/api/planning/scheduled/{id}/reschedule`              | `ScheduledSession`                                                  |
-| PATCH   | `/api/planning/scheduled/{id}/skip`                    | `ScheduledSession`                                                  |
-| PATCH   | `/api/planning/scheduled/{id}/complete`                | `ScheduledSession` (verifie le proprietaire du `workoutSessionId`)  |
-| PATCH   | `/api/planning/scheduled/{id}/validate`                | `ScheduledSession` (coach actif de l'athlete)                       |
-| GET     | `/api/planning/pending-validations`                    | `ScheduledSession[]` (coach)                                        |
-| DELETE  | `/api/planning/scheduled/{id}`                         | 204                                                                 |
-| GET     | `/api/stats/overview`                                  | `StatsOverview`                                                     |
-| GET     | `/api/stats/exercises/{exerciseId}/progression`        | `ExerciseProgressionPoint[]`                                        |
-| GET     | `/api/stats/volume/weekly?weeks=`                      | `WeeklyVolumePoint[]`                                               |
-| GET     | `/api/stats/streak`                                    | `{ currentStreakDays }`                                             |
-| GET     | `/api/stats/adherence/weekly?weeks=`                   | `WeeklyAdherencePoint[]`                                            |
-| GET     | `/api/stats/muscle-distribution?days=`                 | `MuscleVolumeShare[]`                                               |
-| GET     | `/api/stats/progression-score`                         | `ProgressionScore`                                                  |
-| POST    | `/api/coaching/athletes`                               | `Invitation` (201, role COACH, reste PENDING jusqu'a l'acceptation) |
-| GET     | `/api/coaching/athletes`                               | `SessionUser[]` (relations ACTIVE, role COACH)                      |
-| DELETE  | `/api/coaching/athletes/{athleteId}`                   | 204 (le coach met fin a une relation active)                        |
-| GET     | `/api/coaching/coaches`                                | `SessionUser[]` (relations ACTIVE, role ATHLETE)                    |
-| DELETE  | `/api/coaching/coaches/{coachId}`                      | 204 (l'athlete met fin a une relation active)                       |
-| GET     | `/api/coaching/invitations/sent`                       | `Invitation[]` (en attente, role COACH)                             |
-| DELETE  | `/api/coaching/invitations/sent/{athleteId}`           | 204 (le coach annule une invitation en attente)                     |
-| GET     | `/api/coaching/invitations/received`                   | `Invitation[]` (en attente, role ATHLETE)                           |
-| POST    | `/api/coaching/invitations/received/{coachId}/accept`  | 204 (relation ACTIVE)                                               |
-| POST    | `/api/coaching/invitations/received/{coachId}/decline` | 204 (relation DECLINED)                                             |
-| GET     | `/api/coaching/athletes/{athleteId}/overview`          | `AthleteOverview` (coach de la relation active, sinon 404)          |
-| GET     | `/api/coaching/athletes/{athleteId}/notes`             | `PageResponse<CoachNote>` (auteur uniquement, jamais l'athlete)     |
-| POST    | `/api/coaching/athletes/{athleteId}/notes`             | `CoachNote` (201, relation active)                                  |
-| PUT     | `/api/coaching/athletes/{athleteId}/notes/{noteId}`    | `CoachNote` (auteur, relation active)                               |
-| DELETE  | `/api/coaching/athletes/{athleteId}/notes/{noteId}`    | 204 (auteur)                                                        |
-| POST    | `/api/coaching/posts`                                  | `CoachPost` (201, role COACH)                                       |
-| POST    | `/api/coaching/posts/images`                           | `{ imageUrl }` chemin relatif a passer a la creation (role COACH)   |
-| GET     | `/api/coaching/posts/images/{coachId}/{fichier}`       | image (le coach ou ses clients actifs, via `AuthorizedImage`)       |
-| GET     | `/api/coaching/posts/{coachId}`                        | `CoachPost[]` (le coach ou ses clients actifs)                      |
-| DELETE  | `/api/coaching/posts/{postId}`                         | 204 (auteur uniquement)                                             |
-| POST    | `/api/booking/slots`                                   | `Slot` (201, role COACH, 15 min a 4 h, sans chevauchement)          |
-| GET     | `/api/booking/slots?from=&to=`                         | `Slot[]` (creneaux du coach, libres ou reserves)                    |
-| GET     | `/api/booking/slots/available?from=&to=`               | `Slot[]` (creneaux libres et a venir des coachs de l'athlete)       |
-| DELETE  | `/api/booking/slots/{slotId}`                          | 204 (coach, 409 si une reservation est confirmee)                   |
-| POST    | `/api/booking/bookings`                                | `Booking` (201, athlete client actif, 409 si deja pris)             |
-| GET     | `/api/booking/bookings?from=&to=`                      | `Booking[]` (comme athlete ou comme coach, annulees comprises)      |
-| PATCH   | `/api/booking/bookings/{id}/cancel`                    | `Booking` (athlete ou coach, jusqu'a 24 h avant le debut)           |
-| GET     | `/api/messaging/conversations`                         | `Conversation[]` (les plus recemment actives d'abord)               |
-| POST    | `/api/messaging/conversations`                         | `Conversation` (201 si creee, 200 si la paire existait)             |
-| GET     | `/api/messaging/conversations/{id}/messages`           | `{ items, nextCursor }` (plus recent d'abord, `before` = curseur)   |
-| POST    | `/api/messaging/conversations/{id}/messages`           | `Message` (201, relation coach / athlete active)                    |
-| PATCH   | `/api/messaging/conversations/{id}/read`               | 204 (messages recus uniquement)                                     |
-| GET     | `/api/gamification/me`                            | `GamificationProfile` (XP, niveau, badges obtenus ou verrouilles)  |
-| GET     | `/api/gamification/badges`                        | `Badge[]` (catalogue, `awardedAt` nul)                             |
-| GET     | `/api/gamification/leaderboard`                   | `LeaderboardEntry[]` (top 20 + ligne de l'utilisateur, `you`)      |
-| POST    | `/api/ai/program-generation`                      | `GeneratedProgram` (brouillon sans ecriture en base, 503 sans cle IA) |
+| Methode | URL                                                    | Reponse                                                                                                      |
+| ------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| POST    | `/api/auth/login`                                      | `{ accessToken, user }`                                                                                      |
+| POST    | `/api/auth/register`                                   | `{ accessToken, user }`                                                                                      |
+| GET     | `/api/users/me`                                        | `user` (`id, email, firstName, lastName, roles[], avatarUrl`)                                                |
+| GET     | `/api/users/me/profile`                                | `ProfileResponse`                                                                                            |
+| PATCH   | `/api/users/me/profile`                                | `ProfileResponse`                                                                                            |
+| POST    | `/api/users/me/profile/avatar`                         | `{ avatarUrl }`                                                                                              |
+| GET     | `/api/catalog/muscle-groups`                           | `MuscleGroup[]`                                                                                              |
+| GET     | `/api/catalog/tags`                                    | `Tag[]`                                                                                                      |
+| GET     | `/api/catalog/exercises`                               | `Exercise[]` (filtres en query string)                                                                       |
+| GET     | `/api/catalog/exercises/{id}`                          | `Exercise`                                                                                                   |
+| POST    | `/api/catalog/exercises`                               | `Exercise` (201, role COACH/ADMIN)                                                                           |
+| PUT     | `/api/catalog/exercises/{id}`                          | `Exercise` (role COACH/ADMIN)                                                                                |
+| DELETE  | `/api/catalog/exercises/{id}`                          | 204 (role COACH/ADMIN)                                                                                       |
+| GET     | `/api/programs`                                        | `Program[]` (filtres en query string)                                                                        |
+| GET     | `/api/programs/from-my-coaches`                        | `Program[]` (programmes `CLIENTS` des coachs actifs ; filtres `category`, `level`, pagination `page`/`size`) |
+| GET     | `/api/programs/{id}`                                   | `Program` (404 si `PRIVATE` d'autrui, ou `CLIENTS` sans relation active)                                     |
+| GET     | `/api/programs/shared/{token}`                         | `Program` (public, sans auth)                                                                                |
+| POST    | `/api/programs`                                        | `Program` (201 ; visibilite `CLIENTS` reservee aux coachs, sinon 403)                                        |
+| PUT     | `/api/programs/{id}`                                   | `Program` (proprietaire ; `CLIENTS` reservee aux coachs)                                                     |
+| DELETE  | `/api/programs/{id}`                                   | 204 (proprietaire)                                                                                           |
+| POST    | `/api/programs/{id}/duplicate`                         | `Program` (201)                                                                                              |
+| POST    | `/api/programs/{id}/days`                              | `Program` (proprietaire)                                                                                     |
+| DELETE  | `/api/programs/{id}/days/{dayId}`                      | `Program` (proprietaire)                                                                                     |
+| PATCH   | `/api/programs/{id}/days/positions`                    | `Program` (corps `{ orderedIds }` : tous les jours, une fois)                                                |
+| POST    | `/api/programs/{id}/days/{dayId}/exercises`            | `Program` (proprietaire)                                                                                     |
+| DELETE  | `/api/programs/{id}/days/{dayId}/exercises/{eid}`      | `Program` (proprietaire)                                                                                     |
+| POST    | `/api/programs/{id}/ratings`                           | `Program` (non-proprietaire ; `PUBLIC`, ou `CLIENTS` avec relation active, sinon 404 ; `PRIVATE` : 400)      |
+| GET     | `/api/training/sessions`                               | `TrainingSession[]`                                                                                          |
+| GET     | `/api/training/sessions/{id}`                          | `TrainingSession`                                                                                            |
+| POST    | `/api/training/sessions`                               | `TrainingSession` (201)                                                                                      |
+| DELETE  | `/api/training/sessions/{id}`                          | 204                                                                                                          |
+| POST    | `/api/training/sessions/{id}/sets`                     | `TrainingSession`                                                                                            |
+| DELETE  | `/api/training/sessions/{id}/sets/{setId}`             | `TrainingSession`                                                                                            |
+| GET     | `/api/training/personal-records`                       | `PersonalRecord[]`                                                                                           |
+| GET     | `/api/planning/scheduled?from=&to=`                    | `ScheduledSession[]`                                                                                         |
+| GET     | `/api/planning/scheduled/today`                        | `ScheduledSession[]`                                                                                         |
+| POST    | `/api/planning/scheduled`                              | `ScheduledSession` (201)                                                                                     |
+| PATCH   | `/api/planning/scheduled/{id}/reschedule`              | `ScheduledSession`                                                                                           |
+| PATCH   | `/api/planning/scheduled/{id}/skip`                    | `ScheduledSession`                                                                                           |
+| PATCH   | `/api/planning/scheduled/{id}/complete`                | `ScheduledSession` (verifie le proprietaire du `workoutSessionId`)                                           |
+| PATCH   | `/api/planning/scheduled/{id}/validate`                | `ScheduledSession` (coach actif de l'athlete)                                                                |
+| GET     | `/api/planning/pending-validations`                    | `ScheduledSession[]` (coach)                                                                                 |
+| DELETE  | `/api/planning/scheduled/{id}`                         | 204                                                                                                          |
+| GET     | `/api/stats/overview`                                  | `StatsOverview`                                                                                              |
+| GET     | `/api/stats/exercises/{exerciseId}/progression`        | `ExerciseProgressionPoint[]`                                                                                 |
+| GET     | `/api/stats/volume/weekly?weeks=`                      | `WeeklyVolumePoint[]`                                                                                        |
+| GET     | `/api/stats/streak`                                    | `{ currentStreakDays }`                                                                                      |
+| GET     | `/api/stats/adherence/weekly?weeks=`                   | `WeeklyAdherencePoint[]`                                                                                     |
+| GET     | `/api/stats/muscle-distribution?days=`                 | `MuscleVolumeShare[]`                                                                                        |
+| GET     | `/api/stats/progression-score`                         | `ProgressionScore`                                                                                           |
+| POST    | `/api/coaching/athletes`                               | `Invitation` (201, role COACH, reste PENDING jusqu'a l'acceptation)                                          |
+| GET     | `/api/coaching/athletes`                               | `SessionUser[]` (relations ACTIVE, role COACH)                                                               |
+| DELETE  | `/api/coaching/athletes/{athleteId}`                   | 204 (le coach met fin a une relation active)                                                                 |
+| GET     | `/api/coaching/coaches`                                | `SessionUser[]` (relations ACTIVE, role ATHLETE)                                                             |
+| DELETE  | `/api/coaching/coaches/{coachId}`                      | 204 (l'athlete met fin a une relation active)                                                                |
+| GET     | `/api/coaching/invitations/sent`                       | `Invitation[]` (en attente, role COACH)                                                                      |
+| DELETE  | `/api/coaching/invitations/sent/{athleteId}`           | 204 (le coach annule une invitation en attente)                                                              |
+| GET     | `/api/coaching/invitations/received`                   | `Invitation[]` (en attente, role ATHLETE)                                                                    |
+| POST    | `/api/coaching/invitations/received/{coachId}/accept`  | 204 (relation ACTIVE)                                                                                        |
+| POST    | `/api/coaching/invitations/received/{coachId}/decline` | 204 (relation DECLINED)                                                                                      |
+| GET     | `/api/coaching/athletes/{athleteId}/overview`          | `AthleteOverview` (coach de la relation active, sinon 404)                                                   |
+| GET     | `/api/coaching/athletes/{athleteId}/notes`             | `PageResponse<CoachNote>` (auteur uniquement, jamais l'athlete)                                              |
+| POST    | `/api/coaching/athletes/{athleteId}/notes`             | `CoachNote` (201, relation active)                                                                           |
+| PUT     | `/api/coaching/athletes/{athleteId}/notes/{noteId}`    | `CoachNote` (auteur, relation active)                                                                        |
+| DELETE  | `/api/coaching/athletes/{athleteId}/notes/{noteId}`    | 204 (auteur)                                                                                                 |
+| POST    | `/api/coaching/posts`                                  | `CoachPost` (201, role COACH)                                                                                |
+| POST    | `/api/coaching/posts/images`                           | `{ imageUrl }` chemin relatif a passer a la creation (role COACH)                                            |
+| GET     | `/api/coaching/posts/images/{coachId}/{fichier}`       | image (le coach ou ses clients actifs, via `AuthorizedImage`)                                                |
+| GET     | `/api/coaching/posts/{coachId}`                        | `CoachPost[]` (le coach ou ses clients actifs)                                                               |
+| DELETE  | `/api/coaching/posts/{postId}`                         | 204 (auteur uniquement)                                                                                      |
+| POST    | `/api/booking/slots`                                   | `Slot` (201, role COACH, 15 min a 4 h, sans chevauchement)                                                   |
+| GET     | `/api/booking/slots?from=&to=`                         | `Slot[]` (creneaux du coach, libres ou reserves)                                                             |
+| GET     | `/api/booking/slots/available?from=&to=`               | `Slot[]` (creneaux libres et a venir des coachs de l'athlete)                                                |
+| DELETE  | `/api/booking/slots/{slotId}`                          | 204 (coach, 409 si une reservation est confirmee)                                                            |
+| POST    | `/api/booking/bookings`                                | `Booking` (201, athlete client actif, 409 si deja pris)                                                      |
+| GET     | `/api/booking/bookings?from=&to=`                      | `Booking[]` (comme athlete ou comme coach, annulees comprises)                                               |
+| PATCH   | `/api/booking/bookings/{id}/cancel`                    | `Booking` (athlete ou coach, jusqu'a 24 h avant le debut)                                                    |
+| GET     | `/api/messaging/conversations`                         | `Conversation[]` (les plus recemment actives d'abord)                                                        |
+| POST    | `/api/messaging/conversations`                         | `Conversation` (201 si creee, 200 si la paire existait)                                                      |
+| GET     | `/api/messaging/conversations/{id}/messages`           | `{ items, nextCursor }` (plus recent d'abord, `before` = curseur)                                            |
+| POST    | `/api/messaging/conversations/{id}/messages`           | `Message` (201, relation coach / athlete active)                                                             |
+| PATCH   | `/api/messaging/conversations/{id}/read`               | 204 (messages recus uniquement)                                                                              |
+| GET     | `/api/gamification/me`                                 | `GamificationProfile` (XP, niveau, badges obtenus ou verrouilles)                                            |
+| GET     | `/api/gamification/badges`                             | `Badge[]` (catalogue, `awardedAt` nul)                                                                       |
+| GET     | `/api/gamification/leaderboard`                        | `LeaderboardEntry[]` (top 20 + ligne de l'utilisateur, `you`)                                                |
+| POST    | `/api/ai/program-generation`                           | `GeneratedProgram` (brouillon sans ecriture en base, 503 sans cle IA)                                        |
 
 Les erreurs sont attendues au format `ProblemDetail` de Spring : `detail` est
 affiche tel quel a l'utilisateur.
