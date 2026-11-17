@@ -33,7 +33,14 @@ jobs:
         run: npm run format:check
       - name: Typecheck
         run: npm run typecheck
-      - name: Tests
-        run: npm test
+      - name: Tests et couverture
+        run: npm run test:coverage
+      - name: Rapport de couverture
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-coverage
+          path: frontend/coverage
+          if-no-files-found: warn
       - name: Build
         run: npm run build

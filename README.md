@@ -1,5 +1,9 @@
 # FitCoach - Backend
 
+![Version](https://img.shields.io/badge/version-0.1.0--SNAPSHOT-blue)
+[![Backend CI](https://github.com/Romdeux-ops/PROJET-M1-S1/actions/workflows/backend.yml/badge.svg)](https://github.com/Romdeux-ops/PROJET-M1-S1/actions/workflows/backend.yml)
+[![Frontend CI](https://github.com/Romdeux-ops/PROJET-M1-S1/actions/workflows/frontend.yml/badge.svg)](https://github.com/Romdeux-ops/PROJET-M1-S1/actions/workflows/frontend.yml)
+
 Backend de l'application fitness mettant en relation athletes et coachs : carnet
 d'entrainement, programmes, planning, statistiques, portail de coaching,
 reservation de creneaux, messagerie et generation de programmes par IA.
@@ -84,10 +88,36 @@ script d'init. Pour la creer :
 docker compose down -v && docker compose up -d
 ```
 
-> Testcontainers, qui serait la solution la plus propre, est reporte a la phase
-> 14 avec la CI : la version 1.21.3 (la plus recente a ce jour) echoue a
-> negocier l'API de Docker Engine 29 et ne detecte aucun environnement Docker
-> valide.
+> Testcontainers n'est pas utilise : la version 1.21.3 (la plus recente a ce
+> jour) echoue a negocier l'API de Docker Engine 29 et ne detecte aucun
+> environnement Docker valide. La CI s'appuie sur un conteneur de service
+> PostgreSQL 16 declare dans le workflow.
+
+### Integration continue et couverture
+
+Deux workflows GitHub Actions tournent sur chaque Pull Request qui touche le
+code concerne :
+
+| Workflow | Declencheur | Contenu |
+| --- | --- | --- |
+| `backend.yml` | `src/**`, `build.gradle`, `gradle/**` | PostgreSQL 16 en service, `./gradlew build` (tests + JaCoCo), rapport en artefact `jacoco-report` |
+| `frontend.yml` | `frontend/**` | lint, format, typecheck, tests avec couverture, build, rapport en artefact `vitest-coverage` |
+
+Couverture en local :
+
+```bash
+./gradlew test jacocoTestReport     # build/reports/jacoco/test/html/index.html
+cd frontend && npm run test:coverage # frontend/coverage/index.html
+```
+
+Couverture mesuree le 2026-11-17 (a titre indicatif, pas un seuil) : backend
+73,1 % des lignes (71 tests), frontend 42,3 % des lignes (34 tests). Ces
+chiffres sont donnes en clair et non sous forme de badge : un badge de
+couverture ou de qualite de code dynamique (Codecov, SonarCloud) exige que le
+proprietaire du depot cree un compte et ajoute un jeton dans les secrets
+GitHub ; il sera branche a ce moment-la. La qualite du frontend est controlee
+par `oxlint` et `prettier` dans la CI. Aucun badge de licence n'est affiche
+tant que le depot ne contient pas de fichier `LICENSE`.
 
 ## Organisation du code
 
