@@ -217,6 +217,9 @@ Contrats consommes par le front a ce jour :
 | GET     | `/api/messaging/conversations/{id}/messages`      | `{ items, nextCursor }` (plus recent d'abord, `before` = curseur)  |
 | POST    | `/api/messaging/conversations/{id}/messages`      | `Message` (201, relation coach / athlete active)                   |
 | PATCH   | `/api/messaging/conversations/{id}/read`          | 204 (messages recus uniquement)                                    |
+| GET     | `/api/gamification/me`                            | `GamificationProfile` (XP, niveau, badges obtenus ou verrouilles)  |
+| GET     | `/api/gamification/badges`                        | `Badge[]` (catalogue, `awardedAt` nul)                             |
+| GET     | `/api/gamification/leaderboard`                   | `LeaderboardEntry[]` (top 20 + ligne de l'utilisateur, `you`)      |
 
 Les erreurs sont attendues au format `ProblemDetail` de Spring : `detail` est
 affiche tel quel a l'utilisateur.

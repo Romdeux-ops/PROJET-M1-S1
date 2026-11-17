@@ -153,7 +153,7 @@ frontend.
 - [ ] Phase 8 — portail de coaching
 - [x] Phase 9 — reservation de creneaux
 - [x] Phase 10 — messagerie
-- [ ] Phase 11 — gamification
+- [x] Phase 11 — gamification
 - [ ] Phase 12 — generation par IA
 - [ ] Phase 13 — nutrition (bonus)
 - [ ] Phase 14 — back-office, CI, deploiement
