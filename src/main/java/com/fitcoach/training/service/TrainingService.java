@@ -1,6 +1,7 @@
 package com.fitcoach.training.service;
 
 import com.fitcoach.catalog.api.ExerciseCatalog;
+import com.fitcoach.gamification.api.Achievements;
 import com.fitcoach.training.domain.PersonalRecordMetric;
 import com.fitcoach.training.domain.SessionSet;
 import com.fitcoach.training.domain.WorkoutSession;
@@ -36,18 +37,21 @@ public class TrainingService {
     private final PersonalRecordRepository personalRecordRepository;
     private final PersonalRecordService personalRecordService;
     private final ExerciseCatalog exerciseCatalog;
+    private final Achievements achievements;
 
     public TrainingService(
             WorkoutSessionRepository sessionRepository,
             SessionSetRepository sessionSetRepository,
             PersonalRecordRepository personalRecordRepository,
             PersonalRecordService personalRecordService,
-            ExerciseCatalog exerciseCatalog) {
+            ExerciseCatalog exerciseCatalog,
+            Achievements achievements) {
         this.sessionRepository = sessionRepository;
         this.sessionSetRepository = sessionSetRepository;
         this.personalRecordRepository = personalRecordRepository;
         this.personalRecordService = personalRecordService;
         this.exerciseCatalog = exerciseCatalog;
+        this.achievements = achievements;
     }
 
     public Page<SessionResponse> listSessions(UUID athleteId, Pageable pageable) {
@@ -63,7 +67,9 @@ public class TrainingService {
     public SessionResponse createSession(UUID athleteId, SessionRequest request) {
         WorkoutSession session = new WorkoutSession(athleteId, request.title(), request.performedAt());
         applyFields(session, request);
-        return toResponse(sessionRepository.save(session));
+        SessionResponse response = toResponse(sessionRepository.save(session));
+        achievements.evaluate(athleteId);
+        return response;
     }
 
     @Transactional
@@ -96,6 +102,7 @@ public class TrainingService {
         sessionSetRepository.save(set);
 
         personalRecordService.recompute(athleteId, Set.of(request.exerciseId()));
+        achievements.evaluate(athleteId);
         return toResponse(session);
     }
 
