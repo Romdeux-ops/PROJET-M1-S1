@@ -7,78 +7,119 @@
 /*
  * Tokens du design system. Toute couleur de l'app passe par ces variables :
  * ne pas utiliser de couleurs Tailwind brutes (bg-orange-500...) dans les features.
+ *
+ * La teinte de marque est pilotee par quelques variables (--hue, --pl, --pl-dark,
+ * --pc) : une palette = quatre valeurs (voir [data-palette] plus bas).
  */
 :root {
-  --radius: 0.75rem;
+  --radius: 1rem;
 
-  --background: oklch(0.985 0.002 75);
-  --foreground: oklch(0.17 0.01 60);
+  /* Palette par defaut : Aurora (violet). */
+  --hue: 280;
+  --pl: 0.55;
+  --pl-dark: 0.72;
+  --pc: 0.23;
+
+  --background: oklch(0.977 0.006 265);
+  --foreground: oklch(0.2 0.03 265);
   --card: oklch(1 0 0);
   --card-foreground: var(--foreground);
   --popover: oklch(1 0 0);
   --popover-foreground: var(--foreground);
 
-  --primary: oklch(0.68 0.2 45);
+  --primary: oklch(var(--pl) var(--pc) var(--hue));
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.955 0.006 75);
-  --secondary-foreground: oklch(0.25 0.01 60);
-  --muted: oklch(0.955 0.006 75);
-  --muted-foreground: oklch(0.5 0.012 60);
-  --accent: oklch(0.95 0.03 55);
-  --accent-foreground: oklch(0.35 0.1 45);
-  --destructive: oklch(0.6 0.22 25);
-  --success: oklch(0.65 0.16 150);
-  --warning: oklch(0.78 0.16 80);
+  --secondary: oklch(0.955 0.01 265);
+  --secondary-foreground: oklch(0.25 0.03 265);
+  --muted: oklch(0.955 0.01 265);
+  --muted-foreground: oklch(0.5 0.025 265);
+  --accent: oklch(0.95 0.035 var(--hue));
+  --accent-foreground: oklch(0.38 0.16 var(--hue));
+  --destructive: oklch(0.62 0.23 17);
+  --success: oklch(0.68 0.16 160);
+  --warning: oklch(0.8 0.16 80);
 
-  --border: oklch(0.91 0.006 75);
-  --input: oklch(0.9 0.006 75);
-  --ring: oklch(0.68 0.2 45);
+  --border: oklch(0.92 0.01 265);
+  --input: oklch(0.9 0.012 265);
+  --ring: oklch(var(--pl) var(--pc) var(--hue));
 
-  --chart-1: oklch(0.68 0.2 45);
-  --chart-2: oklch(0.62 0.2 15);
-  --chart-3: oklch(0.65 0.16 150);
-  --chart-4: oklch(0.6 0.15 250);
-  --chart-5: oklch(0.75 0.15 85);
+  --chart-1: oklch(var(--pl) var(--pc) var(--hue));
+  --chart-2: oklch(0.68 0.16 calc(var(--hue) - 60));
+  --chart-3: oklch(0.7 0.16 160);
+  --chart-4: oklch(0.78 0.15 80);
+  --chart-5: oklch(0.66 0.22 350);
 
-  --sidebar: oklch(0.975 0.004 75);
+  --sidebar: oklch(0.99 0.004 265);
   --sidebar-foreground: var(--foreground);
-  --sidebar-accent: oklch(0.94 0.02 55);
-  --sidebar-accent-foreground: oklch(0.3 0.08 45);
+  --sidebar-accent: oklch(0.95 0.035 var(--hue));
+  --sidebar-accent-foreground: oklch(0.38 0.16 var(--hue));
   --sidebar-border: var(--border);
 
-  --brand-gradient: linear-gradient(135deg, oklch(0.72 0.19 55), oklch(0.62 0.22 15));
+  --brand-gradient: linear-gradient(
+    135deg,
+    oklch(calc(var(--pl) + 0.05) var(--pc) var(--hue)),
+    oklch(0.68 0.16 calc(var(--hue) - 50))
+  );
+
+  --shadow-soft:
+    0 1px 2px oklch(0.3 0.05 var(--hue) / 0.05), 0 10px 30px -12px oklch(0.3 0.1 var(--hue) / 0.14);
 }
 
 .dark {
   color-scheme: dark;
-  --background: oklch(0.155 0.006 60);
-  --foreground: oklch(0.96 0.004 75);
-  --card: oklch(0.195 0.007 60);
+  --background: oklch(0.15 0.028 270);
+  --foreground: oklch(0.96 0.008 265);
+  --card: oklch(0.195 0.03 270);
   --card-foreground: var(--foreground);
-  --popover: oklch(0.2 0.007 60);
+  --popover: oklch(0.21 0.032 270);
   --popover-foreground: var(--foreground);
 
-  --primary: oklch(0.72 0.19 50);
-  --primary-foreground: oklch(0.15 0.01 60);
-  --secondary: oklch(0.25 0.008 60);
+  --primary: oklch(var(--pl-dark) var(--pc) var(--hue));
+  --primary-foreground: oklch(0.14 0.02 270);
+  --secondary: oklch(0.25 0.03 270);
   --secondary-foreground: var(--foreground);
-  --muted: oklch(0.25 0.008 60);
-  --muted-foreground: oklch(0.68 0.01 70);
-  --accent: oklch(0.28 0.04 50);
-  --accent-foreground: oklch(0.9 0.06 60);
-  --destructive: oklch(0.66 0.2 25);
-  --success: oklch(0.7 0.15 150);
-  --warning: oklch(0.8 0.15 80);
+  --muted: oklch(0.25 0.03 270);
+  --muted-foreground: oklch(0.7 0.02 265);
+  --accent: oklch(0.29 0.07 var(--hue));
+  --accent-foreground: oklch(0.9 0.08 var(--hue));
+  --destructive: oklch(0.68 0.21 17);
+  --success: oklch(0.74 0.15 160);
+  --warning: oklch(0.82 0.15 80);
 
   --border: oklch(1 0 0 / 9%);
   --input: oklch(1 0 0 / 13%);
-  --ring: oklch(0.72 0.19 50);
+  --ring: oklch(var(--pl-dark) var(--pc) var(--hue));
 
-  --sidebar: oklch(0.175 0.006 60);
+  --chart-1: oklch(var(--pl-dark) var(--pc) var(--hue));
+  --chart-2: oklch(0.74 0.15 calc(var(--hue) - 60));
+
+  --sidebar: oklch(0.175 0.03 270);
   --sidebar-foreground: var(--foreground);
-  --sidebar-accent: oklch(0.26 0.03 50);
-  --sidebar-accent-foreground: oklch(0.92 0.05 60);
+  --sidebar-accent: oklch(0.29 0.07 var(--hue));
+  --sidebar-accent-foreground: oklch(0.92 0.07 var(--hue));
   --sidebar-border: var(--border);
+
+  --shadow-soft: 0 1px 2px oklch(0 0 0 / 0.3), 0 12px 32px -14px oklch(0 0 0 / 0.55);
+}
+
+/* Palettes interchangeables (selecteur dans la barre du haut). */
+[data-palette='emerald'] {
+  --hue: 160;
+  --pl: 0.6;
+  --pl-dark: 0.74;
+  --pc: 0.15;
+}
+[data-palette='ocean'] {
+  --hue: 245;
+  --pl: 0.56;
+  --pl-dark: 0.72;
+  --pc: 0.17;
+}
+[data-palette='sunset'] {
+  --hue: 45;
+  --pl: 0.68;
+  --pl-dark: 0.72;
+  --pc: 0.2;
 }
 
 @theme inline {
@@ -121,6 +162,10 @@
   --color-sidebar-border: var(--sidebar-border);
 }
 
+@utility shadow-soft {
+  box-shadow: var(--shadow-soft);
+}
+
 @utility bg-brand {
   background-image: var(--brand-gradient);
 }
@@ -141,6 +186,23 @@
   body {
     @apply bg-background font-sans text-foreground;
     font-feature-settings: 'cv11', 'ss01';
+    background-image:
+      radial-gradient(
+        60rem 36rem at 90% -8%,
+        color-mix(in oklab, var(--primary) 11%, transparent),
+        transparent 65%
+      ),
+      radial-gradient(
+        46rem 30rem at -6% 8%,
+        color-mix(in oklab, oklch(0.68 0.16 calc(var(--hue) - 50)) 9%, transparent),
+        transparent 60%
+      );
+    background-attachment: fixed;
+  }
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.02em;
   }
   ::selection {
     @apply bg-primary/20;

@@ -14,6 +14,8 @@
         const dark =
           t === 'dark' || (t === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)
         document.documentElement.classList.toggle('dark', dark)
+        document.documentElement.dataset.palette =
+          localStorage.getItem('fitcoach-palette') ?? 'aurora'
       } catch {}
     </script>
   </head>
