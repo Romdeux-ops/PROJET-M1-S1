@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { Logo } from '@/components/logo'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
+import { useSession } from '@/lib/auth/session'
 import { cn } from '@/lib/utils'
 
 const LINKS = [
@@ -16,6 +17,7 @@ const LINKS = [
 /** Ilot flottant : large en haut de page, il se resserre et s'ombre des que l'on defile. */
 export function LandingNav() {
   const [scrolled, setScrolled] = useState(false)
+  const connected = useSession((s) => s.token !== null)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
@@ -56,15 +58,31 @@ export function LandingNav() {
 
         <div className="flex items-center gap-1.5">
           <ThemeToggle />
-          <Button asChild variant="ghost" size="sm" className="hidden rounded-full sm:inline-flex">
-            <Link to="/login">Connexion</Link>
-          </Button>
-          <Button asChild size="sm" className="group rounded-full">
-            <Link to="/register">
-              Créer un compte
-              <ArrowRight className="transition-transform group-hover:translate-x-1" />
-            </Link>
-          </Button>
+          {connected ? (
+            <Button asChild size="sm" className="group rounded-full">
+              <Link to="/dashboard">
+                Mon espace
+                <ArrowRight className="transition-transform group-hover:translate-x-1" />
+              </Link>
+            </Button>
+          ) : (
+            <>
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="hidden rounded-full sm:inline-flex"
+              >
+                <Link to="/login">Connexion</Link>
+              </Button>
+              <Button asChild size="sm" className="group rounded-full">
+                <Link to="/register">
+                  Créer un compte
+                  <ArrowRight className="transition-transform group-hover:translate-x-1" />
+                </Link>
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </header>

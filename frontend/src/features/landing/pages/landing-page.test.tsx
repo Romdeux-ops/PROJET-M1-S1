@@ -7,12 +7,15 @@ import {
 } from '@tanstack/react-router'
 import { render, screen } from '@testing-library/react'
 
+import { useSession } from '@/lib/auth/session'
+import { loginAs } from '@/test/utils'
+
 import { LandingPage } from './landing-page'
 
 function renderLanding() {
   const root = createRootRoute({ component: LandingPage })
   const routeTree = root.addChildren(
-    ['/login', '/register'].map((path) =>
+    ['/login', '/register', '/dashboard'].map((path) =>
       createRoute({ getParentRoute: () => root, path, component: () => <p>{path}</p> }),
     ),
   )
@@ -57,5 +60,28 @@ describe('LandingPage', () => {
     const nav = await screen.findByRole('navigation', { name: 'Sections' })
     expect(nav).toHaveTextContent('Fonctionnalités')
     expect(nav.querySelector('a[href="#parcours"]')).not.toBeNull()
+  })
+
+  it("propose l'inscription et la connexion à un visiteur", async () => {
+    renderLanding()
+
+    expect(await screen.findByRole('link', { name: /créer un compte/i })).toHaveAttribute(
+      'href',
+      '/register',
+    )
+    expect(screen.getByRole('link', { name: /connexion/i })).toHaveAttribute('href', '/login')
+    expect(screen.queryByRole('link', { name: /mon espace/i })).not.toBeInTheDocument()
+  })
+
+  it("propose d'accéder à son espace quand on est connecté, sans redirection", async () => {
+    loginAs('ATHLETE')
+    renderLanding()
+
+    expect(await screen.findByRole('heading', { level: 1 })).toBeInTheDocument()
+    expect(
+      screen.getAllByRole('link', { name: /mon espace|accéder à mon espace/i })[0],
+    ).toHaveAttribute('href', '/dashboard')
+    expect(screen.queryByRole('link', { name: /créer un compte/i })).not.toBeInTheDocument()
+    useSession.getState().logout()
   })
 })

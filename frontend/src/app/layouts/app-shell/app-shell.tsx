@@ -16,9 +16,9 @@ export function AppShell() {
   const navigate = useNavigate()
   const pathname = useLocation({ select: (l) => l.pathname })
 
-  // Session perdue (deconnexion, 401 du backend) : retour a l'ecran de connexion.
+  // Session perdue (deconnexion, 401 du backend) : retour a l'accueil.
   useEffect(() => {
-    if (!token) void navigate({ to: '/login', replace: true })
+    if (!token) void navigate({ to: '/', replace: true })
   }, [token, navigate])
 
   return (

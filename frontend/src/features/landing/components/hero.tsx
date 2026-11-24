@@ -8,6 +8,7 @@ import { Spotlight } from '@/components/motion/spotlight'
 import { useAnimationsEnabled } from '@/components/motion/use-animations-enabled'
 import { WeightPlate } from '@/components/motion/weight-plate'
 import { Button } from '@/components/ui/button'
+import { useSession } from '@/lib/auth/session'
 import { cn } from '@/lib/utils'
 
 import { ActivityRings } from './activity-rings'
@@ -23,6 +24,7 @@ const LINES = [
 
 export function Hero() {
   const animated = useAnimationsEnabled()
+  const connected = useSession((s) => s.token !== null)
 
   return (
     <section className="relative overflow-hidden px-4 pt-36 pb-28 sm:px-6 lg:px-8 lg:pt-44">
@@ -79,22 +81,24 @@ export function Hero() {
                 size="lg"
                 className="group relative overflow-hidden rounded-full px-7"
               >
-                <Link to="/register">
+                <Link to={connected ? '/dashboard' : '/register'}>
                   <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent group-hover:animate-[shimmer_1.2s_ease-in-out]" />
                   <span className="relative flex items-center gap-2">
-                    Commencer gratuitement
+                    {connected ? 'Accéder à mon espace' : 'Commencer gratuitement'}
                     <ArrowRight className="transition-transform group-hover:translate-x-1" />
                   </span>
                 </Link>
               </Button>
             </Magnetic>
-            <Magnetic>
-              <Button asChild size="lg" variant="outline" className="rounded-full px-7">
-                <Link to="/login">
-                  <Sparkles /> J&apos;ai déjà un compte
-                </Link>
-              </Button>
-            </Magnetic>
+            {!connected && (
+              <Magnetic>
+                <Button asChild size="lg" variant="outline" className="rounded-full px-7">
+                  <Link to="/login">
+                    <Sparkles /> J&apos;ai déjà un compte
+                  </Link>
+                </Button>
+              </Magnetic>
+            )}
           </motion.div>
         </div>
 

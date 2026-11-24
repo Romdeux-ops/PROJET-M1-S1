@@ -5,10 +5,12 @@ import { HeartbeatLine } from '@/components/motion/heartbeat-line'
 import { Magnetic } from '@/components/motion/magnetic'
 import { WeightPlate } from '@/components/motion/weight-plate'
 import { Button } from '@/components/ui/button'
+import { useSession } from '@/lib/auth/session'
 
 import { Reveal } from './reveal'
 
 export function FinalCta() {
+  const connected = useSession((s) => s.token !== null)
   return (
     <section className="px-4 py-24 sm:px-6 lg:px-8">
       <Reveal className="mx-auto max-w-7xl">
@@ -29,20 +31,22 @@ export function FinalCta() {
                   variant="secondary"
                   className="group rounded-full bg-white px-7 text-foreground hover:bg-white/90"
                 >
-                  <Link to="/register">
-                    Créer mon compte
+                  <Link to={connected ? '/dashboard' : '/register'}>
+                    {connected ? 'Accéder à mon espace' : 'Créer mon compte'}
                     <ArrowRight className="transition-transform group-hover:translate-x-1" />
                   </Link>
                 </Button>
               </Magnetic>
-              <Button
-                asChild
-                size="lg"
-                variant="ghost"
-                className="rounded-full text-white hover:bg-white/15 hover:text-white"
-              >
-                <Link to="/login">Me connecter</Link>
-              </Button>
+              {!connected && (
+                <Button
+                  asChild
+                  size="lg"
+                  variant="ghost"
+                  className="rounded-full text-white hover:bg-white/15 hover:text-white"
+                >
+                  <Link to="/login">Me connecter</Link>
+                </Button>
+              )}
             </div>
           </div>
           <HeartbeatLine className="relative mt-12 text-white" />
