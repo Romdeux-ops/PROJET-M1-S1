@@ -14,4 +14,7 @@ public interface UserDirectory {
     Map<UUID, UserSummary> findAllById(Collection<UUID> userIds);
 
     Optional<UserSummary> findByEmail(String email);
+
+    /** Preference « notifications activees » ; vrai pour un compte inconnu (rien a couper). */
+    boolean notificationsEnabled(UUID userId);
 }

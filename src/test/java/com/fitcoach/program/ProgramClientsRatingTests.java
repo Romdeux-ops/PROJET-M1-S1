@@ -120,7 +120,10 @@ class ProgramClientsRatingTests {
         String privatePath = "/api/programs/" + createProgram(coach, "PRIVATE");
         String publicPath = "/api/programs/" + createProgram(coach, "PUBLIC");
 
-        api.post(athlete, privatePath + "/ratings", rating(5)).andExpect(status().isBadRequest());
+        // Invisible pour l'athlete : 404 (avant : 400, qui revelait l'existence du programme prive).
+        api.post(athlete, privatePath + "/ratings", rating(5)).andExpect(status().isNotFound());
+        // Visible pour son proprietaire : la regle « seuls les programmes publics » s'applique (400).
+        api.post(coach, privatePath + "/ratings", rating(5)).andExpect(status().isBadRequest());
 
         api.post(athlete, publicPath + "/ratings", rating(5)).andExpect(status().isOk());
         api.post(coach, publicPath + "/ratings", rating(5)).andExpect(status().isBadRequest());

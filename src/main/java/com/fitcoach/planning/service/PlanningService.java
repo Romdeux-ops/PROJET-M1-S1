@@ -16,6 +16,7 @@ import com.fitcoach.planning.exception.NotValidatingCoachException;
 import com.fitcoach.planning.exception.ScheduledSessionNotFoundException;
 import com.fitcoach.planning.exception.UnknownWorkoutSessionException;
 import com.fitcoach.planning.repository.ScheduledSessionRepository;
+import com.fitcoach.program.api.ProgramAccess;
 import com.fitcoach.training.api.WorkoutSessions;
 import java.time.Clock;
 import java.time.LocalDate;
@@ -38,6 +39,7 @@ public class PlanningService {
     private final UserDirectory userDirectory;
     private final WorkoutSessions workoutSessions;
     private final Notifier notifier;
+    private final ProgramAccess programAccess;
     private final Clock clock;
 
     public PlanningService(
@@ -46,12 +48,14 @@ public class PlanningService {
             UserDirectory userDirectory,
             WorkoutSessions workoutSessions,
             Notifier notifier,
+            ProgramAccess programAccess,
             Clock clock) {
         this.scheduledSessionRepository = scheduledSessionRepository;
         this.coachRelations = coachRelations;
         this.userDirectory = userDirectory;
         this.workoutSessions = workoutSessions;
         this.notifier = notifier;
+        this.programAccess = programAccess;
         this.clock = clock;
     }
 
@@ -76,6 +80,7 @@ public class PlanningService {
 
     @Transactional
     public ScheduledSessionResponse schedule(UUID athleteId, ScheduleRequest request) {
+        programAccess.assertCanUse(athleteId, request.programId(), request.programDayId());
         ScheduledSession session = new ScheduledSession(athleteId, request.title(), request.scheduledDate());
         session.setProgramId(request.programId());
         session.setProgramDayId(request.programDayId());
