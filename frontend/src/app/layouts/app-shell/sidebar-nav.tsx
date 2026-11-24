@@ -35,6 +35,7 @@ export function SidebarNav({ collapsed = false, onNavigate }: SidebarNavProps) {
                   'group relative flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-all',
                   'text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground',
                   'data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground data-[status=active]:shadow-sm',
+                  'before:absolute before:top-2 before:bottom-2 before:left-0 before:w-1 before:rounded-full before:bg-primary before:opacity-0 before:transition-opacity data-[status=active]:before:opacity-100',
                   collapsed && 'justify-center px-0',
                 )}
               >

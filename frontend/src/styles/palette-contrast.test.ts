@@ -1,9 +1,11 @@
+/// <reference types="node" />
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
-// Vitest s'execute depuis frontend/ : le chemin ne depend pas de l'environnement jsdom.
+// Vitest remplace les fichiers CSS importes par du vide (css: false) : on lit le fichier directement.
+// Il s'execute depuis frontend/, le chemin ne depend donc pas de l'environnement.
 const css = readFileSync(join(process.cwd(), 'src/styles/globals.css'), 'utf-8')
 
 /** Conversion OKLCH vers luminance relative (sRGB lineaire, valeurs hors gamut ecretees). */
