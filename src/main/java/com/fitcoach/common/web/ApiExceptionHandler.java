@@ -7,13 +7,17 @@ import com.fitcoach.common.exception.NotFoundException;
 import com.fitcoach.common.exception.ServiceUnavailableException;
 import com.fitcoach.common.exception.UnauthorizedException;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -74,13 +78,34 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
                 HttpStatus.CONFLICT, "L'operation entre en conflit avec des donnees existantes.");
     }
 
+    /**
+     * Les refus de Spring Security (dont {@code @PreAuthorize}) repartent vers la
+     * chaine de filtres, qui renvoie 401 ou 403 : le filet ci-dessous en ferait des 500.
+     */
+    @ExceptionHandler({AccessDeniedException.class, AuthenticationException.class})
+    public void rethrowSecurityException(RuntimeException ex) {
+        throw ex;
+    }
+
+    /** Erreur non prevue : 500 au format ProblemDetail, la cause reste dans les journaux. */
+    @ExceptionHandler(Exception.class)
+    public ProblemDetail handleUnexpected(Exception ex) {
+        logger.error("Erreur non traitee", ex);
+        return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Une erreur interne est survenue.");
+    }
+
+    /** Tous les messages d'un champ sont renvoyes, separes par " ; ", sans doublon. */
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        Map<String, String> errors = new LinkedHashMap<>();
+        Map<String, Set<String>> messagesByField = new LinkedHashMap<>();
         for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
-            errors.putIfAbsent(fieldError.getField(), fieldError.getDefaultMessage());
+            messagesByField
+                    .computeIfAbsent(fieldError.getField(), field -> new LinkedHashSet<>())
+                    .add(fieldError.getDefaultMessage());
         }
+        Map<String, String> errors = new LinkedHashMap<>();
+        messagesByField.forEach((field, messages) -> errors.put(field, String.join(" ; ", messages)));
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Certaines donnees sont invalides.");
         problem.setProperty("errors", errors);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem);
