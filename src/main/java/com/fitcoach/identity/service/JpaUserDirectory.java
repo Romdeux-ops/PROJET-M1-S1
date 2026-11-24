@@ -1,5 +1,6 @@
 package com.fitcoach.identity.service;
 
+import com.fitcoach.identity.api.Emails;
 import com.fitcoach.identity.api.UserDirectory;
 import com.fitcoach.identity.api.UserSummary;
 import com.fitcoach.identity.domain.User;
@@ -38,6 +39,6 @@ class JpaUserDirectory implements UserDirectory {
 
     @Override
     public Optional<UserSummary> findByEmail(String email) {
-        return userRepository.findByEmail(email).map(User::toSummary);
+        return userRepository.findByEmail(Emails.normalize(email)).map(User::toSummary);
     }
 }

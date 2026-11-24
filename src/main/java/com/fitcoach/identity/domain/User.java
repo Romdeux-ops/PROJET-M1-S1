@@ -1,6 +1,7 @@
 package com.fitcoach.identity.domain;
 
 import com.fitcoach.common.security.RoleCode;
+import com.fitcoach.identity.api.Emails;
 import com.fitcoach.identity.api.UserSummary;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -96,7 +97,7 @@ public class User {
     }
 
     public User(String email, String passwordHash, String firstName, String lastName) {
-        this.email = email;
+        this.email = Emails.normalize(email);
         this.passwordHash = passwordHash;
         this.firstName = firstName;
         this.lastName = lastName;

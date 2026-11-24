@@ -88,8 +88,9 @@ public class StatsService {
     }
 
     public StreakResponse streak(UUID athleteId) {
-        List<LocalDate> days = statsQueries.recentTrainingDays(athleteId, clock.getZone(), STREAK_LOOKUP_DAYS);
         LocalDate today = LocalDate.now(clock);
+        List<LocalDate> days =
+                statsQueries.recentTrainingDays(athleteId, clock.getZone(), today, STREAK_LOOKUP_DAYS);
         // La serie reste en cours tant que la veille est couverte.
         LocalDate expected = !days.isEmpty() && days.get(0).equals(today) ? today : today.minusDays(1);
         int streak = 0;
@@ -111,13 +112,13 @@ public class StatsService {
     public List<MuscleVolumeShare> muscleDistribution(UUID athleteId, int days) {
         LocalDate today = LocalDate.now(clock);
         return statsQueries.primaryMuscleVolume(
-                athleteId, clock.getZone(), today.minusDays(Math.clamp(days, 1, MAX_DAYS)), today);
+                athleteId, clock.getZone(), today.minusDays(Math.clamp(days, 1, MAX_DAYS) - 1L), today);
     }
 
     /** Volume des 30 derniers jours (aujourd'hui inclus) contre les 30 jours precedents. */
     public ProgressionScoreResponse progressionScore(UUID athleteId) {
         LocalDate today = LocalDate.now(clock);
-        LocalDate recentFrom = today.minusDays(SCORE_WINDOW_DAYS);
+        LocalDate recentFrom = today.minusDays(SCORE_WINDOW_DAYS - 1L);
         LocalDate previousFrom = recentFrom.minusDays(SCORE_WINDOW_DAYS);
         VolumeComparison volumes =
                 statsQueries.volumeComparison(athleteId, clock.getZone(), previousFrom, recentFrom, today);

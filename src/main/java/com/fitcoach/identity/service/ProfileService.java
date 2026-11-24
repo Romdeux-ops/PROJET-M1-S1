@@ -29,8 +29,8 @@ public class ProfileService {
     @Transactional
     public ProfileResponse updateProfile(UUID userId, UpdateProfileRequest request) {
         User user = findUser(userId);
-        if (request.firstName() != null) user.setFirstName(request.firstName());
-        if (request.lastName() != null) user.setLastName(request.lastName());
+        if (request.firstName() != null) user.setFirstName(request.firstName().strip());
+        if (request.lastName() != null) user.setLastName(request.lastName().strip());
         if (request.bio() != null) user.setBio(request.bio());
         if (request.birthDate() != null) user.setBirthDate(request.birthDate());
         if (request.heightCm() != null) user.setHeightCm(request.heightCm());
