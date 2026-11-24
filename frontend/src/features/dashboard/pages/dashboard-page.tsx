@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { NAV_ITEMS } from '@/features/navigation'
+import { STATUS_LABELS, useScheduledToday } from '@/features/planning'
 import { useStatsOverview, WeeklyActivityChart } from '@/features/stats'
 import { useSessions } from '@/features/training'
 import { useSession } from '@/lib/auth/session'
@@ -34,6 +35,7 @@ export function DashboardPage() {
   const stats = useStatsOverview()
   const sessions = useSessions()
   const recent = sessions.data?.slice(0, 5)
+  const today = useScheduledToday()
 
   return (
     <div className="space-y-6">
@@ -102,6 +104,40 @@ export function DashboardPage() {
           )}
         </section>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Séance du jour</CardTitle>
+          <CardDescription>Ce que vous avez planifié pour aujourd'hui</CardDescription>
+          <CardAction>
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/planning">
+                Planning <ArrowRight />
+              </Link>
+            </Button>
+          </CardAction>
+        </CardHeader>
+        <CardContent>
+          {today.isPending ? (
+            <Skeleton className="h-12 w-full" />
+          ) : today.data && today.data.length > 0 ? (
+            <ul className="-mx-2 divide-y">
+              {today.data.map((s) => (
+                <li key={s.id} className="flex items-center justify-between gap-3 px-2 py-3">
+                  <p className="min-w-0 truncate text-sm font-medium">{s.title}</p>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    {STATUS_LABELS[s.status]}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="py-4 text-center text-sm text-muted-foreground">
+              Rien de prévu aujourd'hui.
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       <section className="grid gap-6 lg:grid-cols-5">
         <Card className="lg:col-span-3">

@@ -12,4 +12,5 @@ export {
   useValidate,
 } from './hooks/use-planning'
 export { PlanningPage } from './pages/planning-page'
+export { STATUS_LABELS } from './schemas'
 export type { ScheduledSession } from './schemas'
