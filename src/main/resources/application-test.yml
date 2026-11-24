@@ -23,3 +23,7 @@ app:
   # Hors de ./uploads pour que les fichiers deposes par les tests restent dans build/.
   uploads:
     dir: build/test-uploads
+
+  notifications:
+    # Le job de rappels est coupe en test : les tests appellent SessionReminderService directement.
+    scheduling-enabled: false

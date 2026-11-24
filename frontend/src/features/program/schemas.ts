@@ -20,11 +20,12 @@ export const LEVEL_LABELS: Record<ProgramLevel, string> = {
   ADVANCED: 'Avancé',
 }
 
-export const programVisibilities = ['PRIVATE', 'PUBLIC'] as const
+export const programVisibilities = ['PRIVATE', 'CLIENTS', 'PUBLIC'] as const
 export type ProgramVisibility = (typeof programVisibilities)[number]
 
 export const VISIBILITY_LABELS: Record<ProgramVisibility, string> = {
   PRIVATE: 'Privé',
+  CLIENTS: 'Mes athlètes',
   PUBLIC: 'Public',
 }
 
@@ -94,3 +95,6 @@ export interface ProgramSearchFilters {
   category?: ProgramCategory
   level?: ProgramLevel
 }
+
+/** Filtres de la liste "programmes de mes coachs" (pas de `mineOnly`). */
+export type CoachProgramFilters = Pick<ProgramSearchFilters, 'category' | 'level'>

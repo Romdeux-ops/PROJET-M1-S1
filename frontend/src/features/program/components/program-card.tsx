@@ -1,4 +1,4 @@
-import { Copy, Eye, Loader2, Pencil, Trash2, User } from 'lucide-react'
+import { Copy, Eye, Loader2, Pencil, Trash2, User, Users } from 'lucide-react'
 import { useState } from 'react'
 
 import { Badge } from '@/components/ui/badge'
@@ -18,6 +18,12 @@ import { ProgramDetail } from './program-detail'
 import { ProgramForm } from './program-form'
 import { StaticStars } from './rating-widget'
 
+const VISIBILITY_VARIANTS: Record<Program['visibility'], 'default' | 'secondary' | 'outline'> = {
+  PUBLIC: 'default',
+  CLIENTS: 'outline',
+  PRIVATE: 'secondary',
+}
+
 export function ProgramCard({ program }: { program: Program }) {
   const [viewOpen, setViewOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
@@ -34,7 +40,8 @@ export function ProgramCard({ program }: { program: Program }) {
       <CardHeader className="space-y-0">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="text-base">{program.title}</CardTitle>
-          <Badge variant={program.visibility === 'PUBLIC' ? 'default' : 'secondary'}>
+          <Badge variant={VISIBILITY_VARIANTS[program.visibility]}>
+            {program.visibility === 'CLIENTS' && <Users className="size-3" />}
             {VISIBILITY_LABELS[program.visibility]}
           </Badge>
         </div>

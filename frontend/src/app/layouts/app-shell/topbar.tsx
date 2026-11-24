@@ -1,12 +1,15 @@
+import { useNavigate } from '@tanstack/react-router'
 import { Menu, Search } from 'lucide-react'
 
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
+import { NotificationBell } from '@/features/notification'
 
 import { useShell } from './shell-store'
 import { UserMenu } from './user-menu'
 
 export function Topbar() {
+  const navigate = useNavigate()
   const setMobileOpen = useShell((s) => s.setMobileOpen)
   const setCommandOpen = useShell((s) => s.setCommandOpen)
 
@@ -35,6 +38,7 @@ export function Topbar() {
       </button>
 
       <div className="ml-auto flex items-center gap-1">
+        <NotificationBell onNavigate={(link) => void navigate({ to: link })} />
         <ThemeToggle />
         <UserMenu />
       </div>

@@ -58,6 +58,10 @@ class PlanningTransitionsTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(body)))
                 .andExpect(status().isCreated());
+        mockMvc.perform(post("/api/coaching/invitations/received/" + coach.id() + "/accept")
+                        .with(csrf())
+                        .header("Authorization", "Bearer " + athlete.token()))
+                .andExpect(status().isNoContent());
     }
 
     private String createWorkoutSession(Registered athlete) throws Exception {

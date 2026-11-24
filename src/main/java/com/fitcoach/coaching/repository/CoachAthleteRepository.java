@@ -19,4 +19,8 @@ public interface CoachAthleteRepository extends JpaRepository<CoachAthlete, Coac
     List<CoachAthlete> findByCoachIdAndStatusOrderByCreatedAtDesc(UUID coachId, CoachAthleteStatus status);
 
     List<CoachAthlete> findByAthleteIdAndStatusOrderByCreatedAtDesc(UUID athleteId, CoachAthleteStatus status);
+
+    List<CoachAthlete> findByCoachIdAndStatusOrderByInvitedAtDesc(UUID coachId, CoachAthleteStatus status);
+
+    List<CoachAthlete> findByAthleteIdAndStatusOrderByInvitedAtDesc(UUID athleteId, CoachAthleteStatus status);
 }

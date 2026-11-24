@@ -68,6 +68,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/coaching/athletes/{athleteId}/notes/{noteId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["updateNote"];
+        post?: never;
+        delete: operations["deleteNote"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/catalog/exercises/{exerciseId}": {
         parameters: {
             query?: never;
@@ -356,6 +372,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/coaching/invitations/received/{coachId}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["decline"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/coaching/invitations/received/{coachId}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["accept"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/coaching/athletes": {
         parameters: {
             query?: never;
@@ -365,7 +413,23 @@ export interface paths {
         };
         get: operations["list_1"];
         put?: never;
-        post: operations["add"];
+        post: operations["invite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/coaching/athletes/{athleteId}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listNotes"];
+        put?: never;
+        post: operations["createNote"];
         delete?: never;
         options?: never;
         head?: never;
@@ -446,6 +510,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai/program-generation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["generate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -564,7 +644,7 @@ export interface paths {
         patch: operations["complete"];
         trace?: never;
     };
-    "/api/messaging/conversations/{conversationId}/read": {
+    "/api/notifications/{notificationId}/read": {
         parameters: {
             query?: never;
             header?: never;
@@ -578,6 +658,38 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["markRead"];
+        trace?: never;
+    };
+    "/api/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["markAllRead"];
+        trace?: never;
+    };
+    "/api/messaging/conversations/{conversationId}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["markRead_1"];
         trace?: never;
     };
     "/api/booking/bookings/{bookingId}/cancel": {
@@ -756,6 +868,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/programs/from-my-coaches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["fromMyCoaches"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/planning/scheduled/today": {
         parameters: {
             query?: never;
@@ -900,6 +1028,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_3"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications/unread-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["unreadCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/gamification/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["me_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/gamification/leaderboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["leaderboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/gamification/badges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["badges"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/coaching/posts/{coachId}": {
         parameters: {
             query?: never;
@@ -932,14 +1140,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/coaching/coaches": {
+    "/api/coaching/invitations/sent": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["list_3"];
+        get: operations["listSent"];
         put?: never;
         post?: never;
         delete?: never;
@@ -948,7 +1156,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/catalog/tags": {
+    "/api/coaching/invitations/received": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listReceived"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/coaching/coaches": {
         parameters: {
             query?: never;
             header?: never;
@@ -964,7 +1188,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/catalog/muscle-groups": {
+    "/api/coaching/athletes/{athleteId}/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["overview_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/catalog/tags": {
         parameters: {
             query?: never;
             header?: never;
@@ -972,6 +1212,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["list_5"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/catalog/muscle-groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_6"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1076,6 +1332,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/coaching/invitations/sent/{athleteId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["cancel_1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/coaching/coaches/{coachId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["end"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/coaching/athletes/{athleteId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["end_1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/booking/slots/{slotId}": {
         parameters: {
             query?: never;
@@ -1153,7 +1457,7 @@ export interface components {
             /** @enum {string} */
             level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
             /** @enum {string} */
-            visibility: "PUBLIC" | "PRIVATE";
+            visibility: "PUBLIC" | "PRIVATE" | "CLIENTS";
         };
         ProgramDayResponse: {
             /** Format: uuid */
@@ -1192,7 +1496,7 @@ export interface components {
             /** @enum {string} */
             level?: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
             /** @enum {string} */
-            visibility?: "PUBLIC" | "PRIVATE";
+            visibility?: "PUBLIC" | "PRIVATE" | "CLIENTS";
             shareToken?: string;
             /** Format: double */
             averageRating?: number;
@@ -1281,6 +1585,20 @@ export interface components {
             items?: components["schemas"]["MealLogItemResponse"][];
             /** Format: date-time */
             createdAt?: string;
+        };
+        NoteRequest: {
+            content: string;
+        };
+        NoteResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            athleteId?: string;
+            content?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
         };
         ExerciseMuscleInput: {
             /** Format: uuid */
@@ -1493,6 +1811,12 @@ export interface components {
             /** Format: email */
             athleteEmail: string;
         };
+        InvitationResponse: {
+            coach?: components["schemas"]["UserSummary"];
+            athlete?: components["schemas"]["UserSummary"];
+            /** Format: date-time */
+            invitedAt?: string;
+        };
         UserSummary: {
             /** Format: uuid */
             id?: string;
@@ -1572,6 +1896,43 @@ export interface components {
             /** Format: email */
             email: string;
             password: string;
+        };
+        ProgramGenerationRequest: {
+            /** @enum {string} */
+            goal: "WEIGHT_LOSS" | "MUSCLE_GAIN" | "ENDURANCE" | "GENERAL_FITNESS";
+            /** @enum {string} */
+            level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
+            /** Format: int32 */
+            sessionsPerWeek?: number;
+            equipment?: string;
+            constraints?: string;
+            /** Format: int32 */
+            variant?: number;
+        };
+        Day: {
+            label?: string;
+            exercises?: components["schemas"]["Item"][];
+        };
+        GeneratedProgramResponse: {
+            name?: string;
+            description?: string;
+            /** @enum {string} */
+            category?: "STRENGTH" | "CARDIO" | "HIIT" | "YOGA" | "STRETCHING";
+            /** @enum {string} */
+            level?: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
+            /** @enum {string} */
+            source?: "RULES" | "CLAUDE";
+            days?: components["schemas"]["Day"][];
+        };
+        Item: {
+            /** Format: uuid */
+            exerciseId?: string;
+            exerciseName?: string;
+            /** Format: int32 */
+            sets?: number;
+            reps?: string;
+            /** Format: int32 */
+            restSeconds?: number;
         };
         UpdateProfileRequest: {
             firstName?: string;
@@ -1718,10 +2079,102 @@ export interface components {
             fatG?: number;
             fiberG?: number;
         };
+        NotificationResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** @enum {string} */
+            type?: "SESSION_REMINDER" | "SESSION_PENDING_VALIDATION" | "SESSION_VALIDATED" | "BOOKING_CREATED" | "BOOKING_CANCELLED" | "BOOKING_REMINDER";
+            title?: string;
+            body?: string;
+            link?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            readAt?: string;
+        };
+        PageResponseNotificationResponse: {
+            content?: components["schemas"]["NotificationResponse"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
+        UnreadCountResponse: {
+            /** Format: int64 */
+            count?: number;
+        };
         MessagePageResponse: {
             items?: components["schemas"]["MessageResponse"][];
             /** Format: uuid */
             nextCursor?: string;
+        };
+        BadgeResponse: {
+            /** Format: uuid */
+            id?: string;
+            code?: string;
+            name?: string;
+            description?: string;
+            /** Format: int32 */
+            threshold?: number;
+            /** Format: date-time */
+            awardedAt?: string;
+        };
+        GamificationProfileResponse: {
+            /** Format: int64 */
+            xp?: number;
+            /** Format: int32 */
+            level?: number;
+            /** Format: int64 */
+            levelStartXp?: number;
+            /** Format: int64 */
+            nextLevelXp?: number;
+            badges?: components["schemas"]["BadgeResponse"][];
+        };
+        LeaderboardEntryResponse: {
+            /** Format: int32 */
+            rank?: number;
+            /** Format: uuid */
+            userId?: string;
+            displayName?: string;
+            /** Format: int64 */
+            xp?: number;
+            /** Format: int32 */
+            level?: number;
+            you?: boolean;
+        };
+        AthleteOverviewResponse: {
+            athlete?: components["schemas"]["UserSummary"];
+            /** Format: int32 */
+            sessionsLast30Days?: number;
+            /** Format: date */
+            lastSessionDate?: string;
+            /** Format: int32 */
+            currentStreakDays?: number;
+            /** Format: int32 */
+            pendingValidations?: number;
+            upcomingSessions?: components["schemas"]["UpcomingSession"][];
+        };
+        UpcomingSession: {
+            /** Format: uuid */
+            id?: string;
+            title?: string;
+            /** Format: date */
+            scheduledDate?: string;
+        };
+        PageResponseNoteResponse: {
+            content?: components["schemas"]["NoteResponse"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
         };
         MuscleGroupResponse: {
             /** Format: uuid */
@@ -2000,6 +2453,54 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["MealLogResponse"];
                 };
+            };
+        };
+    };
+    updateNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                athleteId: string;
+                noteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NoteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["NoteResponse"];
+                };
+            };
+        };
+    };
+    deleteNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                athleteId: string;
+                noteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -2676,6 +3177,46 @@ export interface operations {
             };
         };
     };
+    decline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                coachId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    accept: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                coachId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     list_1: {
         parameters: {
             query?: never;
@@ -2696,7 +3237,7 @@ export interface operations {
             };
         };
     };
-    add: {
+    invite: {
         parameters: {
             query?: never;
             header?: never;
@@ -2715,7 +3256,58 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["UserSummary"];
+                    "*/*": components["schemas"]["InvitationResponse"];
+                };
+            };
+        };
+    };
+    listNotes: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path: {
+                athleteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageResponseNoteResponse"];
+                };
+            };
+        };
+    };
+    createNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                athleteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NoteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["NoteResponse"];
                 };
             };
         };
@@ -2909,6 +3501,30 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["AuthResponse"];
+                };
+            };
+        };
+    };
+    generate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProgramGenerationRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["GeneratedProgramResponse"];
                 };
             };
         };
@@ -3107,6 +3723,44 @@ export interface operations {
         };
     };
     markRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                notificationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    markAllRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    markRead_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -3358,6 +4012,31 @@ export interface operations {
             };
         };
     };
+    fromMyCoaches: {
+        parameters: {
+            query?: {
+                category?: "STRENGTH" | "CARDIO" | "HIIT" | "YOGA" | "STRETCHING";
+                level?: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageResponseProgramResponse"];
+                };
+            };
+        };
+    };
     listToday: {
         parameters: {
             query?: never;
@@ -3568,6 +4247,109 @@ export interface operations {
             };
         };
     };
+    list_3: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageResponseNotificationResponse"];
+                };
+            };
+        };
+    };
+    unreadCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UnreadCountResponse"];
+                };
+            };
+        };
+    };
+    me_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["GamificationProfileResponse"];
+                };
+            };
+        };
+    };
+    leaderboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LeaderboardEntryResponse"][];
+                };
+            };
+        };
+    };
+    badges: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BadgeResponse"][];
+                };
+            };
+        };
+    };
     listForCoach: {
         parameters: {
             query?: never;
@@ -3613,7 +4395,7 @@ export interface operations {
             };
         };
     };
-    list_3: {
+    listSent: {
         parameters: {
             query?: never;
             header?: never;
@@ -3628,7 +4410,27 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["UserSummary"][];
+                    "*/*": components["schemas"]["InvitationResponse"][];
+                };
+            };
+        };
+    };
+    listReceived: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["InvitationResponse"][];
                 };
             };
         };
@@ -3648,12 +4450,54 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["TagResponse"][];
+                    "*/*": components["schemas"]["UserSummary"][];
+                };
+            };
+        };
+    };
+    overview_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                athleteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AthleteOverviewResponse"];
                 };
             };
         };
     };
     list_5: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TagResponse"][];
+                };
+            };
+        };
+    };
+    list_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -3792,6 +4636,66 @@ export interface operations {
             header?: never;
             path: {
                 postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    cancel_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                athleteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    end: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                coachId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    end_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                athleteId: string;
             };
             cookie?: never;
         };

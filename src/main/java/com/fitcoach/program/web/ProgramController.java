@@ -1,15 +1,18 @@
 package com.fitcoach.program.web;
 
 import com.fitcoach.common.security.AuthenticatedUsers;
+import com.fitcoach.common.security.RoleCode;
 import com.fitcoach.common.web.PageResponse;
 import com.fitcoach.program.domain.ProgramCategory;
 import com.fitcoach.program.domain.ProgramLevel;
+import com.fitcoach.program.domain.ProgramVisibility;
 import com.fitcoach.program.dto.ProgramDayRequest;
 import com.fitcoach.program.dto.ProgramExerciseRequest;
 import com.fitcoach.program.dto.ProgramRequest;
 import com.fitcoach.program.dto.ProgramResponse;
 import com.fitcoach.program.dto.RatingRequest;
 import com.fitcoach.program.dto.ReorderRequest;
+import com.fitcoach.program.exception.ClientsVisibilityNotAllowedException;
 import com.fitcoach.program.service.ProgramService;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -54,6 +57,20 @@ public class ProgramController {
                 AuthenticatedUsers.id(authentication), mineOnly, category, level, pageRequest));
     }
 
+    @GetMapping("/from-my-coaches")
+    public PageResponse<ProgramResponse> fromMyCoaches(
+            Authentication authentication,
+            @RequestParam(required = false) ProgramCategory category,
+            @RequestParam(required = false) ProgramLevel level,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        int boundedSize = Math.min(Math.max(size, 1), 100);
+        PageRequest pageRequest =
+                PageRequest.of(Math.max(page, 0), boundedSize, Sort.by(Sort.Direction.DESC, "updatedAt"));
+        return PageResponse.of(programService.searchFromMyCoaches(
+                AuthenticatedUsers.id(authentication), category, level, pageRequest));
+    }
+
     @GetMapping("/shared/{shareToken}")
     public ProgramResponse getShared(Authentication authentication, @PathVariable String shareToken) {
         return programService.getByShareToken(shareToken, AuthenticatedUsers.idOrNull(authentication));
@@ -66,6 +83,7 @@ public class ProgramController {
 
     @PostMapping
     public ResponseEntity<ProgramResponse> create(Authentication authentication, @Valid @RequestBody ProgramRequest request) {
+        requireCoachForClientsVisibility(authentication, request);
         ProgramResponse program = programService.create(AuthenticatedUsers.id(authentication), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(program);
     }
@@ -73,6 +91,7 @@ public class ProgramController {
     @PutMapping("/{programId}")
     public ProgramResponse update(
             Authentication authentication, @PathVariable UUID programId, @Valid @RequestBody ProgramRequest request) {
+        requireCoachForClientsVisibility(authentication, request);
         return programService.update(programId, AuthenticatedUsers.id(authentication), request);
     }
 
@@ -137,5 +156,13 @@ public class ProgramController {
     public ProgramResponse rate(
             Authentication authentication, @PathVariable UUID programId, @Valid @RequestBody RatingRequest request) {
         return programService.rate(programId, AuthenticatedUsers.id(authentication), request);
+    }
+
+    private void requireCoachForClientsVisibility(Authentication authentication, ProgramRequest request) {
+        if (request.visibility() == ProgramVisibility.CLIENTS
+                && !AuthenticatedUsers.hasAuthority(authentication, RoleCode.COACH.name())
+                && !AuthenticatedUsers.hasAuthority(authentication, RoleCode.ADMIN.name())) {
+            throw new ClientsVisibilityNotAllowedException();
+        }
     }
 }

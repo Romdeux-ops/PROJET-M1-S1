@@ -1,7 +1,7 @@
 {
   "name": "fitcoach-frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,6 +14,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "gen:api": "openapi-typescript http://localhost:8080/v3/api-docs -o src/lib/api/schema.d.ts"
   },
@@ -53,6 +54,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
+    "@vitest/coverage-v8": "^5.0.2",
     "jsdom": "^30.1.1",
     "msw": "^2.15.0",
     "openapi-typescript": "^7.13.0",

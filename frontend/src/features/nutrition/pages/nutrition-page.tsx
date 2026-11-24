@@ -94,6 +94,9 @@ export function NutritionPage() {
   const [selectedDate, setSelectedDate] = useState(
     () => getLocalDate(new Date()),
   )
+  const [today] = useState(
+    () => getLocalDate(new Date()),
+  )
 
   const showDateSelector =
     activeTab === 'overview' || activeTab === 'meals'
@@ -308,9 +311,7 @@ export function NutritionPage() {
         {/* ============================================== */}
 
         <TabsContent value="plans" className="space-y-6">
-          <NutritionPlansPanel
-            selectedDate={getLocalDate(new Date())}
-          />
+          <NutritionPlansPanel selectedDate={today} />
         </TabsContent>
 
         {/* ============================================== */}
