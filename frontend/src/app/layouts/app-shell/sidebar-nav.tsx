@@ -1,5 +1,8 @@
 import { Link } from '@tanstack/react-router'
+import { motion } from 'motion/react'
+import { useId } from 'react'
 
+import { useAnimationsEnabled } from '@/components/motion/use-animations-enabled'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
@@ -12,6 +15,8 @@ interface SidebarNavProps {
 
 export function SidebarNav({ collapsed = false, onNavigate }: SidebarNavProps) {
   const groups = useVisibleNavigation()
+  const pillId = useId()
+  const animated = useAnimationsEnabled()
 
   return (
     <nav className="flex flex-col gap-6" aria-label="Navigation principale">
@@ -34,12 +39,28 @@ export function SidebarNav({ collapsed = false, onNavigate }: SidebarNavProps) {
                 className={cn(
                   'group relative flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-all',
                   'text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground',
-                  'data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground data-[status=active]:shadow-sm',
+                  'data-[status=active]:text-sidebar-accent-foreground',
+                  !animated &&
+                    'data-[status=active]:bg-sidebar-accent data-[status=active]:shadow-sm',
                   collapsed && 'justify-center px-0',
                 )}
               >
-                <Icon className="size-4.5 shrink-0 group-data-[status=active]:text-primary" />
-                <span className={cn('truncate', collapsed && 'sr-only')}>{item.label}</span>
+                {({ isActive }) => (
+                  <>
+                    {animated && isActive && (
+                      <motion.span
+                        layoutId={pillId}
+                        aria-hidden
+                        className="absolute inset-0 rounded-xl bg-sidebar-accent shadow-sm"
+                        transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                      />
+                    )}
+                    <Icon className="relative size-4.5 shrink-0 transition-transform group-hover:scale-110 group-data-[status=active]:text-primary" />
+                    <span className={cn('relative truncate', collapsed && 'sr-only')}>
+                      {item.label}
+                    </span>
+                  </>
+                )}
               </Link>
             )
 

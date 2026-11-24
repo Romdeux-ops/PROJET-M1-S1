@@ -1,5 +1,6 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from '@tanstack/react-router'
+import { MotionConfig } from 'motion/react'
 import { useState } from 'react'
 
 import { Toaster } from '@/components/ui/sonner'
@@ -14,10 +15,12 @@ export function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider delayDuration={200}>
-        <RouterProvider router={router} />
-        <Toaster position="top-right" richColors closeButton />
-      </TooltipProvider>
+      <MotionConfig reducedMotion="user">
+        <TooltipProvider delayDuration={200}>
+          <RouterProvider router={router} />
+          <Toaster position="top-right" richColors closeButton />
+        </TooltipProvider>
+      </MotionConfig>
     </QueryClientProvider>
   )
 }

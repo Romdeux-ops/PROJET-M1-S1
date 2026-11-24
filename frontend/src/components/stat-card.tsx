@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react'
 import { TrendingDown, TrendingUp } from 'lucide-react'
 
+import { AnimatedNumber } from '@/components/motion/animated-number'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
@@ -26,7 +27,9 @@ export function StatCard({ label, value, icon: Icon, trend, hint, className }: S
             <Icon className="size-4" />
           </span>
         </div>
-        <div className="text-3xl font-semibold tracking-tight tabular-nums">{value}</div>
+        <div className="text-3xl font-semibold tracking-tight tabular-nums">
+          <AnimatedNumber value={value} />
+        </div>
         {(trend !== undefined || hint) && (
           <div className="flex items-center gap-2 text-xs">
             {trend !== undefined && (

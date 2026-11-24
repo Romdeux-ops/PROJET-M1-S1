@@ -3,6 +3,7 @@ import { ArrowRight, CalendarCheck, Clock, Flame, Gauge, Plus } from 'lucide-rea
 import { useState } from 'react'
 
 import { ErrorState } from '@/components/feedback'
+import { Stagger, StaggerItem } from '@/components/motion/stagger'
 import { StatCard, StatCardSkeleton } from '@/components/stat-card'
 import { Button } from '@/components/ui/button'
 import {
@@ -38,7 +39,8 @@ export function DashboardPage() {
   return (
     <div className="space-y-6">
       <section className="relative overflow-hidden rounded-2xl bg-brand p-6 text-white shadow-lg shadow-primary/20 sm:p-8">
-        <div className="pointer-events-none absolute -top-24 -right-16 size-72 rounded-full bg-white/15 blur-3xl" />
+        <div className="pointer-events-none absolute -top-24 -right-16 size-72 animate-float rounded-full bg-white/15 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-28 left-1/3 size-60 animate-float-slow rounded-full bg-white/10 blur-3xl" />
         <div className="relative flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2">
             <p className="text-sm font-medium text-white/80">{formatShortDate(now)}</p>
@@ -67,40 +69,48 @@ export function DashboardPage() {
       {stats.isError ? (
         <ErrorState error={stats.error} onRetry={() => void stats.refetch()} />
       ) : (
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Stagger as="section" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {stats.data ? (
             <>
-              <StatCard
-                label="Séances"
-                value={stats.data.sessionsThisWeek}
-                icon={CalendarCheck}
-                trend={stats.data.sessionsTrend}
-                hint="vs semaine dernière"
-              />
-              <StatCard
-                label="Temps d'entraînement"
-                value={formatDuration(stats.data.minutesThisWeek)}
-                icon={Clock}
-                trend={stats.data.minutesTrend}
-                hint="vs semaine dernière"
-              />
-              <StatCard
-                label="Série en cours"
-                value={`${stats.data.currentStreakDays} j`}
-                icon={Flame}
-                hint="jours consécutifs actifs"
-              />
-              <StatCard
-                label="Effort moyen"
-                value={`${stats.data.averageEffort.toFixed(1)}/10`}
-                icon={Gauge}
-                hint="sur la semaine"
-              />
+              <StaggerItem>
+                <StatCard
+                  label="Séances"
+                  value={stats.data.sessionsThisWeek}
+                  icon={CalendarCheck}
+                  trend={stats.data.sessionsTrend}
+                  hint="vs semaine dernière"
+                />
+              </StaggerItem>
+              <StaggerItem>
+                <StatCard
+                  label="Temps d'entraînement"
+                  value={formatDuration(stats.data.minutesThisWeek)}
+                  icon={Clock}
+                  trend={stats.data.minutesTrend}
+                  hint="vs semaine dernière"
+                />
+              </StaggerItem>
+              <StaggerItem>
+                <StatCard
+                  label="Série en cours"
+                  value={`${stats.data.currentStreakDays} j`}
+                  icon={Flame}
+                  hint="jours consécutifs actifs"
+                />
+              </StaggerItem>
+              <StaggerItem>
+                <StatCard
+                  label="Effort moyen"
+                  value={`${stats.data.averageEffort.toFixed(1)}/10`}
+                  icon={Gauge}
+                  hint="sur la semaine"
+                />
+              </StaggerItem>
             </>
           ) : (
             Array.from({ length: 4 }, (_, i) => <StatCardSkeleton key={i} />)
           )}
-        </section>
+        </Stagger>
       )}
 
       <section className="grid gap-6 lg:grid-cols-5">
@@ -138,9 +148,13 @@ export function DashboardPage() {
                 ))}
               </div>
             ) : recent && recent.length > 0 ? (
-              <ul className="-mx-2 divide-y">
+              <Stagger as="ul" className="-mx-2 divide-y">
                 {recent.map((s) => (
-                  <li key={s.id} className="flex items-center justify-between gap-3 px-2 py-3">
+                  <StaggerItem
+                    as="li"
+                    key={s.id}
+                    className="flex items-center justify-between gap-3 px-2 py-3"
+                  >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{s.title}</p>
                       <p className="text-xs text-muted-foreground">
@@ -149,9 +163,9 @@ export function DashboardPage() {
                       </p>
                     </div>
                     <span className="text-xs text-muted-foreground">{s.sets.length} série(s)</span>
-                  </li>
+                  </StaggerItem>
                 ))}
-              </ul>
+              </Stagger>
             ) : (
               <p className="py-8 text-center text-sm text-muted-foreground">
                 Aucune séance enregistrée.
@@ -163,30 +177,31 @@ export function DashboardPage() {
 
       <section>
         <h2 className="mb-3 text-sm font-semibold">Accès rapide</h2>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Stagger className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {QUICK_LINKS.map((key) => {
             const item = NAV_ITEMS.find((i) => i.key === key)
             if (!item) return null
             const Icon = item.icon
             return (
-              <Link
-                key={key}
-                to={item.to}
-                className="group flex items-center gap-3 rounded-xl border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
-              >
-                <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-accent text-accent-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                  <Icon className="size-5" />
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-sm font-medium">{item.label}</span>
-                  <span className="block truncate text-xs text-muted-foreground">
-                    {item.description}
+              <StaggerItem key={key}>
+                <Link
+                  to={item.to}
+                  className="group flex items-center gap-3 rounded-xl border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+                >
+                  <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-accent text-accent-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                    <Icon className="size-5" />
                   </span>
-                </span>
-              </Link>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-medium">{item.label}</span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {item.description}
+                    </span>
+                  </span>
+                </Link>
+              </StaggerItem>
             )
           })}
-        </div>
+        </Stagger>
       </section>
     </div>
   )

@@ -1,5 +1,6 @@
 import { Sparkles } from 'lucide-react'
 
+import { AnimatedNumber } from '@/components/motion/animated-number'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 
@@ -13,16 +14,20 @@ export function LevelCard({ profile }: { profile: GamificationProfile }) {
     <Card>
       <CardContent className="space-y-4">
         <div className="flex items-center gap-4">
-          <span className="grid size-14 place-items-center rounded-2xl bg-accent text-accent-foreground">
+          <span className="grid size-14 animate-pulse-ring place-items-center rounded-2xl bg-accent text-accent-foreground">
             <Sparkles className="size-7" />
           </span>
           <div>
             <p className="text-sm text-muted-foreground">Niveau</p>
-            <p className="text-3xl font-semibold tabular-nums">{profile.level}</p>
+            <p className="text-3xl font-semibold tabular-nums">
+              <AnimatedNumber value={profile.level} />
+            </p>
           </div>
           <div className="ml-auto text-right">
             <p className="text-sm text-muted-foreground">Expérience</p>
-            <p className="text-xl font-semibold tabular-nums">{profile.xp} XP</p>
+            <p className="text-xl font-semibold tabular-nums">
+              <AnimatedNumber value={`${profile.xp} XP`} />
+            </p>
           </div>
         </div>
         <div className="space-y-1.5">

@@ -21,7 +21,11 @@ export function AppShell() {
   }, [token, navigate])
 
   return (
-    <div className="flex min-h-dvh">
+    <div className="relative flex min-h-dvh">
+      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-32 right-[8%] size-[28rem] animate-float rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute bottom-[-8rem] left-[22%] size-[26rem] animate-float-slow rounded-full bg-chart-2/10 blur-3xl" />
+      </div>
       <RouteProgress />
       <Sidebar />
       <MobileNav />
