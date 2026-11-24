@@ -21,7 +21,7 @@ public interface ExerciseRepository extends JpaRepository<Exercise, UUID> {
             SELECT DISTINCT e FROM Exercise e
             LEFT JOIN ExerciseMuscle em ON em.exerciseId = e.id
             LEFT JOIN ExerciseTag et ON et.exerciseId = e.id
-            WHERE (:query = '' OR LOWER(e.name) LIKE LOWER(CONCAT('%', :query, '%')))
+            WHERE (:query = '' OR LOWER(e.name) LIKE LOWER(CONCAT('%', :query, '%')) ESCAPE '\\')
               AND (:muscleGroupId IS NULL OR em.muscleGroupId = :muscleGroupId)
               AND (:tagId IS NULL OR et.tagId = :tagId)
               AND (:difficulty IS NULL OR e.difficulty = :difficulty)

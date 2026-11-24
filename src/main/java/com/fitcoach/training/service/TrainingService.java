@@ -11,12 +11,16 @@ import com.fitcoach.training.dto.SessionResponse;
 import com.fitcoach.training.dto.SessionSetRequest;
 import com.fitcoach.training.dto.SessionSetResponse;
 import com.fitcoach.training.exception.InvalidSessionExerciseException;
+import com.fitcoach.training.exception.SessionInFutureException;
 import com.fitcoach.training.exception.SessionNotFoundException;
 import com.fitcoach.training.exception.SessionSetNotFoundException;
 import com.fitcoach.training.repository.PersonalRecordRepository;
 import com.fitcoach.training.repository.PersonalRecordView;
 import com.fitcoach.training.repository.SessionSetRepository;
 import com.fitcoach.training.repository.WorkoutSessionRepository;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,12 +36,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class TrainingService {
 
+    /** Tolere un leger decalage entre l'horloge du client et celle du serveur. */
+    private static final Duration CLOCK_SKEW_TOLERANCE = Duration.ofMinutes(5);
+
     private final WorkoutSessionRepository sessionRepository;
     private final SessionSetRepository sessionSetRepository;
     private final PersonalRecordRepository personalRecordRepository;
     private final PersonalRecordService personalRecordService;
     private final ExerciseCatalog exerciseCatalog;
     private final Achievements achievements;
+    private final Clock clock;
 
     public TrainingService(
             WorkoutSessionRepository sessionRepository,
@@ -45,13 +53,15 @@ public class TrainingService {
             PersonalRecordRepository personalRecordRepository,
             PersonalRecordService personalRecordService,
             ExerciseCatalog exerciseCatalog,
-            Achievements achievements) {
+            Achievements achievements,
+            Clock clock) {
         this.sessionRepository = sessionRepository;
         this.sessionSetRepository = sessionSetRepository;
         this.personalRecordRepository = personalRecordRepository;
         this.personalRecordService = personalRecordService;
         this.exerciseCatalog = exerciseCatalog;
         this.achievements = achievements;
+        this.clock = clock;
     }
 
     public Page<SessionResponse> listSessions(UUID athleteId, Pageable pageable) {
@@ -65,6 +75,7 @@ public class TrainingService {
 
     @Transactional
     public SessionResponse createSession(UUID athleteId, SessionRequest request) {
+        requireNotInFuture(request.performedAt());
         WorkoutSession session = new WorkoutSession(athleteId, request.title(), request.performedAt());
         applyFields(session, request);
         SessionResponse response = toResponse(sessionRepository.save(session));
@@ -74,6 +85,7 @@ public class TrainingService {
 
     @Transactional
     public SessionResponse updateSession(UUID sessionId, UUID athleteId, SessionRequest request) {
+        requireNotInFuture(request.performedAt());
         WorkoutSession session = findOwnedOrThrow(sessionId, athleteId);
         applyFields(session, request);
         return toResponse(session);
@@ -125,6 +137,12 @@ public class TrainingService {
         return records.stream()
                 .map(r -> PersonalRecordResponse.from(r, exerciseNames.getOrDefault(r.exerciseId(), "")))
                 .toList();
+    }
+
+    private void requireNotInFuture(Instant performedAt) {
+        if (performedAt.isAfter(Instant.now(clock).plus(CLOCK_SKEW_TOLERANCE))) {
+            throw new SessionInFutureException();
+        }
     }
 
     private void applyFields(WorkoutSession session, SessionRequest request) {

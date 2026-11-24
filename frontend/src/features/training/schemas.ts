@@ -42,7 +42,7 @@ export const addSetSchema = z.object({
   exerciseId: z.string().min(1, 'Choisissez un exercice'),
   setNumber: z.number().int().min(1),
   reps: z.number().int().min(1).max(200),
-  weightKg: z.number().min(0),
+  weightKg: z.number().min(0).max(9999.99, '9999,99 kg maximum'),
   rpe: z.number().min(1).max(10).optional(),
   restSeconds: z.number().int().min(0).max(1200).optional(),
 })

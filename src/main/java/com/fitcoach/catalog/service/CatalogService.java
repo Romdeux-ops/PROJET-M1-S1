@@ -69,7 +69,7 @@ public class CatalogService {
 
     public Page<ExerciseResponse> search(
             String query, UUID muscleGroupId, UUID tagId, ExerciseDifficulty difficulty, Pageable pageable) {
-        String normalizedQuery = (query == null || query.isBlank()) ? "" : query.trim();
+        String normalizedQuery = (query == null || query.isBlank()) ? "" : escapeLikeWildcards(query.trim());
         Page<Exercise> page = exerciseRepository.search(normalizedQuery, muscleGroupId, tagId, difficulty, pageable);
         return new PageImpl<>(toResponseList(page.getContent()), pageable, page.getTotalElements());
     }
@@ -220,6 +220,11 @@ public class CatalogService {
                     return ExerciseResponse.from(exercise, muscles, tags, alternativeIds);
                 })
                 .toList();
+    }
+
+    /** La saisie est cherchee litteralement : {@code \}, {@code %} et {@code _} ne sont pas des jokers. */
+    private static String escapeLikeWildcards(String query) {
+        return query.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
     private String generateUniqueSlug(String name) {

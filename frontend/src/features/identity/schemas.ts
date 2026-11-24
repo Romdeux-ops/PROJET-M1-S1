@@ -1,7 +1,10 @@
 import { z } from 'zod'
 
+/** Le backend compare les e-mails sans tenir compte de la casse ; on envoie la forme canonique. */
+const emailField = z.string().trim().toLowerCase().pipe(z.email('Adresse e-mail invalide'))
+
 export const loginSchema = z.object({
-  email: z.email('Adresse e-mail invalide'),
+  email: emailField,
   password: z.string().min(1, 'Mot de passe requis'),
 })
 export type LoginInput = z.infer<typeof loginSchema>
@@ -10,7 +13,7 @@ export const registerSchema = z
   .object({
     firstName: z.string().trim().min(1, 'Prénom requis').max(50),
     lastName: z.string().trim().min(1, 'Nom requis').max(50),
-    email: z.email('Adresse e-mail invalide'),
+    email: emailField,
     role: z.enum(['ATHLETE', 'COACH']),
     password: z
       .string()
