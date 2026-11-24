@@ -5,6 +5,9 @@ import {
   CalendarPlus,
   CalendarX,
   CheckCheck,
+  UserCheck,
+  UserPlus,
+  UserX,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -34,6 +37,9 @@ const TYPE_ICONS: Record<NotificationType, typeof Bell> = {
   BOOKING_CREATED: CalendarPlus,
   BOOKING_CANCELLED: CalendarX,
   BOOKING_REMINDER: CalendarClock,
+  FOLLOW_REQUESTED: UserPlus,
+  FOLLOW_ACCEPTED: UserCheck,
+  FOLLOW_DECLINED: UserX,
 }
 
 function TypeIcon({ type }: { type: NotificationType }) {

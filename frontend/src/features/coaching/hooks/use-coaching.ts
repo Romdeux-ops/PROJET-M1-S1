@@ -1,7 +1,12 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { coachingApi } from '../api/coaching-api'
-import type { CreatePostInput, InviteAthleteInput, NoteFormInput } from '../schemas'
+import type {
+  CreatePostInput,
+  InviteAthleteInput,
+  NoteFormInput,
+  PublicProfileSettingsInput,
+} from '../schemas'
 
 export const coachingKeys = {
   all: ['coaching'] as const,
@@ -12,6 +17,10 @@ export const coachingKeys = {
   overview: (athleteId: string) => [...coachingKeys.all, 'overview', athleteId] as const,
   notes: (athleteId: string) => [...coachingKeys.all, 'notes', athleteId] as const,
   posts: (coachId: string) => [...coachingKeys.all, 'posts', coachId] as const,
+  publicSettings: () => [...coachingKeys.all, 'public-settings'] as const,
+  publicProfile: (coachId: string) => [...coachingKeys.all, 'public-profile', coachId] as const,
+  receivedRequests: () => [...coachingKeys.all, 'follow-requests', 'received'] as const,
+  sentRequests: () => [...coachingKeys.all, 'follow-requests', 'sent'] as const,
 }
 
 export function useMyAthletes() {
@@ -169,5 +178,81 @@ export function useDeletePost(coachId: string) {
     mutationFn: (postId: string) => coachingApi.deletePost(postId),
     meta: { successMessage: 'Publication supprimée' },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: coachingKeys.posts(coachId) }),
+  })
+}
+
+export function usePublicSettings() {
+  return useQuery({
+    queryKey: coachingKeys.publicSettings(),
+    queryFn: coachingApi.getPublicSettings,
+  })
+}
+
+export function useUpdatePublicSettings() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: PublicProfileSettingsInput) => coachingApi.updatePublicSettings(input),
+    meta: { successMessage: 'Profil public enregistré' },
+    onSuccess: (settings) => queryClient.setQueryData(coachingKeys.publicSettings(), settings),
+  })
+}
+
+/** Profil public d'un coach (page ouverte depuis un QR code) ; une 404 signifie "pas publié", inutile de reessayer. */
+export function usePublicProfile(coachId: string) {
+  return useQuery({
+    queryKey: coachingKeys.publicProfile(coachId),
+    queryFn: () => coachingApi.getPublicProfile(coachId),
+    retry: false,
+  })
+}
+
+export function useRequestFollow(coachId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => coachingApi.requestFollow(coachId),
+    meta: { successMessage: 'Demande envoyée' },
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: coachingKeys.publicProfile(coachId) }),
+        queryClient.invalidateQueries({ queryKey: coachingKeys.sentRequests() }),
+      ]),
+  })
+}
+
+export function useCancelFollowRequest() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (coachId: string) => coachingApi.cancelRequest(coachId),
+    meta: { successMessage: 'Demande retirée' },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: coachingKeys.all }),
+  })
+}
+
+export function useReceivedFollowRequests() {
+  return useQuery({
+    queryKey: coachingKeys.receivedRequests(),
+    queryFn: coachingApi.listReceivedRequests,
+  })
+}
+
+export function useSentFollowRequests() {
+  return useQuery({ queryKey: coachingKeys.sentRequests(), queryFn: coachingApi.listSentRequests })
+}
+
+export function useAcceptFollowRequest() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (athleteId: string) => coachingApi.acceptRequest(athleteId),
+    meta: { successMessage: 'Demande acceptée' },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: coachingKeys.all }),
+  })
+}
+
+export function useDeclineFollowRequest() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (athleteId: string) => coachingApi.declineRequest(athleteId),
+    meta: { successMessage: 'Demande refusée' },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: coachingKeys.receivedRequests() }),
   })
 }

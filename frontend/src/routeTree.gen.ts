@@ -28,6 +28,7 @@ import { Route as AppStatsRouteImport } from './routes/_app/stats'
 import { Route as AppTrainingRouteImport } from './routes/_app/training'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AuthRegisterRouteImport } from './routes/_auth/register'
+import { Route as CoachCoachIdRouteImport } from './routes/coach.$coachId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -122,6 +123,11 @@ const AuthRegisterRoute = AuthRegisterRouteImport.update({
   path: '/register',
   getParentRoute: () => AuthRoute,
 } as any)
+const CoachCoachIdRoute = CoachCoachIdRouteImport.update({
+  id: '/coach/$coachId',
+  path: '/coach/$coachId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -141,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/training': typeof AppTrainingRoute
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
+  '/coach/$coachId': typeof CoachCoachIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -160,6 +167,7 @@ export interface FileRoutesByTo {
   '/training': typeof AppTrainingRoute
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
+  '/coach/$coachId': typeof CoachCoachIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -182,6 +190,7 @@ export interface FileRoutesById {
   '/_app/training': typeof AppTrainingRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/register': typeof AuthRegisterRoute
+  '/coach/$coachId': typeof CoachCoachIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -203,6 +212,7 @@ export interface FileRouteTypes {
     | '/training'
     | '/login'
     | '/register'
+    | '/coach/$coachId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -222,6 +232,7 @@ export interface FileRouteTypes {
     | '/training'
     | '/login'
     | '/register'
+    | '/coach/$coachId'
   id:
     | '__root__'
     | '/'
@@ -243,12 +254,14 @@ export interface FileRouteTypes {
     | '/_app/training'
     | '/_auth/login'
     | '/_auth/register'
+    | '/coach/$coachId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
+  CoachCoachIdRoute: typeof CoachCoachIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -386,6 +399,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRegisterRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/coach/$coachId': {
+      id: '/coach/$coachId'
+      path: '/coach/$coachId'
+      fullPath: '/coach/$coachId'
+      preLoaderRoute: typeof CoachCoachIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -441,6 +461,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
+  CoachCoachIdRoute: CoachCoachIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

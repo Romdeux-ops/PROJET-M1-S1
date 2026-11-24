@@ -2,6 +2,9 @@ import { http, HttpResponse } from 'msw'
 
 import type {
   AthleteOverview,
+  PublicCoachProfile,
+  PublicProfileSettingsInput,
+  ViewerStatus,
   CoachPost,
   CreatePostInput,
   InviteAthleteInput,
@@ -49,6 +52,34 @@ function pendingInvitations(side: 'coach' | 'athlete', userId: string): Invitati
   return db.coachAthletes
     .filter(
       (c) => c.status === 'PENDING' && (side === 'coach' ? c.coachId : c.athleteId) === userId,
+    )
+    .flatMap((c) => {
+      const coach = db.users.find((u) => u.id === c.coachId)
+      const athlete = db.users.find((u) => u.id === c.athleteId)
+      return coach && athlete ? [toInvitation(coach, athlete, c.invitedAt)] : []
+    })
+}
+
+function viewerStatusOf(coach: MockUser, viewer: MockUser | undefined): ViewerStatus {
+  if (!viewer) return 'ANONYMOUS'
+  if (viewer.id === coach.id) return 'SELF'
+  if (!viewer.roles.includes('ATHLETE')) return 'NOT_ATHLETE'
+  switch (findRelation(coach.id, viewer.id)?.status) {
+    case 'ACTIVE':
+      return 'ACTIVE'
+    case 'REQUESTED':
+      return 'REQUESTED'
+    case 'PENDING':
+      return 'INVITED'
+    default:
+      return 'NONE'
+  }
+}
+
+function requestsOf(side: 'coach' | 'athlete', userId: string): Invitation[] {
+  return db.coachAthletes
+    .filter(
+      (c) => c.status === 'REQUESTED' && (side === 'coach' ? c.coachId : c.athleteId) === userId,
     )
     .flatMap((c) => {
       const coach = db.users.find((u) => u.id === c.coachId)
@@ -344,6 +375,131 @@ export const coachingHandlers = [
     if (!post) return problem(404, 'Publication introuvable.')
     if (post.coachId !== user.id) return problem(403, 'Réservé à l’auteur.')
     db.posts = db.posts.filter((p) => p.id !== params.postId)
+    return new HttpResponse(null, { status: 204 })
+  }),
+
+  http.get('*/api/coaching/public-profile', async ({ request }) => {
+    await networkDelay()
+    const user = userFromRequest(request)
+    if (!user) return problem(401, 'Session invalide.')
+    if (!user.roles.includes('COACH')) return problem(403, 'Réservé aux coachs.')
+    const profile = db.coachPublicProfiles.find((p) => p.coachId === user.id)
+    return HttpResponse.json({
+      enabled: profile?.enabled ?? false,
+      headline: profile?.headline ?? null,
+      bio: profile?.bio ?? null,
+    })
+  }),
+
+  http.put<never, PublicProfileSettingsInput>(
+    '*/api/coaching/public-profile',
+    async ({ request }) => {
+      await networkDelay()
+      const user = userFromRequest(request)
+      if (!user) return problem(401, 'Session invalide.')
+      if (!user.roles.includes('COACH')) return problem(403, 'Réservé aux coachs.')
+      const body = await request.json()
+      const next = {
+        coachId: user.id,
+        enabled: body.enabled,
+        headline: body.headline?.trim() ? body.headline.trim() : null,
+        bio: body.bio?.trim() ? body.bio.trim() : null,
+      }
+      const existing = db.coachPublicProfiles.find((p) => p.coachId === user.id)
+      if (existing) Object.assign(existing, next)
+      else db.coachPublicProfiles.push(next)
+      return HttpResponse.json({ enabled: next.enabled, headline: next.headline, bio: next.bio })
+    },
+  ),
+
+  http.get('*/api/coaching/public/coaches/:coachId', async ({ params, request }) => {
+    await networkDelay()
+    const coach = db.users.find((u) => u.id === params.coachId && u.roles.includes('COACH'))
+    const profile = db.coachPublicProfiles.find((p) => p.coachId === params.coachId)
+    if (!coach || !profile?.enabled) return problem(404, 'Ce profil n’est pas disponible.')
+    const body: PublicCoachProfile = {
+      id: coach.id,
+      firstName: coach.firstName,
+      lastName: coach.lastName,
+      avatarUrl: coach.avatarUrl ?? null,
+      headline: profile.headline,
+      bio: profile.bio,
+      viewerStatus: viewerStatusOf(coach, userFromRequest(request)),
+    }
+    return HttpResponse.json(body)
+  }),
+
+  http.post(
+    '*/api/coaching/public/coaches/:coachId/follow-requests',
+    async ({ params, request }) => {
+      await networkDelay()
+      const user = userFromRequest(request)
+      if (!user) return problem(401, 'Session invalide.')
+      if (!user.roles.includes('ATHLETE')) return problem(403, 'Réservé aux athlètes.')
+      const coach = db.users.find((u) => u.id === params.coachId && u.roles.includes('COACH'))
+      const profile = db.coachPublicProfiles.find((p) => p.coachId === params.coachId)
+      if (!coach || !profile?.enabled) return problem(404, 'Ce profil n’est pas disponible.')
+      const relation = findRelation(coach.id, user.id)
+      if (relation?.status === 'ACTIVE') return problem(409, 'Vous êtes déjà suivi par ce coach.')
+      if (relation?.status === 'PENDING') {
+        return problem(409, 'Ce coach vous a déjà invité : acceptez son invitation.')
+      }
+      if (relation?.status === 'REQUESTED')
+        return problem(409, 'Votre demande est déjà en attente.')
+      const invitedAt = new Date().toISOString()
+      if (relation) {
+        relation.status = 'REQUESTED'
+        relation.invitedAt = invitedAt
+      } else {
+        db.coachAthletes.push({
+          coachId: coach.id,
+          athleteId: user.id,
+          status: 'REQUESTED',
+          invitedAt,
+        })
+      }
+      return HttpResponse.json(toInvitation(coach, user, invitedAt), { status: 201 })
+    },
+  ),
+
+  http.get('*/api/coaching/follow-requests/received', async ({ request }) => {
+    await networkDelay()
+    const user = userFromRequest(request)
+    if (!user) return problem(401, 'Session invalide.')
+    if (!user.roles.includes('COACH')) return problem(403, 'Réservé aux coachs.')
+    return HttpResponse.json(requestsOf('coach', user.id))
+  }),
+
+  http.post(
+    '*/api/coaching/follow-requests/received/:athleteId/:answer',
+    async ({ params, request }) => {
+      await networkDelay()
+      const user = userFromRequest(request)
+      if (!user) return problem(401, 'Session invalide.')
+      if (!user.roles.includes('COACH')) return problem(403, 'Réservé aux coachs.')
+      const relation = findRelation(user.id, String(params.athleteId))
+      if (relation?.status !== 'REQUESTED') return problem(404, NO_RELATION)
+      relation.status = params.answer === 'accept' ? 'ACTIVE' : 'DECLINED'
+      return new HttpResponse(null, { status: 204 })
+    },
+  ),
+
+  http.get('*/api/coaching/follow-requests/sent', async ({ request }) => {
+    await networkDelay()
+    const user = userFromRequest(request)
+    if (!user) return problem(401, 'Session invalide.')
+    if (!user.roles.includes('ATHLETE')) return problem(403, 'Réservé aux athlètes.')
+    return HttpResponse.json(requestsOf('athlete', user.id))
+  }),
+
+  http.delete('*/api/coaching/follow-requests/sent/:coachId', async ({ params, request }) => {
+    await networkDelay()
+    const user = userFromRequest(request)
+    if (!user) return problem(401, 'Session invalide.')
+    if (!user.roles.includes('ATHLETE')) return problem(403, 'Réservé aux athlètes.')
+    const relation = findRelation(String(params.coachId), user.id)
+    if (relation?.status !== 'REQUESTED') return problem(404, NO_RELATION)
+    db.coachAthletes = db.coachAthletes.filter((c) => c !== relation)
     return new HttpResponse(null, { status: 204 })
   }),
 ]

@@ -15,7 +15,10 @@ import { AthleteDetail } from '../components/athlete-detail'
 import { EndRelationDialog } from '../components/end-relation-dialog'
 import { InviteAthleteForm } from '../components/invite-athlete-form'
 import { PostList } from '../components/post-list'
+import { PublicProfileCard } from '../components/public-profile-card'
+import { ReceivedFollowRequestsPanel } from '../components/received-follow-requests-panel'
 import { ReceivedInvitationsPanel } from '../components/received-invitations-panel'
+import { SentFollowRequestsPanel } from '../components/sent-follow-requests-panel'
 import { SentInvitationsPanel } from '../components/sent-invitations-panel'
 import { useEndCoach, useMyAthletes, useMyCoaches } from '../hooks/use-coaching'
 
@@ -40,6 +43,7 @@ function CoachView() {
   return (
     <div className="space-y-6">
       <PendingValidationsPanel />
+      <ReceivedFollowRequestsPanel />
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-1">
           <Card>
@@ -54,6 +58,7 @@ function CoachView() {
             </CardContent>
           </Card>
           <SentInvitationsPanel />
+          <PublicProfileCard />
         </div>
         <Card className="lg:col-span-2">
           <CardHeader>
@@ -122,11 +127,12 @@ function AthleteView() {
   return (
     <div className="space-y-6">
       <ReceivedInvitationsPanel />
+      <SentFollowRequestsPanel />
       {!coaches || coaches.length === 0 ? (
         <EmptyState
           icon={Users}
           title="Aucun coach pour le moment"
-          description="Votre coach doit vous inviter depuis son espace coaching ; vous retrouverez ici son invitation."
+          description="Votre coach peut vous inviter depuis son espace coaching, ou vous pouvez scanner son QR code pour demander à être suivi."
         />
       ) : (
         <div className="grid gap-6 lg:grid-cols-3">

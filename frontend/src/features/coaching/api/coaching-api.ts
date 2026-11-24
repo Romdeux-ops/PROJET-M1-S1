@@ -9,6 +9,9 @@ import type {
   InviteAthleteInput,
   Invitation,
   NoteFormInput,
+  PublicCoachProfile,
+  PublicProfileSettings,
+  PublicProfileSettingsInput,
 } from '../schemas'
 
 /**
@@ -28,6 +31,15 @@ import type {
  *   POST   /api/coaching/athletes/{athleteId}/notes        -> CoachNote (201, relation active)
  *   PUT    /api/coaching/athletes/{athleteId}/notes/{noteId} -> CoachNote (auteur, relation active)
  *   DELETE /api/coaching/athletes/{athleteId}/notes/{noteId} -> 204        (auteur)
+ *   GET    /api/coaching/public-profile                    -> PublicProfileSettings (role COACH)
+ *   PUT    /api/coaching/public-profile                    -> PublicProfileSettings (publie ou masque le profil, role COACH)
+ *   GET    /api/coaching/public/coaches/{coachId}          -> PublicCoachProfile (PUBLIC, sans compte ; 404 tant que le coach n'a pas publie)
+ *   POST   /api/coaching/public/coaches/{coachId}/follow-requests -> Invitation (201, role ATHLETE)
+ *   GET    /api/coaching/follow-requests/received          -> Invitation[]    (role COACH)
+ *   POST   /api/coaching/follow-requests/received/{athleteId}/accept  -> 204 (relation ACTIVE)
+ *   POST   /api/coaching/follow-requests/received/{athleteId}/decline -> 204
+ *   GET    /api/coaching/follow-requests/sent              -> Invitation[]    (role ATHLETE)
+ *   DELETE /api/coaching/follow-requests/sent/{coachId}    -> 204              (l'athlete retire sa demande)
  *   POST   /api/coaching/posts                             -> CoachPost (201, role COACH)
  *   POST   /api/coaching/posts/images                      -> { imageUrl } chemin relatif a passer a createPost (role COACH)
  *   GET    /api/coaching/posts/images/{coachId}/{fichier}  -> image (le coach ou ses clients actifs, via AuthorizedImage)
@@ -98,6 +110,43 @@ export const coachingApi = {
       api.DELETE('/api/coaching/athletes/{athleteId}/notes/{noteId}', {
         params: { path: { athleteId, noteId } },
       }),
+    ),
+
+  getPublicSettings: () =>
+    unwrap(api.GET('/api/coaching/public-profile')) as Promise<PublicProfileSettings>,
+  updatePublicSettings: (input: PublicProfileSettingsInput) =>
+    unwrap(
+      api.PUT('/api/coaching/public-profile', { body: input }),
+    ) as Promise<PublicProfileSettings>,
+  getPublicProfile: (coachId: string) =>
+    unwrap(
+      api.GET('/api/coaching/public/coaches/{coachId}', { params: { path: { coachId } } }),
+    ) as Promise<PublicCoachProfile>,
+  requestFollow: (coachId: string) =>
+    unwrap(
+      api.POST('/api/coaching/public/coaches/{coachId}/follow-requests', {
+        params: { path: { coachId } },
+      }),
+    ) as Promise<Invitation>,
+  listReceivedRequests: () =>
+    unwrap(api.GET('/api/coaching/follow-requests/received')) as Promise<Invitation[]>,
+  acceptRequest: (athleteId: string) =>
+    unwrap(
+      api.POST('/api/coaching/follow-requests/received/{athleteId}/accept', {
+        params: { path: { athleteId } },
+      }),
+    ),
+  declineRequest: (athleteId: string) =>
+    unwrap(
+      api.POST('/api/coaching/follow-requests/received/{athleteId}/decline', {
+        params: { path: { athleteId } },
+      }),
+    ),
+  listSentRequests: () =>
+    unwrap(api.GET('/api/coaching/follow-requests/sent')) as Promise<Invitation[]>,
+  cancelRequest: (coachId: string) =>
+    unwrap(
+      api.DELETE('/api/coaching/follow-requests/sent/{coachId}', { params: { path: { coachId } } }),
     ),
 
   createPost: (input: CreatePostInput) =>
