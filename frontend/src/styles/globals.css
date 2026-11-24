@@ -55,10 +55,11 @@
   --sidebar-accent-foreground: oklch(0.38 0.16 var(--hue));
   --sidebar-border: var(--border);
 
+  /* Les deux extremites gardent un contraste >= 4.5:1 avec le blanc (voir palette-contrast.test.ts). */
   --brand-gradient: linear-gradient(
     135deg,
-    oklch(calc(var(--pl) + 0.05) var(--pc) var(--hue)),
-    oklch(0.68 0.16 calc(var(--hue) - 50))
+    oklch(var(--pl) var(--pc) var(--hue)),
+    oklch(calc(var(--pl) - 0.03) calc(var(--pc) * 0.85) calc(var(--hue) - 50))
   );
 
   --shadow-soft:
@@ -105,19 +106,19 @@
 /* Palettes interchangeables (selecteur dans la barre du haut). */
 [data-palette='emerald'] {
   --hue: 160;
-  --pl: 0.6;
+  --pl: 0.53;
   --pl-dark: 0.74;
   --pc: 0.15;
 }
 [data-palette='ocean'] {
   --hue: 245;
-  --pl: 0.56;
+  --pl: 0.545;
   --pl-dark: 0.72;
   --pc: 0.17;
 }
 [data-palette='sunset'] {
   --hue: 45;
-  --pl: 0.68;
+  --pl: 0.57;
   --pl-dark: 0.72;
   --pc: 0.2;
 }
@@ -279,6 +280,17 @@
   body {
     @apply bg-background font-sans text-foreground;
     font-feature-settings: 'cv11', 'ss01';
+  }
+  /*
+   * Halos de couleur en fond de page. Une couche fixe a part evite background-attachment: fixed,
+   * qui force un repaint a chaque defilement et est ignore sur iOS.
+   */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
     background-image:
       radial-gradient(
         60rem 36rem at 90% -8%,
@@ -290,7 +302,6 @@
         color-mix(in oklab, oklch(0.68 0.16 calc(var(--hue) - 50)) 9%, transparent),
         transparent 60%
       );
-    background-attachment: fixed;
   }
   h1,
   h2,
