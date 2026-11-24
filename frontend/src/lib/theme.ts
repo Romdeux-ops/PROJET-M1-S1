@@ -5,9 +5,9 @@ export type Palette = 'aurora' | 'emerald' | 'ocean' | 'sunset'
 
 export const PALETTES: { id: Palette; label: string; swatch: string }[] = [
   { id: 'aurora', label: 'Aurora', swatch: 'oklch(0.55 0.23 280)' },
-  { id: 'emerald', label: 'Émeraude', swatch: 'oklch(0.6 0.15 160)' },
-  { id: 'ocean', label: 'Océan', swatch: 'oklch(0.56 0.17 245)' },
-  { id: 'sunset', label: 'Coucher de soleil', swatch: 'oklch(0.68 0.2 45)' },
+  { id: 'emerald', label: 'Émeraude', swatch: 'oklch(0.53 0.15 160)' },
+  { id: 'ocean', label: 'Océan', swatch: 'oklch(0.545 0.17 245)' },
+  { id: 'sunset', label: 'Coucher de soleil', swatch: 'oklch(0.57 0.2 45)' },
 ]
 
 // Meme cle que le script inline de index.html qui applique le theme avant le rendu.
