@@ -28,6 +28,17 @@ function writeSeen(userKey: string, ids: string[]) {
   }
 }
 
+/** Annonce (notification) les badges obtenus jamais vus ; renvoie un identifiant si au moins un est nouveau. */
+export function announceNewBadges(badges: Badge[], userKey: string): string | null {
+  const seen = readSeen(userKey)
+  const fresh = findNewBadges(badges, seen)
+  if (fresh.length === 0) return null
+  writeSeen(userKey, [...seen, ...fresh.map((b) => b.id)])
+  for (const badge of fresh)
+    toast.success(`Nouveau badge : ${badge.name}`, { description: badge.description })
+  return fresh.map((b) => b.id).join(',')
+}
+
 /** Celebre une fois chaque nouveau badge (toast) et renvoie un identifiant stable pour les confettis. */
 export function useNewBadgeCelebration(badges: Badge[] | undefined, userKey: string) {
   const [seen] = useState(() => readSeen(userKey))

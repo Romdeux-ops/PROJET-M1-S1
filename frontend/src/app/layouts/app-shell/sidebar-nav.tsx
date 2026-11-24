@@ -16,6 +16,7 @@ interface SidebarNavProps {
 export function SidebarNav({ collapsed = false, onNavigate }: SidebarNavProps) {
   const groups = useVisibleNavigation()
   const pillId = useId()
+  const order = new Map(groups.flatMap((g) => g.items).map((item, i) => [item.key, i]))
   const animated = useAnimationsEnabled()
 
   return (
@@ -36,8 +37,10 @@ export function SidebarNav({ collapsed = false, onNavigate }: SidebarNavProps) {
               <Link
                 to={item.to}
                 onClick={onNavigate}
+                style={{ animationDelay: `${(order.get(item.key) ?? 0) * 45}ms` }}
                 className={cn(
                   'group relative flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-all',
+                  'motion-safe:animate-[rise_0.5s_cubic-bezier(0.2,0.7,0.3,1)_both]',
                   'text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground',
                   'data-[status=active]:text-sidebar-accent-foreground',
                   !animated &&

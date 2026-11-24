@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 
 import { useSession } from '@/lib/auth/session'
 
+import { CelebrationHost } from './celebration-host'
 import { CommandMenu } from './command-menu'
 import { MobileNav } from './mobile-nav'
 import { RouteProgress } from './route-progress'
@@ -30,6 +31,7 @@ export function AppShell() {
       <Sidebar />
       <MobileNav />
       <CommandMenu />
+      <CelebrationHost />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar />
         <main className="flex-1">
@@ -38,7 +40,7 @@ export function AppShell() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, ease: 'easeOut' }}
-            className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8"
+            className="page-stagger mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8"
           >
             <Outlet />
           </motion.div>

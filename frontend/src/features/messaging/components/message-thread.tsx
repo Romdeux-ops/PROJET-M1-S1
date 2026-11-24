@@ -86,7 +86,13 @@ function MessageBubble({
   showRead: boolean
 }) {
   return (
-    <li className={cn('flex flex-col gap-1', mine ? 'items-end' : 'items-start')}>
+    <li
+      className={cn(
+        'flex flex-col gap-1',
+        'motion-safe:animate-in motion-safe:duration-300 motion-safe:fade-in motion-safe:slide-in-from-bottom-2',
+        mine ? 'items-end' : 'items-start',
+      )}
+    >
       <p
         className={cn(
           'max-w-[80%] rounded-2xl px-3 py-2 text-sm break-words whitespace-pre-wrap',

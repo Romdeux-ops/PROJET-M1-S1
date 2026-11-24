@@ -27,6 +27,7 @@ const WEEKDAY_LABELS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Same
 export function PlanningPage() {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()))
   const [scheduleDate, setScheduleDate] = useState<string | null>(null)
+  const [todayIso] = useState(() => toIso(new Date()))
 
   const days = useMemo(
     () =>
@@ -77,11 +78,23 @@ export function PlanningPage() {
           {days.map((day, i) => {
             const iso = toIso(day)
             const daySessions = sessions.filter((s) => s.scheduledDate === iso)
+            const isToday = iso === todayIso
             return (
-              <Card key={iso}>
+              <Card
+                key={iso}
+                data-today={isToday}
+                className={isToday ? 'animate-pulse-ring ring-2 ring-primary/60' : undefined}
+              >
                 <CardHeader className="space-y-0 pb-2">
                   <CardTitle className="flex items-center justify-between text-sm">
-                    <span>{WEEKDAY_LABELS[i]}</span>
+                    <span className="flex items-center gap-1.5">
+                      {WEEKDAY_LABELS[i]}
+                      {isToday && (
+                        <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground">
+                          Aujourd&apos;hui
+                        </span>
+                      )}
+                    </span>
                     <button
                       type="button"
                       className="text-xs text-muted-foreground hover:text-foreground"

@@ -20,8 +20,8 @@ export function EmptyState({ icon: Icon, title, description, action, className }
       )}
     >
       <div className="relative mb-5">
-        <div className="absolute inset-0 rounded-2xl bg-primary/20 blur-xl" />
-        <div className="relative grid size-14 place-items-center rounded-2xl border bg-card shadow-sm">
+        <div className="absolute inset-0 animate-pulse rounded-2xl bg-primary/20 blur-xl" />
+        <div className="relative grid size-14 animate-float-chip place-items-center rounded-2xl border bg-card shadow-sm">
           <Icon className="size-6 text-primary" />
         </div>
       </div>
