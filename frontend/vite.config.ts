@@ -38,11 +38,6 @@ export default defineConfig({
       '/api': {
         target: process.env.VITE_API_PROXY_TARGET ?? 'http://localhost:8080',
         changeOrigin: true,
-        // Le navigateur parle a Vite (meme origine) : on retire Origin pour que le
-        // backend ne rejette pas (CORS) un port de dev autre que 5173.
-        configure: (proxy) => {
-          proxy.on('proxyReq', (proxyReq) => proxyReq.removeHeader('origin'))
-        },
       },
       '/uploads': {
         target: process.env.VITE_API_PROXY_TARGET ?? 'http://localhost:8080',

@@ -1,5 +1,11 @@
 import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
+import { extendTailwindMerge } from 'tailwind-merge'
+
+// `shadow-soft` est une ombre (utilitaire du design system), pas une couleur d'ombre :
+// sans cette declaration, tailwind-merge le confond avec `shadow-primary/20` et le supprime.
+const twMerge = extendTailwindMerge({
+  extend: { classGroups: { shadow: [{ shadow: ['soft'] }] } },
+})
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
