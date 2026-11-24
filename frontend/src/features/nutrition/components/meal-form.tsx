@@ -115,7 +115,7 @@ export function MealForm({
 
             <Select
               value={mealType}
-              onValueChange={(value) =>
+              onValueChange={(value : string) =>
                 setMealType(value as MealType)
               }
             >
