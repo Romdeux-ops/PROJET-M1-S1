@@ -3,6 +3,7 @@ interface ImportMetaEnv {
   readonly VITE_API_URL?: string
   /** `true` pour intercepter les appels API avec MSW (voir src/mocks). */
   readonly VITE_ENABLE_MOCKS?: string
+  readonly VITE_DEVTOOLS?: string
 }
 
 interface ImportMeta {
