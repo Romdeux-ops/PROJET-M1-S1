@@ -28,7 +28,7 @@ describe('LandingPage', () => {
     renderLanding()
 
     expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent(
-      'Entraînez-vous mieux, progressez plus vite.',
+      'Travaille. Progresse. Recommence.',
     )
     expect(screen.getByRole('link', { name: /commencer gratuitement/i })).toHaveAttribute(
       'href',
@@ -44,9 +44,9 @@ describe('LandingPage', () => {
     renderLanding()
 
     expect(
-      await screen.findByRole('heading', { name: /tout ce qu.il faut pour progresser/i }),
+      await screen.findByRole('heading', { name: /tout pour progresser/i }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /trois étapes/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /trois séries/i })).toBeInTheDocument()
     expect(screen.getByText('badges à débloquer')).toBeInTheDocument()
     expect(screen.getAllByRole('article')).toHaveLength(6)
   })

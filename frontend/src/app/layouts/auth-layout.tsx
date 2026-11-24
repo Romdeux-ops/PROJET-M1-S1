@@ -1,20 +1,13 @@
-import { Outlet, useLocation } from '@tanstack/react-router'
-import {
-  CalendarCheck,
-  Dumbbell,
-  Flame,
-  LineChart,
-  Sparkles,
-  Trophy,
-  type LucideIcon,
-} from 'lucide-react'
+import { Link, Outlet, useLocation } from '@tanstack/react-router'
+import { ArrowLeft, CalendarCheck, LineChart, Sparkles } from 'lucide-react'
 import { motion } from 'motion/react'
 
 import { Logo } from '@/components/logo'
 import { AnimatedWords } from '@/components/motion/animated-words'
+import { HeartbeatLine } from '@/components/motion/heartbeat-line'
 import { useAnimationsEnabled } from '@/components/motion/use-animations-enabled'
+import { WeightPlate } from '@/components/motion/weight-plate'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { cn } from '@/lib/utils'
 
 const CURRENT_YEAR = new Date().getFullYear()
 
@@ -24,12 +17,17 @@ const HIGHLIGHTS = [
   { icon: Sparkles, text: 'Générez un programme adapté grâce à l’IA.' },
 ]
 
-/** Pastilles de verre qui flottent en fond du panneau de marque. */
-const FLOATERS: { icon: LucideIcon; className: string; delay: number }[] = [
-  { icon: Dumbbell, className: 'top-[16%] right-[10%]', delay: 0 },
-  { icon: Flame, className: 'top-[52%] right-[5%]', delay: 1.4 },
-  { icon: Trophy, className: 'bottom-[20%] right-[24%]', delay: 2.6 },
-]
+function BackToHome({ className }: { className?: string }) {
+  return (
+    <Link
+      to="/"
+      className={`group inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all hover:-translate-x-0.5 ${className ?? ''}`}
+    >
+      <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-1" />
+      Retour à l&apos;accueil
+    </Link>
+  )
+}
 
 export function AuthLayout() {
   const pathname = useLocation({ select: (l) => l.pathname })
@@ -38,30 +36,23 @@ export function AuthLayout() {
   return (
     <div className="grid min-h-dvh lg:grid-cols-[1.1fr_1fr]">
       <aside className="relative hidden overflow-hidden bg-brand p-12 text-white lg:flex lg:flex-col lg:justify-between">
-        <div className="pointer-events-none absolute inset-0 [background-image:radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.35)_1px,transparent_0)] [mask-image:radial-gradient(circle_at_30%_30%,black,transparent_70%)] [background-size:28px_28px] opacity-40" />
-        <div className="pointer-events-none absolute -top-32 -right-32 size-[28rem] animate-blob rounded-full bg-white/15 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-40 -left-20 size-[32rem] animate-blob rounded-full bg-black/15 blur-3xl [animation-delay:3s]" />
-        <div className="pointer-events-none absolute top-1/3 left-1/3 size-72 animate-blob rounded-full bg-chart-2/25 blur-3xl [animation-delay:6s]" />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 [background-image:repeating-linear-gradient(135deg,rgba(255,255,255,0.07)_0_2px,transparent_2px_16px)]"
+        />
+        <WeightPlate className="absolute -right-40 -bottom-40 size-[40rem] text-white/15" />
+        <HeartbeatLine className="absolute inset-x-0 top-[58%] text-white/70" />
 
-        {FLOATERS.map(({ icon: Icon, className, delay }) => (
-          <span
-            key={className}
-            aria-hidden
-            style={{ animationDelay: `${delay}s` }}
-            className={cn(
-              'pointer-events-none absolute grid size-14 animate-float-chip place-items-center rounded-2xl bg-white/15 ring-1 ring-white/25 backdrop-blur-md',
-              className,
-            )}
-          >
-            <Icon className="size-6 text-white/90" />
-          </span>
-        ))}
-
-        <Logo className="relative [&>span:first-child]:bg-white/20 [&>span:first-child]:shadow-none" />
+        <div className="relative flex items-center justify-between">
+          <Link to="/" aria-label="Accueil FitCoach">
+            <Logo className="[&>span:first-child]:bg-white/20 [&>span:first-child]:shadow-none" />
+          </Link>
+          <BackToHome className="border-white/30 bg-white/10 text-white backdrop-blur hover:bg-white/20" />
+        </div>
 
         <div className="relative max-w-md space-y-8">
-          <h2 className="text-4xl leading-tight font-bold tracking-tight">
-            <AnimatedWords text="Entraînez-vous mieux, progressez plus vite." />
+          <h2 className="text-5xl leading-[0.95] font-black tracking-tighter uppercase">
+            <AnimatedWords text="Travaille. Progresse. Recommence." />
           </h2>
           <ul className="space-y-4">
             {HIGHLIGHTS.map(({ icon: Icon, text }, i) => (
@@ -85,9 +76,13 @@ export function AuthLayout() {
       </aside>
 
       <main className="relative flex flex-col overflow-hidden">
-        <div className="pointer-events-none absolute -top-24 -right-24 size-72 animate-blob rounded-full bg-primary/15 blur-3xl lg:hidden" />
-        <div className="relative flex items-center justify-between p-6">
-          <Logo className="lg:invisible" />
+        <div className="relative flex items-center justify-between gap-3 p-6">
+          <div className="flex items-center gap-3">
+            <Link to="/" aria-label="Accueil FitCoach" className="lg:hidden">
+              <Logo />
+            </Link>
+            <BackToHome className="border-border text-muted-foreground hover:border-primary/40 hover:text-foreground" />
+          </div>
           <ThemeToggle />
         </div>
         <div className="relative flex flex-1 items-center justify-center px-6 pb-16">

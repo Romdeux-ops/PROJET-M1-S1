@@ -4,7 +4,7 @@ import { useAnimationsEnabled } from '@/components/motion/use-animations-enabled
 
 import { Reveal } from './reveal'
 
-const STEPS = [
+const SETS = [
   {
     title: 'Créez votre compte',
     text: 'Athlète ou coach, en quelques secondes. Invitez votre coach ou vos athlètes par e-mail.',
@@ -19,41 +19,79 @@ const STEPS = [
   },
 ]
 
-export function Journey() {
-  const animated = useAnimationsEnabled()
+const RADIUS = 22
 
+/** Minuteur de repos : l'anneau se remplit quand la carte entre dans l'ecran. */
+function RestTimer({ delay }: { delay: number }) {
+  const animated = useAnimationsEnabled()
   return (
-    <section id="parcours" className="scroll-mt-24 px-4 py-20 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-4xl">
-        <Reveal className="text-center">
-          <p className="text-sm font-semibold tracking-wider text-primary uppercase">Parcours</p>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
-            Trois étapes, et c&apos;est parti
+    <div className="relative size-14 shrink-0">
+      <svg viewBox="0 0 56 56" className="size-full -rotate-90" aria-hidden>
+        <circle
+          cx="28"
+          cy="28"
+          r={RADIUS}
+          fill="none"
+          stroke="currentColor"
+          strokeOpacity={0.12}
+          strokeWidth={5}
+        />
+        <motion.circle
+          cx="28"
+          cy="28"
+          r={RADIUS}
+          fill="none"
+          stroke="var(--primary)"
+          strokeWidth={5}
+          strokeLinecap="round"
+          initial={{ pathLength: animated ? 0 : 1 }}
+          whileInView={{ pathLength: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 2.4, delay, ease: 'linear' }}
+        />
+      </svg>
+      <span className="absolute inset-0 grid place-items-center text-[11px] font-bold tabular-nums">
+        60 s
+      </span>
+    </div>
+  )
+}
+
+export function Journey() {
+  return (
+    <section id="parcours" className="scroll-mt-24 px-4 py-24 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
+        <Reveal className="max-w-2xl">
+          <p className="font-mono text-xs tracking-[0.28em] text-primary uppercase">Parcours</p>
+          <h2 className="mt-3 text-4xl leading-none font-black tracking-tighter uppercase sm:text-6xl">
+            Trois séries,
+            <br />
+            <span className="text-transparent [-webkit-text-stroke:2px_var(--foreground)]">
+              c&apos;est parti
+            </span>
           </h2>
         </Reveal>
 
-        <ol className="relative mt-14 space-y-10 pl-12 sm:pl-16">
-          <div className="absolute top-2 bottom-2 left-[19px] w-0.5 rounded-full bg-border sm:left-[27px]" />
-          {animated ? (
-            <motion.div
-              className="absolute top-2 bottom-2 left-[19px] w-0.5 origin-top rounded-full bg-brand sm:left-[27px]"
-              initial={{ scaleY: 0 }}
-              whileInView={{ scaleY: 1 }}
-              viewport={{ once: true, margin: '0px 0px -25% 0px' }}
-              transition={{ duration: 1.6, ease: 'easeInOut' }}
-            />
-          ) : (
-            <div className="absolute top-2 bottom-2 left-[19px] w-0.5 rounded-full bg-brand sm:left-[27px]" />
-          )}
-          {STEPS.map((step, i) => (
-            <li key={step.title} className="relative">
-              <Reveal x={-24} delay={i * 0.1}>
-                <span className="absolute top-0 -left-12 grid size-10 place-items-center rounded-full bg-brand text-sm font-bold text-white shadow-lg ring-4 shadow-primary/30 ring-background sm:-left-16 sm:size-14 sm:text-lg">
-                  {i + 1}
-                </span>
-                <div className="rounded-2xl border bg-card/70 p-6 shadow-sm backdrop-blur transition-all duration-300 hover:translate-x-1 hover:border-primary/40">
-                  <h3 className="text-lg font-semibold">{step.title}</h3>
-                  <p className="mt-1.5 text-muted-foreground">{step.text}</p>
+        <ol className="mt-12 grid gap-5 md:grid-cols-3">
+          {SETS.map((set, i) => (
+            <li key={set.title}>
+              <Reveal delay={i * 0.12} className="h-full">
+                <div className="group relative flex h-full flex-col overflow-hidden rounded-3xl border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-primary/50">
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute -top-4 -right-1 text-[9rem] leading-none font-black tracking-tighter text-transparent transition-all duration-500 [-webkit-text-stroke:2px_var(--border)] group-hover:[-webkit-text-stroke:2px_var(--primary)]"
+                  >
+                    {i + 1}
+                  </span>
+                  <p className="relative font-mono text-xs tracking-[0.22em] text-muted-foreground uppercase">
+                    Série {i + 1} / {SETS.length}
+                  </p>
+                  <h3 className="relative mt-3 text-xl font-bold">{set.title}</h3>
+                  <p className="relative mt-2 flex-1 text-muted-foreground">{set.text}</p>
+                  <div className="relative mt-6 flex items-center gap-3 text-sm text-muted-foreground">
+                    <RestTimer delay={0.4 + i * 0.3} />
+                    Repos avant la suivante
+                  </div>
                 </div>
               </Reveal>
             </li>

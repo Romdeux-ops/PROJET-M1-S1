@@ -1,11 +1,10 @@
-import { AmbientBackground } from '@/components/motion/ambient-background'
-import { ScrollProgress } from '@/components/motion/scroll-progress'
-
 import { FinalCta } from '../components/final-cta'
+import { BarbellProgress } from '../components/barbell-progress'
 import { Features } from '../components/features'
 import { Hero } from '../components/hero'
 import { Journey } from '../components/journey'
 import { LandingNav } from '../components/landing-nav'
+import { Marquee } from '../components/marquee'
 import { Numbers } from '../components/numbers'
 
 const CURRENT_YEAR = new Date().getFullYear()
@@ -13,11 +12,11 @@ const CURRENT_YEAR = new Date().getFullYear()
 export function LandingPage() {
   return (
     <div className="relative min-h-dvh overflow-x-clip">
-      <AmbientBackground />
-      <ScrollProgress />
+      <BarbellProgress />
       <LandingNav />
       <main>
         <Hero />
+        <Marquee />
         <Numbers />
         <Features />
         <Journey />
