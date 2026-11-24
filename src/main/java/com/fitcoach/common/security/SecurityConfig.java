@@ -4,7 +4,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -31,8 +32,14 @@ public class SecurityConfig {
         "/swagger-ui/**",
         "/swagger-ui.html",
         "/uploads/avatars/**",
-        "/api/programs/shared/**"
+        "/api/programs/shared/**",
+        // Le conteneur y redirige les erreurs non traitees : protegee, elle transformait toute 500 en 401.
+        "/error"
     };
+
+    private static final String COACH = RoleCode.COACH.name();
+    private static final String ATHLETE = RoleCode.ATHLETE.name();
+    private static final String ADMIN = RoleCode.ADMIN.name();
 
     private final String[] allowedOrigins;
 
@@ -46,10 +53,29 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.requestMatchers(PUBLIC_ROUTES).permitAll().anyRequest().authenticated())
-                .exceptionHandling(eh -> eh.authenticationEntryPoint(
-                                (request, response, ex) -> response.sendError(HttpStatus.UNAUTHORIZED.value()))
-                        .accessDeniedHandler((request, response, ex) -> response.setStatus(HttpStatus.FORBIDDEN.value())))
+                // Roles verifies ici, avant la lecture du corps : avec @PreAuthorize seul, un corps
+                // invalide etait valide d'abord (400 avec la liste des champs au lieu de 403).
+                // Les @PreAuthorize des controleurs restent en defense en profondeur.
+                .authorizeHttpRequests(auth -> auth.requestMatchers(PUBLIC_ROUTES)
+                        .permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/booking/bookings")
+                        .hasAuthority(ATHLETE)
+                        .requestMatchers(HttpMethod.POST, "/api/booking/slots")
+                        .hasAuthority(COACH)
+                        .requestMatchers(HttpMethod.POST, "/api/catalog/exercises")
+                        .hasAnyAuthority(COACH, ADMIN)
+                        .requestMatchers(HttpMethod.PUT, "/api/catalog/exercises/*")
+                        .hasAnyAuthority(COACH, ADMIN)
+                        .requestMatchers(HttpMethod.POST, "/api/coaching/athletes", "/api/coaching/athletes/*/notes")
+                        .hasAuthority(COACH)
+                        .requestMatchers(HttpMethod.PUT, "/api/coaching/athletes/*/notes/*")
+                        .hasAuthority(COACH)
+                        .requestMatchers(HttpMethod.POST, "/api/coaching/posts", "/api/coaching/posts/images")
+                        .hasAuthority(COACH)
+                        .anyRequest()
+                        .authenticated())
+                .exceptionHandling(eh -> eh.authenticationEntryPoint(SecurityProblemResponses.authenticationEntryPoint())
+                        .accessDeniedHandler(SecurityProblemResponses.accessDeniedHandler()))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
@@ -69,6 +95,8 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of(allowedOrigins));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
+        // Lu par le client pour ne deconnecter que sur un vrai 401 d'authentification.
+        configuration.setExposedHeaders(List.of(HttpHeaders.WWW_AUTHENTICATE));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

@@ -10,6 +10,7 @@ import com.fitcoach.identity.exception.AccountDisabledException;
 import com.fitcoach.identity.exception.EmailAlreadyUsedException;
 import com.fitcoach.identity.exception.InvalidCredentialsException;
 import com.fitcoach.identity.repository.UserRepository;
+import java.util.UUID;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,11 +21,14 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    /** Compare a un e-mail inconnu pour que le login coute le meme temps qu'un mauvais mot de passe. */
+    private final String dummyPasswordHash;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.dummyPasswordHash = passwordEncoder.encode(UUID.randomUUID().toString());
     }
 
     @Transactional
@@ -45,7 +49,11 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.email()).orElseThrow(InvalidCredentialsException::new);
+        User user = userRepository.findByEmail(request.email()).orElse(null);
+        if (user == null) {
+            passwordEncoder.matches(request.password(), dummyPasswordHash);
+            throw new InvalidCredentialsException();
+        }
         if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
             throw new InvalidCredentialsException();
         }

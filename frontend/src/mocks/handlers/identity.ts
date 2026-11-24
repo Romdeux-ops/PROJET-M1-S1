@@ -32,7 +32,7 @@ export const identityHandlers = [
     const { email, password } = await request.json()
     const user = db.users.find((u) => u.email.toLowerCase() === email.toLowerCase())
     if (!user || user.password !== password)
-      return problem(401, 'E-mail ou mot de passe incorrect.')
+      return problem(401, 'E-mail ou mot de passe incorrect.', { challenge: false })
     return HttpResponse.json<AuthResponse>({
       accessToken: tokenFor(user.id),
       user: toSessionUser(user),

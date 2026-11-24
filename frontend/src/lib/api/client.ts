@@ -12,8 +12,19 @@ function authHeaders(headers: Headers) {
   if (token && !headers.has('Authorization')) headers.set('Authorization', `Bearer ${token}`)
 }
 
-function handleUnauthorized(response: Response) {
-  if (response.status === 401 && useSession.getState().token) useSession.getState().logout()
+/**
+ * Ne deconnecte que sur un vrai rejet du jeton : la requete en portait un et le
+ * backend repond 401 avec le defi `WWW-Authenticate: Bearer`. Un 401 metier
+ * (mauvais mot de passe) ou une autre erreur ne ferme donc jamais la session.
+ */
+export function isSessionRejected(request: { headers: Headers }, response: Response) {
+  if (response.status !== 401 || !request.headers.has('Authorization')) return false
+  return (response.headers.get('WWW-Authenticate') ?? '').toLowerCase().startsWith('bearer')
+}
+
+function handleUnauthorized(request: { headers: Headers }, response: Response) {
+  if (isSessionRejected(request, response) && useSession.getState().token)
+    useSession.getState().logout()
 }
 
 const authMiddleware: Middleware = {
@@ -21,8 +32,8 @@ const authMiddleware: Middleware = {
     authHeaders(request.headers)
     return request
   },
-  onResponse({ response }) {
-    handleUnauthorized(response)
+  onResponse({ request, response }) {
+    handleUnauthorized(request, response)
     return response
   },
 }
@@ -60,7 +71,7 @@ export async function fetchBlob(path: string): Promise<Blob> {
   const headers = new Headers()
   authHeaders(headers)
   const response = await fetch(new URL(path, baseUrl), { headers })
-  handleUnauthorized(response)
+  handleUnauthorized({ headers }, response)
   if (!response.ok) throw await toApiError(response)
   return response.blob()
 }
@@ -73,7 +84,7 @@ export async function postMultipart<T>(path: string, formData: FormData): Promis
   const headers = new Headers({ Accept: 'application/json' })
   authHeaders(headers)
   const response = await fetch(new URL(path, baseUrl), { method: 'POST', headers, body: formData })
-  handleUnauthorized(response)
+  handleUnauthorized({ headers }, response)
   if (!response.ok) throw await toApiError(response)
   return (await response.json()) as T
 }
