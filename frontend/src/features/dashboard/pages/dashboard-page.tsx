@@ -186,7 +186,7 @@ export function DashboardPage() {
               <StaggerItem key={key}>
                 <Link
                   to={item.to}
-                  className="group flex items-center gap-3 rounded-xl border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+                  className="group flex items-center gap-3 rounded-xl border bg-card p-4 transition-all hover:border-primary/40 hover:shadow-md motion-safe:hover:-translate-y-0.5"
                 >
                   <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-accent text-accent-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                     <Icon className="size-5" />
