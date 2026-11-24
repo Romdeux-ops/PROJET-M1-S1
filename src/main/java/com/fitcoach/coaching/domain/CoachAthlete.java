@@ -76,6 +76,24 @@ public class CoachAthlete {
         return status == CoachAthleteStatus.PENDING;
     }
 
+    public boolean isRequested() {
+        return status == CoachAthleteStatus.REQUESTED;
+    }
+
+    /** Relation creee par une demande de l'athlete (profil public du coach). */
+    public static CoachAthlete requestedBy(UUID coachId, UUID athleteId) {
+        CoachAthlete relation = new CoachAthlete(coachId, athleteId);
+        relation.status = CoachAthleteStatus.REQUESTED;
+        return relation;
+    }
+
+    /** Nouvelle demande de l'athlete (depuis DECLINED ou ENDED). */
+    public void request() {
+        status = CoachAthleteStatus.REQUESTED;
+        invitedAt = Instant.now();
+        respondedAt = null;
+    }
+
     /** Relance une invitation (depuis DECLINED ou ENDED) ; une relation PENDING ou ACTIVE se suffit. */
     public void invite() {
         status = CoachAthleteStatus.PENDING;

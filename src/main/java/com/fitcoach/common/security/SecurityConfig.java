@@ -4,6 +4,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -46,7 +47,12 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.requestMatchers(PUBLIC_ROUTES).permitAll().anyRequest().authenticated())
+                .authorizeHttpRequests(auth -> auth.requestMatchers(PUBLIC_ROUTES)
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/coaching/public/coaches/*")
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated())
                 .exceptionHandling(eh -> eh.authenticationEntryPoint(
                                 (request, response, ex) -> response.sendError(HttpStatus.UNAUTHORIZED.value()))
                         .accessDeniedHandler((request, response, ex) -> response.setStatus(HttpStatus.FORBIDDEN.value())))
