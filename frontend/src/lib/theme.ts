@@ -14,6 +14,31 @@ export const PALETTES: { id: Palette; label: string; swatch: string }[] = [
 const STORAGE_KEY = 'fitcoach-theme'
 const PALETTE_KEY = 'fitcoach-palette'
 
+/** Couleur de la barre du navigateur (mobile) : la couleur principale de chaque palette. */
+const THEME_COLORS: Record<Palette, string> = {
+  aurora: '#6051f2',
+  emerald: '#00854c',
+  ocean: '#0075cb',
+  sunset: '#d03e00',
+}
+
+// Le stockage peut etre bloque (navigation privee, politique du navigateur) : on retombe sur les defauts.
+function readStorage(key: string): string | null {
+  try {
+    return localStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+
+function writeStorage(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value)
+  } catch {
+    // Preference non memorisee : elle reste appliquee pour la session en cours.
+  }
+}
+
 const media = window.matchMedia('(prefers-color-scheme: dark)')
 
 function resolve(theme: Theme): 'light' | 'dark' {
@@ -26,16 +51,17 @@ function apply(theme: Theme) {
 }
 
 function readPalette(): Palette {
-  const value = localStorage.getItem(PALETTE_KEY)
+  const value = readStorage(PALETTE_KEY)
   return PALETTES.some((p) => p.id === value) ? (value as Palette) : 'aurora'
 }
 
 function applyPalette(palette: Palette) {
   document.documentElement.dataset.palette = palette
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_COLORS[palette])
 }
 
 function readStored(): Theme {
-  const value = localStorage.getItem(STORAGE_KEY)
+  const value = readStorage(STORAGE_KEY)
   return value === 'light' || value === 'dark' ? value : 'system'
 }
 
@@ -53,12 +79,12 @@ export const useTheme = create<ThemeState>()((set, get) => ({
   resolved: resolve(readStored()),
   palette: readPalette(),
   setPalette: (palette) => {
-    localStorage.setItem(PALETTE_KEY, palette)
+    writeStorage(PALETTE_KEY, palette)
     applyPalette(palette)
     set({ palette })
   },
   setTheme: (theme) => {
-    localStorage.setItem(STORAGE_KEY, theme)
+    writeStorage(STORAGE_KEY, theme)
     apply(theme)
     set({ theme, resolved: resolve(theme) })
   },
