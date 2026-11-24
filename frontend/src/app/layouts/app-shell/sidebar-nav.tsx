@@ -32,13 +32,13 @@ export function SidebarNav({ collapsed = false, onNavigate }: SidebarNavProps) {
                 to={item.to}
                 onClick={onNavigate}
                 className={cn(
-                  'group relative flex h-9 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors',
-                  'text-sidebar-foreground/75 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground',
-                  'data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground',
+                  'group relative flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-all',
+                  'text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground',
+                  'data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground data-[status=active]:shadow-sm',
+                  'before:absolute before:top-2 before:bottom-2 before:left-0 before:w-1 before:rounded-full before:bg-primary before:opacity-0 before:transition-opacity data-[status=active]:before:opacity-100',
                   collapsed && 'justify-center px-0',
                 )}
               >
-                <span className="absolute top-1.5 bottom-1.5 left-0 w-0.5 scale-y-0 rounded-full bg-primary transition-transform group-data-[status=active]:scale-y-100" />
                 <Icon className="size-4.5 shrink-0 group-data-[status=active]:text-primary" />
                 <span className={cn('truncate', collapsed && 'sr-only')}>{item.label}</span>
               </Link>

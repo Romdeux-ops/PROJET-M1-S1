@@ -18,11 +18,11 @@ interface StatCardProps {
 export function StatCard({ label, value, icon: Icon, trend, hint, className }: StatCardProps) {
   const positive = trend !== undefined && trend >= 0
   return (
-    <Card className={cn('gap-0 py-5 transition-shadow hover:shadow-md', className)}>
+    <Card className={cn('gap-0 py-5 transition-all motion-safe:hover:-translate-y-0.5', className)}>
       <CardContent className="space-y-3 px-5">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium text-muted-foreground">{label}</span>
-          <span className="grid size-8 place-items-center rounded-lg bg-accent text-accent-foreground">
+          <span className="grid size-9 place-items-center rounded-xl bg-brand text-white shadow-md shadow-primary/25">
             <Icon className="size-4" />
           </span>
         </div>
