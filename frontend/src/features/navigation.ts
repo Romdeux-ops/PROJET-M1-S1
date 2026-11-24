@@ -132,8 +132,8 @@ export const NAVIGATION: NavGroup[] = [
       {
         key: 'gamification',
         to: '/gamification',
-        label: 'Défis & badges',
-        description: 'Objectifs, séries, badges et classements.',
+        label: 'Badges & classement',
+        description: 'Expérience, niveau, badges et classement.',
         icon: Trophy,
       },
       {

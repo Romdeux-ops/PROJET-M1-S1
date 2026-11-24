@@ -1,6 +1,7 @@
 package com.fitcoach.notification.service;
 
 import com.fitcoach.common.web.PageResponse;
+import com.fitcoach.identity.api.UserDirectory;
 import com.fitcoach.notification.api.NotificationType;
 import com.fitcoach.notification.api.Notifier;
 import com.fitcoach.notification.dto.NotificationResponse;
@@ -9,6 +10,8 @@ import com.fitcoach.notification.repository.NotificationRepository;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.EnumSet;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -25,11 +28,20 @@ public class NotificationService implements Notifier {
     public static final int DEFAULT_PAGE_SIZE = 20;
     public static final int MAX_PAGE_SIZE = 100;
 
+    /**
+     * Types coupes quand l'utilisateur desactive ses notifications : les rappels. Les evenements
+     * (reservation creee ou annulee, seance a valider ou validee) restent toujours envoyes.
+     */
+    public static final Set<NotificationType> MUTABLE_TYPES =
+            EnumSet.of(NotificationType.SESSION_REMINDER, NotificationType.BOOKING_REMINDER);
+
     private final NotificationRepository notificationRepository;
+    private final UserDirectory userDirectory;
     private final Clock clock;
 
-    public NotificationService(NotificationRepository notificationRepository, Clock clock) {
+    public NotificationService(NotificationRepository notificationRepository, UserDirectory userDirectory, Clock clock) {
         this.notificationRepository = notificationRepository;
+        this.userDirectory = userDirectory;
         this.clock = clock;
     }
 
@@ -37,6 +49,9 @@ public class NotificationService implements Notifier {
     @Transactional
     public boolean notify(
             UUID userId, NotificationType type, String title, String body, String link, String dedupeKey) {
+        if (MUTABLE_TYPES.contains(type) && !userDirectory.notificationsEnabled(userId)) {
+            return false;
+        }
         return notificationRepository.insertIfAbsent(userId, type.name(), title, body, link, dedupeKey, now()) == 1;
     }
 

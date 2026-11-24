@@ -17,7 +17,7 @@ public record ProgramGenerationRequest(
         @Min(1) @Max(7) int sessionsPerWeek,
         @Size(max = 300) String equipment,
         @Size(max = 500) String constraints,
-        @Min(0) Integer variant) {
+        @Min(0) @Max(1000) Integer variant) {
 
     public int variantOrZero() {
         return variant == null ? 0 : variant;

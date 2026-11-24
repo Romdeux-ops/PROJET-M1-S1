@@ -2,6 +2,7 @@ package com.fitcoach.training.service;
 
 import com.fitcoach.catalog.api.ExerciseCatalog;
 import com.fitcoach.gamification.api.Achievements;
+import com.fitcoach.program.api.ProgramAccess;
 import com.fitcoach.training.domain.PersonalRecordMetric;
 import com.fitcoach.training.domain.SessionSet;
 import com.fitcoach.training.domain.WorkoutSession;
@@ -38,6 +39,7 @@ public class TrainingService {
     private final PersonalRecordService personalRecordService;
     private final ExerciseCatalog exerciseCatalog;
     private final Achievements achievements;
+    private final ProgramAccess programAccess;
 
     public TrainingService(
             WorkoutSessionRepository sessionRepository,
@@ -45,13 +47,15 @@ public class TrainingService {
             PersonalRecordRepository personalRecordRepository,
             PersonalRecordService personalRecordService,
             ExerciseCatalog exerciseCatalog,
-            Achievements achievements) {
+            Achievements achievements,
+            ProgramAccess programAccess) {
         this.sessionRepository = sessionRepository;
         this.sessionSetRepository = sessionSetRepository;
         this.personalRecordRepository = personalRecordRepository;
         this.personalRecordService = personalRecordService;
         this.exerciseCatalog = exerciseCatalog;
         this.achievements = achievements;
+        this.programAccess = programAccess;
     }
 
     public Page<SessionResponse> listSessions(UUID athleteId, Pageable pageable) {
@@ -128,6 +132,7 @@ public class TrainingService {
     }
 
     private void applyFields(WorkoutSession session, SessionRequest request) {
+        programAccess.assertCanUse(session.getAthleteId(), request.programId(), request.programDayId());
         session.setTitle(request.title());
         session.setPerformedAt(request.performedAt());
         session.setDurationMinutes(request.durationMinutes());
