@@ -20,7 +20,7 @@ export function BadgeGrid({ badges }: { badges: Badge[] }) {
             className={cn(
               'flex gap-3 rounded-xl border p-4 transition-all',
               earned
-                ? 'bg-card hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md'
+                ? 'bg-card hover:border-primary/40 hover:shadow-md motion-safe:hover:-translate-y-0.5'
                 : 'bg-muted/40 text-muted-foreground',
             )}
           >

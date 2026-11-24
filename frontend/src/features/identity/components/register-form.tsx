@@ -75,7 +75,7 @@ export function RegisterForm() {
                             onClick={() => field.onChange(value)}
                             className={cn(
                               'relative flex flex-col items-start gap-1 rounded-lg border p-3 text-left transition-all',
-                              'outline-none hover:-translate-y-0.5 hover:border-primary/50 focus-visible:ring-[3px] focus-visible:ring-ring/50',
+                              'outline-none hover:border-primary/50 focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-safe:hover:-translate-y-0.5',
                               selected &&
                                 !animated &&
                                 'border-primary bg-primary/5 ring-2 ring-primary/20',

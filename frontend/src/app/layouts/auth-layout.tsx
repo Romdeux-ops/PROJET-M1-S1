@@ -21,9 +21,9 @@ function BackToHome({ className }: { className?: string }) {
   return (
     <Link
       to="/"
-      className={`group inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all hover:-translate-x-0.5 ${className ?? ''}`}
+      className={`group inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all motion-safe:hover:-translate-x-0.5 ${className ?? ''}`}
     >
-      <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-1" />
+      <ArrowLeft className="size-4 transition-transform motion-safe:group-hover:-translate-x-1" />
       Retour à l&apos;accueil
     </Link>
   )

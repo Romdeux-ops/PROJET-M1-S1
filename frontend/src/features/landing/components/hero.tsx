@@ -85,7 +85,7 @@ export function Hero() {
                   <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent group-hover:animate-[shimmer_1.2s_ease-in-out]" />
                   <span className="relative flex items-center gap-2">
                     {connected ? 'Accéder à mon espace' : 'Commencer gratuitement'}
-                    <ArrowRight className="transition-transform group-hover:translate-x-1" />
+                    <ArrowRight className="transition-transform motion-safe:group-hover:translate-x-1" />
                   </span>
                 </Link>
               </Button>

@@ -62,7 +62,7 @@ export function LandingNav() {
             <Button asChild size="sm" className="group rounded-full">
               <Link to="/dashboard">
                 Mon espace
-                <ArrowRight className="transition-transform group-hover:translate-x-1" />
+                <ArrowRight className="transition-transform motion-safe:group-hover:translate-x-1" />
               </Link>
             </Button>
           ) : (
@@ -78,7 +78,7 @@ export function LandingNav() {
               <Button asChild size="sm" className="group rounded-full">
                 <Link to="/register">
                   Créer un compte
-                  <ArrowRight className="transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="transition-transform motion-safe:group-hover:translate-x-1" />
                 </Link>
               </Button>
             </>

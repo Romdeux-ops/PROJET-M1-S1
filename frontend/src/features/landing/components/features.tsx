@@ -59,11 +59,15 @@ function SetsLog() {
 }
 
 const FAN = [
-  { label: 'Push', className: '-rotate-6 group-hover:-translate-x-8 group-hover:-rotate-12' },
-  { label: 'Pull', className: 'translate-y-3 rotate-2 group-hover:translate-y-4' },
+  {
+    label: 'Push',
+    className: '-rotate-6 motion-safe:group-hover:-translate-x-8 group-hover:-rotate-12',
+  },
+  { label: 'Pull', className: 'translate-y-3 rotate-2 motion-safe:group-hover:translate-y-4' },
   {
     label: 'Legs',
-    className: 'translate-y-6 rotate-[9deg] group-hover:translate-x-8 group-hover:rotate-[15deg]',
+    className:
+      'translate-y-6 rotate-[9deg] motion-safe:group-hover:translate-x-8 group-hover:rotate-[15deg]',
   },
 ]
 
@@ -251,7 +255,7 @@ interface CardProps {
 function BentoCard({ title, text, className, children }: CardProps) {
   return (
     <Reveal className={cn('h-full', className)}>
-      <article className="group relative flex h-full flex-col overflow-hidden rounded-3xl border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10">
+      <article className="group relative flex h-full flex-col overflow-hidden rounded-3xl border bg-card p-6 transition-all duration-300 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 motion-safe:hover:-translate-y-1">
         <div className="flex-1">{children}</div>
         <h3 className="mt-6 text-lg font-bold">{title}</h3>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{text}</p>

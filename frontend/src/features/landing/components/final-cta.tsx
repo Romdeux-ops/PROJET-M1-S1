@@ -33,7 +33,7 @@ export function FinalCta() {
                 >
                   <Link to={connected ? '/dashboard' : '/register'}>
                     {connected ? 'Accéder à mon espace' : 'Créer mon compte'}
-                    <ArrowRight className="transition-transform group-hover:translate-x-1" />
+                    <ArrowRight className="transition-transform motion-safe:group-hover:translate-x-1" />
                   </Link>
                 </Button>
               </Magnetic>

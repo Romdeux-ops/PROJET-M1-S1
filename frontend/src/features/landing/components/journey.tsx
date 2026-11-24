@@ -76,7 +76,7 @@ export function Journey() {
           {SETS.map((set, i) => (
             <li key={set.title}>
               <Reveal delay={i * 0.12} className="h-full">
-                <div className="group relative flex h-full flex-col overflow-hidden rounded-3xl border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-primary/50">
+                <div className="group relative flex h-full flex-col overflow-hidden rounded-3xl border bg-card p-6 transition-all duration-300 hover:border-primary/50 motion-safe:hover:-translate-y-1">
                   <span
                     aria-hidden
                     className="pointer-events-none absolute -top-4 -right-1 text-[9rem] leading-none font-black tracking-tighter text-transparent transition-all duration-500 [-webkit-text-stroke:2px_var(--border)] group-hover:[-webkit-text-stroke:2px_var(--primary)]"
