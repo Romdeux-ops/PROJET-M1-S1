@@ -1,16 +1,10 @@
-
 import { z } from 'zod'
 
 // ======================================================
 // CONSTANTES
 // ======================================================
 
-export const mealTypes = [
-  'BREAKFAST',
-  'LUNCH',
-  'DINNER',
-  'SNACK',
-] as const
+export const mealTypes = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'] as const
 
 export type MealType = (typeof mealTypes)[number]
 
@@ -95,11 +89,7 @@ export interface MealFilters {
 export const createMealSchema = z.object({
   mealType: z.enum(mealTypes),
   consumedAt: z.string().min(1, 'Date requise'),
-  notes: z
-    .string()
-    .trim()
-    .max(2000, '2000 caractères maximum')
-    .optional(),
+  notes: z.string().trim().max(2000, '2000 caractères maximum').optional(),
 })
 
 export type CreateMealInput = z.infer<typeof createMealSchema>
@@ -128,41 +118,26 @@ export interface NutritionPlan {
 
 export const createNutritionPlanSchema = z
   .object({
-    caloriesGoal: z
-      .number()
-      .positive('Les calories doivent être positives'),
+    caloriesGoal: z.number().positive('Les calories doivent être positives'),
 
-    proteinGoalG: z
-      .number()
-      .min(0, 'La valeur doit être positive ou nulle'),
+    proteinGoalG: z.number().min(0, 'La valeur doit être positive ou nulle'),
 
-    carbohydratesGoalG: z
-      .number()
-      .min(0, 'La valeur doit être positive ou nulle'),
+    carbohydratesGoalG: z.number().min(0, 'La valeur doit être positive ou nulle'),
 
-    fatGoalG: z
-      .number()
-      .min(0, 'La valeur doit être positive ou nulle'),
+    fatGoalG: z.number().min(0, 'La valeur doit être positive ou nulle'),
 
-    fiberGoalG: z
-      .number()
-      .min(0, 'La valeur doit être positive ou nulle'),
+    fiberGoalG: z.number().min(0, 'La valeur doit être positive ou nulle'),
 
     validFrom: z.iso.date(),
 
     validTo: z.iso.date().optional(),
   })
-  .refine(
-    (data) => !data.validTo || data.validTo >= data.validFrom,
-    {
-      message: 'La date de fin doit être postérieure ou égale à la date de début',
-      path: ['validTo'],
-    },
-  )
+  .refine((data) => !data.validTo || data.validTo >= data.validFrom, {
+    message: 'La date de fin doit être postérieure ou égale à la date de début',
+    path: ['validTo'],
+  })
 
-export type CreateNutritionPlanInput = z.infer<
-  typeof createNutritionPlanSchema
->
+export type CreateNutritionPlanInput = z.infer<typeof createNutritionPlanSchema>
 
 // ======================================================
 // RECETTES
@@ -200,38 +175,17 @@ export const recipeItemSchema = z.object({
 export type RecipeItemInput = z.infer<typeof recipeItemSchema>
 
 export const recipeSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, 'Le nom est obligatoire')
-    .max(200, '200 caractères maximum'),
+  name: z.string().trim().min(1, 'Le nom est obligatoire').max(200, '200 caractères maximum'),
 
-  description: z
-    .string()
-    .trim()
-    .max(2000, '2000 caractères maximum')
-    .optional(),
+  description: z.string().trim().max(2000, '2000 caractères maximum').optional(),
 
-  servings: z
-    .number()
-    .int()
-    .positive('Au moins une portion est nécessaire'),
+  servings: z.number().int().positive('Au moins une portion est nécessaire'),
 
-  preparationMinutes: z
-    .number()
-    .int()
-    .positive('La durée doit être positive')
-    .optional(),
+  preparationMinutes: z.number().int().positive('La durée doit être positive').optional(),
 
-  instructions: z
-    .string()
-    .trim()
-    .max(10000, '10000 caractères maximum')
-    .optional(),
+  instructions: z.string().trim().max(10000, '10000 caractères maximum').optional(),
 
-  items: z
-    .array(recipeItemSchema)
-    .min(1, 'Ajoutez au moins un ingrédient'),
+  items: z.array(recipeItemSchema).min(1, 'Ajoutez au moins un ingrédient'),
 })
 
 export type RecipeInput = z.infer<typeof recipeSchema>
@@ -244,6 +198,4 @@ export const updateMealItemSchema = z.object({
     .multipleOf(0.01, 'Deux décimales maximum'),
 })
 
-export type UpdateMealItemInput = z.infer<
-  typeof updateMealItemSchema
->
+export type UpdateMealItemInput = z.infer<typeof updateMealItemSchema>

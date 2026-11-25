@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 
 import { Search } from 'lucide-react'
@@ -19,33 +18,23 @@ import {
 
 import { useFoods } from '../hooks/use-foods'
 
-import {
-  foodCategories,
-  FOOD_CATEGORY_LABELS,
-  type Food,
-} from '../schemas'
+import { foodCategories, FOOD_CATEGORY_LABELS, type Food } from '../schemas'
 
 interface FoodSelectorProps {
   onSelect: (food: Food) => void
   selectedFoodId?: string
 }
 
-export function FoodSelector({
-  onSelect,
-  selectedFoodId,
-}: FoodSelectorProps) {
+export function FoodSelector({ onSelect, selectedFoodId }: FoodSelectorProps) {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('ALL')
 
   const foods = useFoods()
 
   const filteredFoods = (foods.data ?? []).filter((food) => {
-    const matchesSearch = food.name
-      .toLowerCase()
-      .includes(search.trim().toLowerCase())
+    const matchesSearch = food.name.toLowerCase().includes(search.trim().toLowerCase())
 
-    const matchesCategory =
-      category === 'ALL' || food.category === category
+    const matchesCategory = category === 'ALL' || food.category === category
 
     return matchesSearch && matchesCategory
   })
@@ -53,12 +42,10 @@ export function FoodSelector({
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="food-search">
-          Rechercher un aliment
-        </Label>
+        <Label htmlFor="food-search">Rechercher un aliment</Label>
 
         <div className="relative">
-          <Search className="absolute left-3 top-3 size-4 text-muted-foreground" />
+          <Search className="absolute top-3 left-3 size-4 text-muted-foreground" />
 
           <Input
             id="food-search"
@@ -71,22 +58,15 @@ export function FoodSelector({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="food-category">
-          Catégorie
-        </Label>
+        <Label htmlFor="food-category">Catégorie</Label>
 
-        <Select
-          value={category}
-          onValueChange={setCategory}
-        >
+        <Select value={category} onValueChange={setCategory}>
           <SelectTrigger id="food-category">
             <SelectValue />
           </SelectTrigger>
 
           <SelectContent>
-            <SelectItem value="ALL">
-              Toutes les catégories
-            </SelectItem>
+            <SelectItem value="ALL">Toutes les catégories</SelectItem>
 
             {foodCategories.map((item) => (
               <SelectItem key={item} value={item}>
@@ -98,17 +78,11 @@ export function FoodSelector({
       </div>
 
       {foods.isError ? (
-        <ErrorState
-          error={foods.error}
-          onRetry={() => void foods.refetch()}
-        />
+        <ErrorState error={foods.error} onRetry={() => void foods.refetch()} />
       ) : foods.isPending ? (
         <div className="space-y-2">
           {Array.from({ length: 3 }, (_, index) => (
-            <Skeleton
-              key={index}
-              className="h-16 rounded-lg"
-            />
+            <Skeleton key={index} className="h-16 rounded-lg" />
           ))}
         </div>
       ) : (
@@ -122,20 +96,14 @@ export function FoodSelector({
               <Button
                 key={food.id}
                 type="button"
-                variant={
-                  selectedFoodId === food.id
-                    ? 'secondary'
-                    : 'outline'
-                }
+                variant={selectedFoodId === food.id ? 'secondary' : 'outline'}
                 aria-pressed={selectedFoodId === food.id}
                 onClick={() => onSelect(food)}
-                className="h-auto w-full justify-start whitespace-normal p-3 text-left"
+                className="h-auto w-full justify-start p-3 text-left whitespace-normal"
               >
                 <div className="w-full space-y-1">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="font-medium">
-                      {food.name}
-                    </span>
+                    <span className="font-medium">{food.name}</span>
 
                     <span className="text-xs text-muted-foreground">
                       {food.caloriesKcal} kcal / 100 g
@@ -143,9 +111,7 @@ export function FoodSelector({
                   </div>
 
                   <p className="text-xs text-muted-foreground">
-                    P : {food.proteinG} g ·
-                    G : {food.carbohydratesG} g ·
-                    L : {food.fatG} g
+                    P : {food.proteinG} g · G : {food.carbohydratesG} g · L : {food.fatG} g
                   </p>
                 </div>
               </Button>

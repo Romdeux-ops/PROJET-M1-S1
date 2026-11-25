@@ -1,10 +1,4 @@
-
-import {
-  queryOptions,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query'
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { nutritionApi } from '../api/nutrition-api'
 
@@ -13,11 +7,9 @@ export const nutritionPlanKeys = {
 
   list: () => [...nutritionPlanKeys.all, 'list'] as const,
 
-  current: () =>
-    [...nutritionPlanKeys.all, 'current'] as const,
+  current: () => [...nutritionPlanKeys.all, 'current'] as const,
 
-  byDate: (date: string) =>
-    [...nutritionPlanKeys.all, 'by-date', date] as const,
+  byDate: (date: string) => [...nutritionPlanKeys.all, 'by-date', date] as const,
 }
 
 // Liste des objectifs

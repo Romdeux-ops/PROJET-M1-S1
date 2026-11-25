@@ -1,4 +1,3 @@
-
 import { queryOptions, useQuery } from '@tanstack/react-query'
 
 import { nutritionApi } from '../api/nutrition-api'
@@ -8,14 +7,11 @@ export const foodKeys = {
 
   list: () => [...foodKeys.all, 'list'] as const,
 
-  detail: (foodId: string) =>
-    [...foodKeys.all, 'detail', foodId] as const,
+  detail: (foodId: string) => [...foodKeys.all, 'detail', foodId] as const,
 
-  search: (name: string) =>
-    [...foodKeys.all, 'search', name] as const,
+  search: (name: string) => [...foodKeys.all, 'search', name] as const,
 
-  category: (category: string) =>
-    [...foodKeys.all, 'category', category] as const,
+  category: (category: string) => [...foodKeys.all, 'category', category] as const,
 }
 
 // Catalogue complet

@@ -1,10 +1,4 @@
-
-import {
-  queryOptions,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query'
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { nutritionApi } from '../api/nutrition-api'
 import type { RecipeInput } from '../schemas'
@@ -14,8 +8,7 @@ export const recipeKeys = {
 
   list: () => [...recipeKeys.all, 'list'] as const,
 
-  detail: (recipeId: string) =>
-    [...recipeKeys.all, 'detail', recipeId] as const,
+  detail: (recipeId: string) => [...recipeKeys.all, 'detail', recipeId] as const,
 }
 
 // Liste des recettes
@@ -53,10 +46,7 @@ export function useCreateRecipe() {
     },
 
     onSuccess: (recipe) => {
-      queryClient.setQueryData(
-        recipeKeys.detail(recipe.id),
-        recipe,
-      )
+      queryClient.setQueryData(recipeKeys.detail(recipe.id), recipe)
 
       return queryClient.invalidateQueries({
         queryKey: recipeKeys.list(),
@@ -70,18 +60,14 @@ export function useUpdateRecipe(recipeId: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (input: RecipeInput) =>
-      nutritionApi.updateRecipe(recipeId, input),
+    mutationFn: (input: RecipeInput) => nutritionApi.updateRecipe(recipeId, input),
 
     meta: {
       successMessage: 'Recette modifiée',
     },
 
     onSuccess: (recipe) => {
-      queryClient.setQueryData(
-        recipeKeys.detail(recipeId),
-        recipe,
-      )
+      queryClient.setQueryData(recipeKeys.detail(recipeId), recipe)
 
       return queryClient.invalidateQueries({
         queryKey: recipeKeys.list(),

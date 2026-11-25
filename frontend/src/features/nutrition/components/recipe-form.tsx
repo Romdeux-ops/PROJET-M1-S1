@@ -1,4 +1,3 @@
-
 import { useState, type FormEvent } from 'react'
 
 import { Pencil, Plus, Trash2 } from 'lucide-react'
@@ -17,19 +16,11 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 
-import {
-  useCreateRecipe,
-  useUpdateRecipe,
-} from '../hooks/use-recipes'
+import { useCreateRecipe, useUpdateRecipe } from '../hooks/use-recipes'
 
 import { useFoods } from '../hooks/use-foods'
 
-import {
-  recipeSchema,
-  type Food,
-  type Recipe,
-  type RecipeItemInput,
-} from '../schemas'
+import { recipeSchema, type Food, type Recipe, type RecipeItemInput } from '../schemas'
 
 import { FoodSelector } from './food-selector'
 
@@ -65,8 +56,7 @@ export function RecipeForm({ recipe }: RecipeFormProps) {
   const createRecipe = useCreateRecipe()
   const updateRecipe = useUpdateRecipe(recipe?.id ?? '')
 
-  const isPending =
-    createRecipe.isPending || updateRecipe.isPending
+  const isPending = createRecipe.isPending || updateRecipe.isPending
 
   // ======================================================
   // INITIALISATION DU FORMULAIRE
@@ -79,9 +69,7 @@ export function RecipeForm({ recipe }: RecipeFormProps) {
       setServings(String(recipe?.servings ?? 1))
 
       setPreparationMinutes(
-        recipe?.preparationMinutes != null
-          ? String(recipe.preparationMinutes)
-          : '',
+        recipe?.preparationMinutes != null ? String(recipe.preparationMinutes) : '',
       )
 
       setInstructions(recipe?.instructions ?? '')
@@ -110,19 +98,13 @@ export function RecipeForm({ recipe }: RecipeFormProps) {
 
     const quantityG = Number(quantity)
 
-    if (
-      !selectedFood ||
-      !Number.isFinite(quantityG) ||
-      quantityG <= 0
-    ) {
+    if (!selectedFood || !Number.isFinite(quantityG) || quantityG <= 0) {
       setError('Sélectionnez un aliment et une quantité valide.')
       return
     }
 
     setItems((previous) => {
-      const existing = previous.find(
-        (item) => item.foodId === selectedFood.id,
-      )
+      const existing = previous.find((item) => item.foodId === selectedFood.id)
 
       if (existing) {
         return previous.map((item) =>
@@ -149,9 +131,7 @@ export function RecipeForm({ recipe }: RecipeFormProps) {
   }
 
   function handleRemoveIngredient(foodId: string) {
-    setItems((previous) =>
-      previous.filter((item) => item.foodId !== foodId),
-    )
+    setItems((previous) => previous.filter((item) => item.foodId !== foodId))
   }
 
   function getFoodName(foodId: string): string {
@@ -168,9 +148,7 @@ export function RecipeForm({ recipe }: RecipeFormProps) {
 
   const totals = items.reduce(
     (total, item) => {
-      const food = foods.data?.find(
-        (entry) => entry.id === item.foodId,
-      )
+      const food = foods.data?.find((entry) => entry.id === item.foodId)
 
       if (!food) {
         return total
@@ -181,8 +159,7 @@ export function RecipeForm({ recipe }: RecipeFormProps) {
       return {
         calories: total.calories + food.caloriesKcal * factor,
         protein: total.protein + food.proteinG * factor,
-        carbohydrates:
-          total.carbohydrates + food.carbohydratesG * factor,
+        carbohydrates: total.carbohydrates + food.carbohydratesG * factor,
         fat: total.fat + food.fatG * factor,
         fiber: total.fiber + food.fiberG * factor,
       }
@@ -197,9 +174,7 @@ export function RecipeForm({ recipe }: RecipeFormProps) {
   )
 
   const portionCount =
-    Number.isFinite(Number(servings)) && Number(servings) > 0
-      ? Number(servings)
-      : 1
+    Number.isFinite(Number(servings)) && Number(servings) > 0 ? Number(servings) : 1
 
   // ======================================================
   // ENREGISTREMENT
@@ -214,19 +189,14 @@ export function RecipeForm({ recipe }: RecipeFormProps) {
       description,
       servings: Number(servings),
 
-      preparationMinutes: preparationMinutes
-        ? Number(preparationMinutes)
-        : undefined,
+      preparationMinutes: preparationMinutes ? Number(preparationMinutes) : undefined,
 
       instructions,
       items,
     })
 
     if (!result.success) {
-      setError(
-        result.error.issues[0]?.message ??
-          'Les données sont invalides.',
-      )
+      setError(result.error.issues[0]?.message ?? 'Les données sont invalides.')
       return
     }
 
@@ -270,28 +240,18 @@ export function RecipeForm({ recipe }: RecipeFormProps) {
 
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>
-            {isEditing
-              ? 'Modifier la recette'
-              : 'Nouvelle recette'}
-          </DialogTitle>
+          <DialogTitle>{isEditing ? 'Modifier la recette' : 'Nouvelle recette'}</DialogTitle>
 
           <DialogDescription>
-            Renseignez les ingrédients et les informations
-            de votre recette.
+            Renseignez les ingrédients et les informations de votre recette.
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6"
-        >
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* INFORMATIONS GENERALES */}
 
           <div className="space-y-2">
-            <Label htmlFor="recipe-name">
-              Nom de la recette
-            </Label>
+            <Label htmlFor="recipe-name">Nom de la recette</Label>
 
             <Input
               id="recipe-name"
@@ -299,33 +259,25 @@ export function RecipeForm({ recipe }: RecipeFormProps) {
               maxLength={200}
               placeholder="Poulet, riz et brocoli"
               value={name}
-              onChange={(event) =>
-                setName(event.target.value)
-              }
+              onChange={(event) => setName(event.target.value)}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="recipe-description">
-              Description (facultatif)
-            </Label>
+            <Label htmlFor="recipe-description">Description (facultatif)</Label>
 
             <Textarea
               id="recipe-description"
               maxLength={2000}
               value={description}
-              onChange={(event) =>
-                setDescription(event.target.value)
-              }
+              onChange={(event) => setDescription(event.target.value)}
               placeholder="Décrivez votre recette..."
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="recipe-servings">
-                Nombre de portions
-              </Label>
+              <Label htmlFor="recipe-servings">Nombre de portions</Label>
 
               <Input
                 id="recipe-servings"
@@ -334,16 +286,12 @@ export function RecipeForm({ recipe }: RecipeFormProps) {
                 step="1"
                 required
                 value={servings}
-                onChange={(event) =>
-                  setServings(event.target.value)
-                }
+                onChange={(event) => setServings(event.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="recipe-preparation">
-                Préparation (min)
-              </Label>
+              <Label htmlFor="recipe-preparation">Préparation (min)</Label>
 
               <Input
                 id="recipe-preparation"
@@ -352,9 +300,7 @@ export function RecipeForm({ recipe }: RecipeFormProps) {
                 step="1"
                 placeholder="Facultatif"
                 value={preparationMinutes}
-                onChange={(event) =>
-                  setPreparationMinutes(event.target.value)
-                }
+                onChange={(event) => setPreparationMinutes(event.target.value)}
               />
             </div>
           </div>
@@ -362,25 +308,16 @@ export function RecipeForm({ recipe }: RecipeFormProps) {
           {/* SELECTION DES INGREDIENTS */}
 
           <section className="space-y-4 rounded-lg border p-4">
-            <h3 className="font-semibold">
-              Ajouter des ingrédients
-            </h3>
+            <h3 className="font-semibold">Ajouter des ingrédients</h3>
 
-            <FoodSelector
-              onSelect={setSelectedFood}
-              selectedFoodId={selectedFood?.id}
-            />
+            <FoodSelector onSelect={setSelectedFood} selectedFoodId={selectedFood?.id} />
 
             {selectedFood && (
               <div className="space-y-3 rounded-lg bg-muted p-3">
-                <p className="font-medium">
-                  {selectedFood.name}
-                </p>
+                <p className="font-medium">{selectedFood.name}</p>
 
                 <div className="space-y-2">
-                  <Label htmlFor="recipe-ingredient-quantity">
-                    Quantité (g)
-                  </Label>
+                  <Label htmlFor="recipe-ingredient-quantity">Quantité (g)</Label>
 
                   <Input
                     id="recipe-ingredient-quantity"
@@ -388,9 +325,7 @@ export function RecipeForm({ recipe }: RecipeFormProps) {
                     min="0.01"
                     step="0.01"
                     value={quantity}
-                    onChange={(event) =>
-                      setQuantity(event.target.value)
-                    }
+                    onChange={(event) => setQuantity(event.target.value)}
                   />
                 </div>
 
@@ -399,10 +334,7 @@ export function RecipeForm({ recipe }: RecipeFormProps) {
                   variant="outline"
                   className="w-full"
                   onClick={handleAddIngredient}
-                  disabled={
-                    !Number.isFinite(Number(quantity)) ||
-                    Number(quantity) <= 0
-                  }
+                  disabled={!Number.isFinite(Number(quantity)) || Number(quantity) <= 0}
                 >
                   <Plus className="size-4" />
                   Ajouter cet ingrédient
@@ -414,9 +346,7 @@ export function RecipeForm({ recipe }: RecipeFormProps) {
           {/* LISTE DES INGREDIENTS */}
 
           <section className="space-y-3">
-            <h3 className="font-semibold">
-              Ingrédients ({items.length})
-            </h3>
+            <h3 className="font-semibold">Ingrédients ({items.length})</h3>
 
             {items.length === 0 ? (
               <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
@@ -429,13 +359,9 @@ export function RecipeForm({ recipe }: RecipeFormProps) {
                   className="flex items-center justify-between gap-3 rounded-lg border p-3"
                 >
                   <div>
-                    <p className="text-sm font-medium">
-                      {getFoodName(item.foodId)}
-                    </p>
+                    <p className="text-sm font-medium">{getFoodName(item.foodId)}</p>
 
-                    <p className="text-xs text-muted-foreground">
-                      {format(item.quantityG)} g
-                    </p>
+                    <p className="text-xs text-muted-foreground">{format(item.quantityG)} g</p>
                   </div>
 
                   <Button
@@ -443,9 +369,7 @@ export function RecipeForm({ recipe }: RecipeFormProps) {
                     variant="ghost"
                     size="sm"
                     aria-label={`Retirer ${getFoodName(item.foodId)}`}
-                    onClick={() =>
-                      handleRemoveIngredient(item.foodId)
-                    }
+                    onClick={() => handleRemoveIngredient(item.foodId)}
                   >
                     <Trash2 className="size-4 text-destructive" />
                   </Button>
@@ -457,9 +381,7 @@ export function RecipeForm({ recipe }: RecipeFormProps) {
           {/* VALEURS NUTRITIONNELLES */}
 
           <section className="space-y-3 rounded-lg bg-muted p-4">
-            <h3 className="font-semibold">
-              Valeurs nutritionnelles par portion
-            </h3>
+            <h3 className="font-semibold">Valeurs nutritionnelles par portion</h3>
 
             {foods.isSuccess ? (
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
@@ -491,21 +413,17 @@ export function RecipeForm({ recipe }: RecipeFormProps) {
                   },
                 ].map((nutrient) => (
                   <div key={nutrient.label}>
-                    <p className="text-xs text-muted-foreground">
-                      {nutrient.label}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{nutrient.label}</p>
 
                     <p className="text-lg font-semibold">
-                      {format(nutrient.value / portionCount)}{' '}
-                      {nutrient.unit}
+                      {format(nutrient.value / portionCount)} {nutrient.unit}
                     </p>
                   </div>
                 ))}
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">
-                Estimation indisponible tant que le catalogue
-                alimentaire n'est pas chargé.
+                Estimation indisponible tant que le catalogue alimentaire n'est pas chargé.
               </p>
             )}
           </section>
@@ -513,18 +431,14 @@ export function RecipeForm({ recipe }: RecipeFormProps) {
           {/* INSTRUCTIONS */}
 
           <div className="space-y-2">
-            <Label htmlFor="recipe-instructions">
-              Instructions de préparation
-            </Label>
+            <Label htmlFor="recipe-instructions">Instructions de préparation</Label>
 
             <Textarea
               id="recipe-instructions"
               rows={5}
               maxLength={10000}
               value={instructions}
-              onChange={(event) =>
-                setInstructions(event.target.value)
-              }
+              onChange={(event) => setInstructions(event.target.value)}
               placeholder="1. Préparer les ingrédients..."
             />
           </div>
@@ -549,10 +463,7 @@ export function RecipeForm({ recipe }: RecipeFormProps) {
               Annuler
             </Button>
 
-            <Button
-              type="submit"
-              disabled={isPending || items.length === 0}
-            >
+            <Button type="submit" disabled={isPending || items.length === 0}>
               {isPending
                 ? 'Enregistrement...'
                 : isEditing

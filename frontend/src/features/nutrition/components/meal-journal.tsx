@@ -1,25 +1,12 @@
-
 import { useState, type FormEvent } from 'react'
 
-import {
-  Apple,
-  Coffee,
-  Moon,
-  Pencil,
-  Trash2,
-  Utensils,
-} from 'lucide-react'
+import { Apple, Coffee, Moon, Pencil, Trash2, Utensils } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 import {
   Dialog,
@@ -30,11 +17,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 
-import {
-  useDeleteMeal,
-  useDeleteMealItem,
-  useUpdateMealItem,
-} from '../hooks/use-meals'
+import { useDeleteMeal, useDeleteMealItem, useUpdateMealItem } from '../hooks/use-meals'
 
 import {
   mealTypes,
@@ -44,10 +27,7 @@ import {
   type MealLogItem,
 } from '../schemas'
 
-import {
-  AddMealItemForm,
-  MealForm,
-} from './meal-form'
+import { AddMealItemForm, MealForm } from './meal-form'
 
 // ======================================================
 // CONSTANTES
@@ -79,26 +59,17 @@ function format(value: number): string {
 // ACTIONS SUR UN ALIMENT
 // ======================================================
 
-function MealItemActions({
-  mealLogId,
-  item,
-}: {
-  mealLogId: string
-  item: MealLogItem
-}) {
+function MealItemActions({ mealLogId, item }: { mealLogId: string; item: MealLogItem }) {
   const [open, setOpen] = useState(false)
 
-  const [quantity, setQuantity] = useState(
-    String(item.quantityG),
-  )
+  const [quantity, setQuantity] = useState(String(item.quantityG))
 
   const [error, setError] = useState('')
 
   const updateItem = useUpdateMealItem(mealLogId)
   const deleteItem = useDeleteMealItem(mealLogId)
 
-  const isPending =
-    updateItem.isPending || deleteItem.isPending
+  const isPending = updateItem.isPending || deleteItem.isPending
 
   function handleOpenChange(value: boolean) {
     if (isPending) return
@@ -113,9 +84,7 @@ function MealItemActions({
   }
 
   // Modification de la quantité
-  function handleUpdate(
-    event: FormEvent<HTMLFormElement>,
-  ) {
+  function handleUpdate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError('')
 
@@ -124,10 +93,7 @@ function MealItemActions({
     })
 
     if (!result.success) {
-      setError(
-        result.error.issues[0]?.message ??
-          'Quantité invalide',
-      )
+      setError(result.error.issues[0]?.message ?? 'Quantité invalide')
 
       return
     }
@@ -151,9 +117,7 @@ function MealItemActions({
 
   // Suppression individuelle
   function handleDelete() {
-    const confirmed = window.confirm(
-      `Voulez-vous supprimer ${item.foodName} de ce repas ?`,
-    )
+    const confirmed = window.confirm(`Voulez-vous supprimer ${item.foodName} de ce repas ?`)
 
     if (confirmed) {
       deleteItem.mutate(item.id)
@@ -163,13 +127,9 @@ function MealItemActions({
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-1">
-
         {/* Bouton de modification */}
 
-        <Dialog
-          open={open}
-          onOpenChange={handleOpenChange}
-        >
+        <Dialog open={open} onOpenChange={handleOpenChange}>
           <DialogTrigger asChild>
             <Button
               type="button"
@@ -185,36 +145,25 @@ function MealItemActions({
 
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>
-                Modifier la quantité
-              </DialogTitle>
+              <DialogTitle>Modifier la quantité</DialogTitle>
 
               <DialogDescription>
-                Modifiez la quantité consommée.
-                Les valeurs nutritionnelles seront
-                recalculées automatiquement.
+                Modifiez la quantité consommée. Les valeurs nutritionnelles seront recalculées
+                automatiquement.
               </DialogDescription>
             </DialogHeader>
 
-            <form
-              onSubmit={handleUpdate}
-              className="space-y-4"
-            >
+            <form onSubmit={handleUpdate} className="space-y-4">
               <div className="rounded-lg bg-muted p-3">
-                <p className="font-medium">
-                  {item.foodName}
-                </p>
+                <p className="font-medium">{item.foodName}</p>
 
                 <p className="text-sm text-muted-foreground">
-                  Quantité actuelle :{' '}
-                  {format(item.quantityG)} g
+                  Quantité actuelle : {format(item.quantityG)} g
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor={`quantity-${item.id}`}>
-                  Nouvelle quantité (g)
-                </Label>
+                <Label htmlFor={`quantity-${item.id}`}>Nouvelle quantité (g)</Label>
 
                 <Input
                   id={`quantity-${item.id}`}
@@ -225,17 +174,12 @@ function MealItemActions({
                   required
                   value={quantity}
                   disabled={isPending}
-                  onChange={(event) =>
-                    setQuantity(event.target.value)
-                  }
+                  onChange={(event) => setQuantity(event.target.value)}
                 />
               </div>
 
               {error && (
-                <p
-                  role="alert"
-                  className="text-sm text-destructive"
-                >
+                <p role="alert" className="text-sm text-destructive">
                   {error}
                 </p>
               )}
@@ -250,13 +194,8 @@ function MealItemActions({
                   Annuler
                 </Button>
 
-                <Button
-                  type="submit"
-                  disabled={isPending}
-                >
-                  {updateItem.isPending
-                    ? 'Enregistrement...'
-                    : 'Enregistrer'}
+                <Button type="submit" disabled={isPending}>
+                  {updateItem.isPending ? 'Enregistrement...' : 'Enregistrer'}
                 </Button>
               </div>
             </form>
@@ -279,10 +218,7 @@ function MealItemActions({
       </div>
 
       {deleteItem.isError && (
-        <p
-          role="alert"
-          className="text-xs text-destructive"
-        >
+        <p role="alert" className="text-xs text-destructive">
           {deleteItem.error.message}
         </p>
       )}
@@ -301,8 +237,7 @@ function MealCard({ meal }: { meal: MealLog }) {
     (total, item) => ({
       calories: total.calories + item.caloriesKcal,
       protein: total.protein + item.proteinG,
-      carbohydrates:
-        total.carbohydrates + item.carbohydratesG,
+      carbohydrates: total.carbohydrates + item.carbohydratesG,
       fat: total.fat + item.fatG,
       fiber: total.fiber + item.fiberG,
     }),
@@ -330,18 +265,13 @@ function MealCard({ meal }: { meal: MealLog }) {
       <CardHeader>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-1">
-            <CardTitle className="text-base">
-              {MEAL_TYPE_LABELS[meal.mealType]}
-            </CardTitle>
+            <CardTitle className="text-base">{MEAL_TYPE_LABELS[meal.mealType]}</CardTitle>
 
             <p className="text-xs text-muted-foreground">
-              {new Date(meal.consumedAt).toLocaleTimeString(
-                'fr-FR',
-                {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                },
-              )}
+              {new Date(meal.consumedAt).toLocaleTimeString('fr-FR', {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
             </p>
           </div>
 
@@ -364,14 +294,9 @@ function MealCard({ meal }: { meal: MealLog }) {
       </CardHeader>
 
       <CardContent className="space-y-4">
-
         {/* Notes du repas */}
 
-        {meal.notes && (
-          <p className="text-sm text-muted-foreground">
-            {meal.notes}
-          </p>
-        )}
+        {meal.notes && <p className="text-sm text-muted-foreground">{meal.notes}</p>}
 
         {/* Tableau des aliments */}
 
@@ -397,43 +322,23 @@ function MealCard({ meal }: { meal: MealLog }) {
 
               <tbody>
                 {meal.items.map((item) => (
-                  <tr
-                    key={item.id}
-                    className="border-b"
-                  >
-                    <td className="p-2 font-medium">
-                      {item.foodName}
-                    </td>
+                  <tr key={item.id} className="border-b">
+                    <td className="p-2 font-medium">{item.foodName}</td>
 
-                    <td className="p-2 whitespace-nowrap">
-                      {format(item.quantityG)} g
-                    </td>
+                    <td className="p-2 whitespace-nowrap">{format(item.quantityG)} g</td>
 
-                    <td className="p-2 whitespace-nowrap">
-                      {format(item.caloriesKcal)} kcal
-                    </td>
+                    <td className="p-2 whitespace-nowrap">{format(item.caloriesKcal)} kcal</td>
 
-                    <td className="p-2 whitespace-nowrap">
-                      {format(item.proteinG)} g
-                    </td>
+                    <td className="p-2 whitespace-nowrap">{format(item.proteinG)} g</td>
 
-                    <td className="p-2 whitespace-nowrap">
-                      {format(item.carbohydratesG)} g
-                    </td>
+                    <td className="p-2 whitespace-nowrap">{format(item.carbohydratesG)} g</td>
 
-                    <td className="p-2 whitespace-nowrap">
-                      {format(item.fatG)} g
-                    </td>
+                    <td className="p-2 whitespace-nowrap">{format(item.fatG)} g</td>
 
-                    <td className="p-2 whitespace-nowrap">
-                      {format(item.fiberG)} g
-                    </td>
+                    <td className="p-2 whitespace-nowrap">{format(item.fiberG)} g</td>
 
                     <td className="p-2">
-                      <MealItemActions
-                        mealLogId={meal.id}
-                        item={item}
-                      />
+                      <MealItemActions mealLogId={meal.id} item={item} />
                     </td>
                   </tr>
                 ))}
@@ -445,34 +350,21 @@ function MealCard({ meal }: { meal: MealLog }) {
         {/* Totaux nutritionnels du repas */}
 
         <div className="flex flex-wrap gap-4 rounded-lg bg-muted p-3 text-sm">
-          <span className="font-semibold">
-            {format(totals.calories)} kcal
-          </span>
+          <span className="font-semibold">{format(totals.calories)} kcal</span>
 
-          <span>
-            Protéines : {format(totals.protein)} g
-          </span>
+          <span>Protéines : {format(totals.protein)} g</span>
 
-          <span>
-            Glucides : {format(totals.carbohydrates)} g
-          </span>
+          <span>Glucides : {format(totals.carbohydrates)} g</span>
 
-          <span>
-            Lipides : {format(totals.fat)} g
-          </span>
+          <span>Lipides : {format(totals.fat)} g</span>
 
-          <span>
-            Fibres : {format(totals.fiber)} g
-          </span>
+          <span>Fibres : {format(totals.fiber)} g</span>
         </div>
 
         {/* Erreur de suppression du repas */}
 
         {deleteMeal.isError && (
-          <p
-            role="alert"
-            className="text-sm text-destructive"
-          >
+          <p role="alert" className="text-sm text-destructive">
             {deleteMeal.error.message}
           </p>
         )}
@@ -485,21 +377,14 @@ function MealCard({ meal }: { meal: MealLog }) {
 // JOURNAL ALIMENTAIRE
 // ======================================================
 
-export function MealJournal({
-  meals,
-  selectedDate,
-}: MealJournalProps) {
+export function MealJournal({ meals, selectedDate }: MealJournalProps) {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">
-            Journal alimentaire
-          </h2>
+          <h2 className="text-lg font-semibold">Journal alimentaire</h2>
 
-          <p className="text-sm text-muted-foreground">
-            Retrouvez tous vos repas de la journée.
-          </p>
+          <p className="text-sm text-muted-foreground">Retrouvez tous vos repas de la journée.</p>
         </div>
 
         <MealForm selectedDate={selectedDate} />
@@ -508,15 +393,10 @@ export function MealJournal({
       {mealTypes.map((mealType) => {
         const Icon = MEAL_ICONS[mealType]
 
-        const matchingMeals = meals.filter(
-          (meal) => meal.mealType === mealType,
-        )
+        const matchingMeals = meals.filter((meal) => meal.mealType === mealType)
 
         return (
-          <section
-            key={mealType}
-            className="space-y-3"
-          >
+          <section key={mealType} className="space-y-3">
             <h3 className="flex items-center gap-2 font-semibold">
               <Icon className="size-5" />
 
@@ -528,12 +408,7 @@ export function MealJournal({
                 Aucun repas enregistré.
               </div>
             ) : (
-              matchingMeals.map((meal) => (
-                <MealCard
-                  key={meal.id}
-                  meal={meal}
-                />
-              ))
+              matchingMeals.map((meal) => <MealCard key={meal.id} meal={meal} />)
             )}
           </section>
         )

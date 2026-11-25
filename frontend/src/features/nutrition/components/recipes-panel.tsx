@@ -1,13 +1,6 @@
-
 import { useState } from 'react'
 
-import {
-  ChefHat,
-  Clock,
-  Search,
-  Trash2,
-  Users,
-} from 'lucide-react'
+import { ChefHat, Clock, Search, Trash2, Users } from 'lucide-react'
 
 import { ErrorState } from '@/components/feedback'
 
@@ -16,12 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 import {
   Dialog,
@@ -32,10 +20,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 
-import {
-  useDeleteRecipe,
-  useRecipes,
-} from '../hooks/use-recipes'
+import { useDeleteRecipe, useRecipes } from '../hooks/use-recipes'
 
 import type { Recipe } from '../schemas'
 
@@ -51,11 +36,7 @@ function format(value: number): string {
 // VALEURS NUTRITIONNELLES
 // ======================================================
 
-function RecipeNutrition({
-  recipe,
-}: {
-  recipe: Recipe
-}) {
+function RecipeNutrition({ recipe }: { recipe: Recipe }) {
   const nutrients = [
     {
       label: 'Calories',
@@ -86,23 +67,15 @@ function RecipeNutrition({
 
   return (
     <div className="space-y-3">
-      <p className="text-xs font-medium text-muted-foreground">
-        Valeurs par portion
-      </p>
+      <p className="text-xs font-medium text-muted-foreground">Valeurs par portion</p>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {nutrients.map((nutrient) => (
-          <div
-            key={nutrient.label}
-            className="space-y-1 rounded-lg bg-muted p-3"
-          >
-            <p className="text-xs text-muted-foreground">
-              {nutrient.label}
-            </p>
+          <div key={nutrient.label} className="space-y-1 rounded-lg bg-muted p-3">
+            <p className="text-xs text-muted-foreground">{nutrient.label}</p>
 
             <p className="font-semibold">
-              {format(nutrient.value)}{' '}
-              {nutrient.unit}
+              {format(nutrient.value)} {nutrient.unit}
             </p>
           </div>
         ))}
@@ -115,11 +88,7 @@ function RecipeNutrition({
 // DETAIL D'UNE RECETTE
 // ======================================================
 
-function RecipeDetails({
-  recipe,
-}: {
-  recipe: Recipe
-}) {
+function RecipeDetails({ recipe }: { recipe: Recipe }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -130,26 +99,19 @@ function RecipeDetails({
 
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>
-            {recipe.name}
-          </DialogTitle>
+          <DialogTitle>{recipe.name}</DialogTitle>
 
-          <DialogDescription>
-            Informations et instructions de préparation.
-          </DialogDescription>
+          <DialogDescription>Informations et instructions de préparation.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
           {recipe.description && (
-            <p className="text-sm text-muted-foreground">
-              {recipe.description}
-            </p>
+            <p className="text-sm text-muted-foreground">{recipe.description}</p>
           )}
 
           <div className="flex flex-wrap gap-4 text-sm">
             <span className="flex items-center gap-2">
               <Users className="size-4" />
-
               {recipe.servings} portion
               {recipe.servings > 1 ? 's' : ''}
             </span>
@@ -165,13 +127,9 @@ function RecipeDetails({
           <RecipeNutrition recipe={recipe} />
 
           <section className="space-y-3">
-            <h3 className="font-semibold">
-              Ingrédients
-            </h3>
+            <h3 className="font-semibold">Ingrédients</h3>
 
-            <p className="text-xs text-muted-foreground">
-              Quantités pour la recette entière.
-            </p>
+            <p className="text-xs text-muted-foreground">Quantités pour la recette entière.</p>
 
             {recipe.items.map((item) => (
               <div
@@ -180,26 +138,18 @@ function RecipeDetails({
               >
                 <span>{item.foodName}</span>
 
-                <span className="font-medium">
-                  {format(item.quantityG)} g
-                </span>
+                <span className="font-medium">{format(item.quantityG)} g</span>
               </div>
             ))}
           </section>
 
           <section className="space-y-3">
-            <h3 className="font-semibold">
-              Instructions de préparation
-            </h3>
+            <h3 className="font-semibold">Instructions de préparation</h3>
 
             {recipe.instructions ? (
-              <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                {recipe.instructions}
-              </p>
+              <p className="text-sm leading-relaxed whitespace-pre-wrap">{recipe.instructions}</p>
             ) : (
-              <p className="text-sm text-muted-foreground">
-                Aucune instruction renseignée.
-              </p>
+              <p className="text-sm text-muted-foreground">Aucune instruction renseignée.</p>
             )}
           </section>
         </div>
@@ -212,17 +162,11 @@ function RecipeDetails({
 // CARTE D'UNE RECETTE
 // ======================================================
 
-function RecipeCard({
-  recipe,
-}: {
-  recipe: Recipe
-}) {
+function RecipeCard({ recipe }: { recipe: Recipe }) {
   const deleteRecipe = useDeleteRecipe()
 
   function handleDelete() {
-    const confirmed = window.confirm(
-      `Voulez-vous vraiment supprimer la recette "${recipe.name}" ?`,
-    )
+    const confirmed = window.confirm(`Voulez-vous vraiment supprimer la recette "${recipe.name}" ?`)
 
     if (confirmed) {
       deleteRecipe.mutate(recipe.id)
@@ -239,15 +183,12 @@ function RecipeCard({
         </CardTitle>
 
         {recipe.description && (
-          <p className="line-clamp-2 text-sm text-muted-foreground">
-            {recipe.description}
-          </p>
+          <p className="line-clamp-2 text-sm text-muted-foreground">{recipe.description}</p>
         )}
 
         <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
             <Users className="size-4" />
-
             {recipe.servings} portion
             {recipe.servings > 1 ? 's' : ''}
           </span>
@@ -305,24 +246,20 @@ export function RecipesPanel() {
 
   const recipes = useRecipes()
 
-  const filteredRecipes = (recipes.data ?? []).filter(
-    (recipe) => {
-      const query = search.trim().toLowerCase()
+  const filteredRecipes = (recipes.data ?? []).filter((recipe) => {
+    const query = search.trim().toLowerCase()
 
-      return (
-        recipe.name.toLowerCase().includes(query) ||
-        (recipe.description ?? '').toLowerCase().includes(query)
-      )
-    },
-  )
+    return (
+      recipe.name.toLowerCase().includes(query) ||
+      (recipe.description ?? '').toLowerCase().includes(query)
+    )
+  })
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">
-            Mes recettes
-          </h2>
+          <h2 className="text-lg font-semibold">Mes recettes</h2>
 
           <p className="text-sm text-muted-foreground">
             Créez et retrouvez vos recettes personnelles.
@@ -333,30 +270,23 @@ export function RecipesPanel() {
       </div>
 
       <div className="max-w-md space-y-2">
-        <Label htmlFor="recipe-search">
-          Rechercher une recette
-        </Label>
+        <Label htmlFor="recipe-search">Rechercher une recette</Label>
 
         <div className="relative">
-          <Search className="absolute left-3 top-3 size-4 text-muted-foreground" />
+          <Search className="absolute top-3 left-3 size-4 text-muted-foreground" />
 
           <Input
             id="recipe-search"
             value={search}
             placeholder="Rechercher..."
-            onChange={(event) =>
-              setSearch(event.target.value)
-            }
+            onChange={(event) => setSearch(event.target.value)}
             className="pl-9"
           />
         </div>
       </div>
 
       {recipes.isError ? (
-        <ErrorState
-          error={recipes.error}
-          onRetry={() => void recipes.refetch()}
-        />
+        <ErrorState error={recipes.error} onRetry={() => void recipes.refetch()} />
       ) : recipes.isPending ? (
         <div className="grid gap-4 lg:grid-cols-2">
           <Skeleton className="h-64 rounded-xl" />
@@ -368,9 +298,7 @@ export function RecipesPanel() {
             <ChefHat className="mx-auto size-10 text-muted-foreground" />
 
             <p className="font-medium">
-              {search.trim()
-                ? 'Aucune recette trouvée'
-                : 'Aucune recette enregistrée'}
+              {search.trim() ? 'Aucune recette trouvée' : 'Aucune recette enregistrée'}
             </p>
 
             <p className="text-sm text-muted-foreground">
@@ -389,10 +317,7 @@ export function RecipesPanel() {
 
           <div className="grid gap-4 lg:grid-cols-2">
             {filteredRecipes.map((recipe) => (
-              <RecipeCard
-                key={recipe.id}
-                recipe={recipe}
-              />
+              <RecipeCard key={recipe.id} recipe={recipe} />
             ))}
           </div>
         </>

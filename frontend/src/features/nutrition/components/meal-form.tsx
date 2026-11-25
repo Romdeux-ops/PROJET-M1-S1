@@ -1,4 +1,3 @@
-
 import { useState, type FormEvent } from 'react'
 
 import { Plus } from 'lucide-react'
@@ -25,10 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-import {
-  useAddMealItem,
-  useCreateMeal,
-} from '../hooks/use-meals'
+import { useAddMealItem, useCreateMeal } from '../hooks/use-meals'
 
 import {
   addMealItemSchema,
@@ -49,9 +45,7 @@ interface MealFormProps {
   selectedDate: string
 }
 
-export function MealForm({
-  selectedDate,
-}: MealFormProps) {
+export function MealForm({ selectedDate }: MealFormProps) {
   const [open, setOpen] = useState(false)
   const [mealType, setMealType] = useState<MealType>('LUNCH')
   const [time, setTime] = useState('12:00')
@@ -104,20 +98,13 @@ export function MealForm({
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4"
-        >
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="meal-type">
-              Type de repas
-            </Label>
+            <Label htmlFor="meal-type">Type de repas</Label>
 
             <Select
               value={mealType}
-              onValueChange={(value : string) =>
-                setMealType(value as MealType)
-              }
+              onValueChange={(value: string) => setMealType(value as MealType)}
             >
               <SelectTrigger id="meal-type">
                 <SelectValue />
@@ -135,48 +122,33 @@ export function MealForm({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="meal-date">
-                Date
-              </Label>
+              <Label htmlFor="meal-date">Date</Label>
 
-              <Input
-                id="meal-date"
-                type="date"
-                value={selectedDate}
-                readOnly
-              />
+              <Input id="meal-date" type="date" value={selectedDate} readOnly />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="meal-time">
-                Heure
-              </Label>
+              <Label htmlFor="meal-time">Heure</Label>
 
               <Input
                 id="meal-time"
                 type="time"
                 value={time}
                 required
-                onChange={(event) =>
-                  setTime(event.target.value)
-                }
+                onChange={(event) => setTime(event.target.value)}
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="meal-notes">
-              Notes (facultatif)
-            </Label>
+            <Label htmlFor="meal-notes">Notes (facultatif)</Label>
 
             <Textarea
               id="meal-notes"
               value={notes}
               maxLength={2000}
               placeholder="Informations complémentaires..."
-              onChange={(event) =>
-                setNotes(event.target.value)
-              }
+              onChange={(event) => setNotes(event.target.value)}
             />
           </div>
 
@@ -196,13 +168,8 @@ export function MealForm({
               Annuler
             </Button>
 
-            <Button
-              type="submit"
-              disabled={createMeal.isPending}
-            >
-              {createMeal.isPending
-                ? 'Enregistrement...'
-                : 'Créer le repas'}
+            <Button type="submit" disabled={createMeal.isPending}>
+              {createMeal.isPending ? 'Enregistrement...' : 'Créer le repas'}
             </Button>
           </div>
         </form>
@@ -219,9 +186,7 @@ interface AddMealItemFormProps {
   mealLogId: string
 }
 
-export function AddMealItemForm({
-  mealLogId,
-}: AddMealItemFormProps) {
+export function AddMealItemForm({ mealLogId }: AddMealItemFormProps) {
   const [open, setOpen] = useState(false)
   const [selectedFood, setSelectedFood] = useState<Food | null>(null)
   const [quantity, setQuantity] = useState('100')
@@ -231,10 +196,7 @@ export function AddMealItemForm({
 
   const quantityG = Number(quantity)
 
-  const factor =
-    Number.isFinite(quantityG) && quantityG > 0
-      ? quantityG / 100
-      : 0
+  const factor = Number.isFinite(quantityG) && quantityG > 0 ? quantityG / 100 : 0
 
   function format(value: number): string {
     return value.toLocaleString('fr-FR', {
@@ -286,25 +248,15 @@ export function AddMealItemForm({
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4"
-        >
-          <FoodSelector
-            onSelect={setSelectedFood}
-            selectedFoodId={selectedFood?.id}
-          />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <FoodSelector onSelect={setSelectedFood} selectedFoodId={selectedFood?.id} />
 
           {selectedFood && (
             <div className="space-y-4 rounded-lg border p-4">
-              <p className="font-medium">
-                {selectedFood.name}
-              </p>
+              <p className="font-medium">{selectedFood.name}</p>
 
               <div className="space-y-2">
-                <Label htmlFor="food-quantity">
-                  Quantité (g)
-                </Label>
+                <Label htmlFor="food-quantity">Quantité (g)</Label>
 
                 <Input
                   id="food-quantity"
@@ -313,56 +265,34 @@ export function AddMealItemForm({
                   step="0.01"
                   required
                   value={quantity}
-                  onChange={(event) =>
-                    setQuantity(event.target.value)
-                  }
+                  onChange={(event) => setQuantity(event.target.value)}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <p className="text-muted-foreground">
-                    Calories
-                  </p>
-                  <p className="font-semibold">
-                    {format(selectedFood.caloriesKcal * factor)} kcal
-                  </p>
+                  <p className="text-muted-foreground">Calories</p>
+                  <p className="font-semibold">{format(selectedFood.caloriesKcal * factor)} kcal</p>
                 </div>
 
                 <div>
-                  <p className="text-muted-foreground">
-                    Protéines
-                  </p>
-                  <p className="font-semibold">
-                    {format(selectedFood.proteinG * factor)} g
-                  </p>
+                  <p className="text-muted-foreground">Protéines</p>
+                  <p className="font-semibold">{format(selectedFood.proteinG * factor)} g</p>
                 </div>
 
                 <div>
-                  <p className="text-muted-foreground">
-                    Glucides
-                  </p>
-                  <p className="font-semibold">
-                    {format(selectedFood.carbohydratesG * factor)} g
-                  </p>
+                  <p className="text-muted-foreground">Glucides</p>
+                  <p className="font-semibold">{format(selectedFood.carbohydratesG * factor)} g</p>
                 </div>
 
                 <div>
-                  <p className="text-muted-foreground">
-                    Lipides
-                  </p>
-                  <p className="font-semibold">
-                    {format(selectedFood.fatG * factor)} g
-                  </p>
+                  <p className="text-muted-foreground">Lipides</p>
+                  <p className="font-semibold">{format(selectedFood.fatG * factor)} g</p>
                 </div>
 
                 <div>
-                  <p className="text-muted-foreground">
-                    Fibres
-                  </p>
-                  <p className="font-semibold">
-                    {format(selectedFood.fiberG * factor)} g
-                  </p>
+                  <p className="text-muted-foreground">Fibres</p>
+                  <p className="font-semibold">{format(selectedFood.fiberG * factor)} g</p>
                 </div>
               </div>
             </div>
@@ -393,9 +323,7 @@ export function AddMealItemForm({
                 addMealItem.isPending
               }
             >
-              {addMealItem.isPending
-                ? 'Ajout...'
-                : 'Ajouter au repas'}
+              {addMealItem.isPending ? 'Ajout...' : 'Ajouter au repas'}
             </Button>
           </div>
         </form>

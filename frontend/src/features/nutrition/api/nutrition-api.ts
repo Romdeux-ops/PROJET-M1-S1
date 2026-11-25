@@ -1,4 +1,3 @@
-
 import { api, unwrap } from '@/lib/api/client'
 
 import type {
@@ -58,10 +57,7 @@ export const nutritionApi = {
   // ALIMENTS
   // --------------------------------------------------
 
-  listFoods: () =>
-    unwrap(
-      api.GET('/api/nutrition/foods'),
-    ) as Promise<Food[]>,
+  listFoods: () => unwrap(api.GET('/api/nutrition/foods')) as Promise<Food[]>,
 
   getFood: (foodId: string) =>
     unwrap(
@@ -122,10 +118,7 @@ export const nutritionApi = {
       }),
     ) as Promise<MealLog>,
 
-  addMealItem: (
-    mealLogId: string,
-    input: AddMealItemInput,
-  ) =>
+  addMealItem: (mealLogId: string, input: AddMealItemInput) =>
     unwrap(
       api.POST('/api/nutrition/meals/{mealLogId}/items', {
         params: {
@@ -134,37 +127,24 @@ export const nutritionApi = {
         body: input,
       }),
     ) as Promise<MealLog>,
-    updateMealItem: (
-        mealLogId: string,
-        itemId: string,
-        input: UpdateMealItemInput,
-    ) =>
-        unwrap(
-        api.PUT(
-            '/api/nutrition/meals/{mealLogId}/items/{itemId}',
-            {
-            params: {
-                path: { mealLogId, itemId },
-            },
-            body: input,
-            },
-        ),
-        ) as Promise<MealLog>,
+  updateMealItem: (mealLogId: string, itemId: string, input: UpdateMealItemInput) =>
+    unwrap(
+      api.PUT('/api/nutrition/meals/{mealLogId}/items/{itemId}', {
+        params: {
+          path: { mealLogId, itemId },
+        },
+        body: input,
+      }),
+    ) as Promise<MealLog>,
 
-    deleteMealItem: (
-        mealLogId: string,
-        itemId: string,
-    ) =>
-        unwrap(
-        api.DELETE(
-            '/api/nutrition/meals/{mealLogId}/items/{itemId}',
-            {
-            params: {
-                path: { mealLogId, itemId },
-            },
-            },
-        ),
-        ) as Promise<MealLog>,
+  deleteMealItem: (mealLogId: string, itemId: string) =>
+    unwrap(
+      api.DELETE('/api/nutrition/meals/{mealLogId}/items/{itemId}', {
+        params: {
+          path: { mealLogId, itemId },
+        },
+      }),
+    ) as Promise<MealLog>,
 
   deleteMeal: (mealLogId: string) =>
     unwrap(
@@ -179,10 +159,7 @@ export const nutritionApi = {
   // OBJECTIFS NUTRITIONNELS
   // --------------------------------------------------
 
-  listPlans: () =>
-    unwrap(
-      api.GET('/api/nutrition/plans'),
-    ) as Promise<NutritionPlan[]>,
+  listPlans: () => unwrap(api.GET('/api/nutrition/plans')) as Promise<NutritionPlan[]>,
 
   getCurrentPlan: async (): Promise<NutritionPlan | null> => {
     const result = await api.GET('/api/nutrition/plans/current')
@@ -196,9 +173,7 @@ export const nutritionApi = {
     return (data as NutritionPlan | undefined) ?? null
   },
 
-  getPlanByDate: async (
-    date: string,
-  ): Promise<NutritionPlan | null> => {
+  getPlanByDate: async (date: string): Promise<NutritionPlan | null> => {
     const result = await api.GET('/api/nutrition/plans/by-date', {
       params: {
         query: { date },
@@ -225,10 +200,7 @@ export const nutritionApi = {
   // RECETTES
   // --------------------------------------------------
 
-  listRecipes: () =>
-    unwrap(
-      api.GET('/api/nutrition/recipes'),
-    ) as Promise<Recipe[]>,
+  listRecipes: () => unwrap(api.GET('/api/nutrition/recipes')) as Promise<Recipe[]>,
 
   getRecipe: (recipeId: string) =>
     unwrap(
@@ -246,10 +218,7 @@ export const nutritionApi = {
       }),
     ) as Promise<Recipe>,
 
-  updateRecipe: (
-    recipeId: string,
-    input: RecipeInput,
-  ) =>
+  updateRecipe: (recipeId: string, input: RecipeInput) =>
     unwrap(
       api.PUT('/api/nutrition/recipes/{recipeId}', {
         params: {

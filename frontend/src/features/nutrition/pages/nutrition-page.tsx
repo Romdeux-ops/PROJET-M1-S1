@@ -1,34 +1,17 @@
-
 import { useState } from 'react'
 
-import {
-  Apple,
-  CalendarDays,
-  Coffee,
-  Moon,
-  Utensils,
-} from 'lucide-react'
+import { Apple, CalendarDays, Coffee, Moon, Utensils } from 'lucide-react'
 
 import { ErrorState } from '@/components/feedback'
 import { PageHeader } from '@/components/page-header'
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import { MealJournal } from '../components/meal-journal'
 import { NutritionSummary } from '../components/nutrition-summary'
@@ -38,11 +21,7 @@ import { RecipesPanel } from '../components/recipes-panel'
 import { useMeals } from '../hooks/use-meals'
 import { useNutritionPlanByDate } from '../hooks/use-nutrition-plans'
 
-import {
-  mealTypes,
-  MEAL_TYPE_LABELS,
-  type MealType,
-} from '../schemas'
+import { mealTypes, MEAL_TYPE_LABELS, type MealType } from '../schemas'
 
 // ======================================================
 // CONSTANTES
@@ -91,15 +70,10 @@ function getDayFilters(date: string) {
 export function NutritionPage() {
   const [activeTab, setActiveTab] = useState('overview')
 
-  const [selectedDate, setSelectedDate] = useState(
-    () => getLocalDate(new Date()),
-  )
-  const [today] = useState(
-    () => getLocalDate(new Date()),
-  )
+  const [selectedDate, setSelectedDate] = useState(() => getLocalDate(new Date()))
+  const [today] = useState(() => getLocalDate(new Date()))
 
-  const showDateSelector =
-    activeTab === 'overview' || activeTab === 'meals'
+  const showDateSelector = activeTab === 'overview' || activeTab === 'meals'
 
   const filters = getDayFilters(selectedDate)
 
@@ -112,10 +86,7 @@ export function NutritionPage() {
     return mealList
       .filter((meal) => meal.mealType === mealType)
       .flatMap((meal) => meal.items)
-      .reduce(
-        (total, item) => total + item.caloriesKcal,
-        0,
-      )
+      .reduce((total, item) => total + item.caloriesKcal, 0)
   }
 
   return (
@@ -134,10 +105,7 @@ export function NutritionPage() {
       {showDateSelector && (
         <div className="mb-6 flex flex-wrap items-end gap-4">
           <div className="space-y-2">
-            <Label
-              htmlFor="nutrition-date"
-              className="flex items-center gap-2"
-            >
+            <Label htmlFor="nutrition-date" className="flex items-center gap-2">
               <CalendarDays className="size-4" />
               Date sélectionnée
             </Label>
@@ -161,27 +129,15 @@ export function NutritionPage() {
       {/* NAVIGATION PRINCIPALE                          */}
       {/* ============================================== */}
 
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="space-y-6"
-      >
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="h-auto flex-wrap">
-          <TabsTrigger value="overview">
-            Vue d'ensemble
-          </TabsTrigger>
+          <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
 
-          <TabsTrigger value="meals">
-            Journal alimentaire
-          </TabsTrigger>
+          <TabsTrigger value="meals">Journal alimentaire</TabsTrigger>
 
-          <TabsTrigger value="plans">
-            Objectifs
-          </TabsTrigger>
+          <TabsTrigger value="plans">Objectifs</TabsTrigger>
 
-          <TabsTrigger value="recipes">
-            Recettes
-          </TabsTrigger>
+          <TabsTrigger value="recipes">Recettes</TabsTrigger>
         </TabsList>
 
         {/* ============================================== */}
@@ -190,54 +146,37 @@ export function NutritionPage() {
 
         <TabsContent value="overview" className="space-y-6">
           {meals.isError ? (
-            <ErrorState
-              error={meals.error}
-              onRetry={() => void meals.refetch()}
-            />
+            <ErrorState error={meals.error} onRetry={() => void meals.refetch()} />
           ) : plan.isError ? (
-            <ErrorState
-              error={plan.error}
-              onRetry={() => void plan.refetch()}
-            />
+            <ErrorState error={plan.error} onRetry={() => void plan.refetch()} />
           ) : meals.isPending || plan.isPending ? (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
               {Array.from({ length: 5 }, (_, index) => (
-                <Skeleton
-                  key={index}
-                  className="h-36 rounded-xl"
-                />
+                <Skeleton key={index} className="h-36 rounded-xl" />
               ))}
             </div>
           ) : (
             <>
-              <NutritionSummary
-                meals={mealList}
-                plan={plan.data ?? null}
-              />
+              <NutritionSummary meals={mealList} plan={plan.data ?? null} />
 
               {!plan.data && (
                 <Card>
                   <CardContent className="py-4">
                     <p className="text-sm text-muted-foreground">
-                      Aucun objectif nutritionnel n'est défini
-                      pour cette journée.
+                      Aucun objectif nutritionnel n'est défini pour cette journée.
                     </p>
                   </CardContent>
                 </Card>
               )}
 
               <div className="space-y-4">
-                <h2 className="text-lg font-semibold">
-                  Mes repas
-                </h2>
+                <h2 className="text-lg font-semibold">Mes repas</h2>
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   {mealTypes.map((mealType) => {
                     const Icon = MEAL_ICONS[mealType]
 
-                    const matchingMeals = mealList.filter(
-                      (meal) => meal.mealType === mealType,
-                    )
+                    const matchingMeals = mealList.filter((meal) => meal.mealType === mealType)
 
                     const calories = getMealCalories(mealType)
 
@@ -265,8 +204,7 @@ export function NutritionPage() {
                           </p>
 
                           <p className="text-sm text-muted-foreground">
-                            {matchingMeals.length} repas ·{' '}
-                            {itemCount} aliment
+                            {matchingMeals.length} repas · {itemCount} aliment
                             {itemCount > 1 ? 's' : ''}
                           </p>
                         </CardContent>
@@ -285,24 +223,15 @@ export function NutritionPage() {
 
         <TabsContent value="meals" className="space-y-6">
           {meals.isError ? (
-            <ErrorState
-              error={meals.error}
-              onRetry={() => void meals.refetch()}
-            />
+            <ErrorState error={meals.error} onRetry={() => void meals.refetch()} />
           ) : meals.isPending ? (
             <div className="space-y-4">
               {Array.from({ length: 4 }, (_, index) => (
-                <Skeleton
-                  key={index}
-                  className="h-32 rounded-xl"
-                />
+                <Skeleton key={index} className="h-32 rounded-xl" />
               ))}
             </div>
           ) : (
-            <MealJournal
-              meals={mealList}
-              selectedDate={selectedDate}
-            />
+            <MealJournal meals={mealList} selectedDate={selectedDate} />
           )}
         </TabsContent>
 

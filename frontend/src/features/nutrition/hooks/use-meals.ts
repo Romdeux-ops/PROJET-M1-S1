@@ -1,28 +1,16 @@
-
-import {
-  queryOptions,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query'
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { nutritionApi } from '../api/nutrition-api'
-import type {
-  AddMealItemInput,
-  MealFilters,
-  UpdateMealItemInput,
-} from '../schemas'
+import type { AddMealItemInput, MealFilters, UpdateMealItemInput } from '../schemas'
 
 export const mealKeys = {
   all: ['nutrition', 'meals'] as const,
 
   lists: () => [...mealKeys.all, 'list'] as const,
 
-  list: (filters: MealFilters) =>
-    [...mealKeys.lists(), filters.start, filters.end] as const,
+  list: (filters: MealFilters) => [...mealKeys.lists(), filters.start, filters.end] as const,
 
-  detail: (mealLogId: string) =>
-    [...mealKeys.all, 'detail', mealLogId] as const,
+  detail: (mealLogId: string) => [...mealKeys.all, 'detail', mealLogId] as const,
 }
 
 // Liste des repas sur une periode
@@ -61,10 +49,7 @@ export function useCreateMeal() {
     },
 
     onSuccess: (meal) => {
-      queryClient.setQueryData(
-        mealKeys.detail(meal.id),
-        meal,
-      )
+      queryClient.setQueryData(mealKeys.detail(meal.id), meal)
 
       return queryClient.invalidateQueries({
         queryKey: mealKeys.lists(),
@@ -78,18 +63,14 @@ export function useAddMealItem(mealLogId: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (input: AddMealItemInput) =>
-      nutritionApi.addMealItem(mealLogId, input),
+    mutationFn: (input: AddMealItemInput) => nutritionApi.addMealItem(mealLogId, input),
 
     meta: {
       successMessage: 'Aliment ajouté au repas',
     },
 
     onSuccess: (meal) => {
-      queryClient.setQueryData(
-        mealKeys.detail(mealLogId),
-        meal,
-      )
+      queryClient.setQueryData(mealKeys.detail(mealLogId), meal)
 
       return queryClient.invalidateQueries({
         queryKey: mealKeys.lists(),
@@ -127,28 +108,15 @@ export function useUpdateMealItem(mealLogId: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({
-      itemId,
-      input,
-    }: {
-      itemId: string
-      input: UpdateMealItemInput
-    }) =>
-      nutritionApi.updateMealItem(
-        mealLogId,
-        itemId,
-        input,
-      ),
+    mutationFn: ({ itemId, input }: { itemId: string; input: UpdateMealItemInput }) =>
+      nutritionApi.updateMealItem(mealLogId, itemId, input),
 
     meta: {
       successMessage: 'Quantité modifiée',
     },
 
     onSuccess: (meal) => {
-      queryClient.setQueryData(
-        mealKeys.detail(mealLogId),
-        meal,
-      )
+      queryClient.setQueryData(mealKeys.detail(mealLogId), meal)
 
       return queryClient.invalidateQueries({
         queryKey: mealKeys.lists(),
@@ -162,18 +130,14 @@ export function useDeleteMealItem(mealLogId: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (itemId: string) =>
-      nutritionApi.deleteMealItem(mealLogId, itemId),
+    mutationFn: (itemId: string) => nutritionApi.deleteMealItem(mealLogId, itemId),
 
     meta: {
       successMessage: 'Aliment supprimé du repas',
     },
 
     onSuccess: (meal) => {
-      queryClient.setQueryData(
-        mealKeys.detail(mealLogId),
-        meal,
-      )
+      queryClient.setQueryData(mealKeys.detail(mealLogId), meal)
 
       return queryClient.invalidateQueries({
         queryKey: mealKeys.lists(),

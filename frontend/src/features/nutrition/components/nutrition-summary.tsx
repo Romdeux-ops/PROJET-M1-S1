@@ -1,18 +1,8 @@
-
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 import { Progress } from '@/components/ui/progress'
 
-import type {
-  MealLog,
-  NutritionPlan,
-  NutritionValues,
-} from '../schemas'
+import type { MealLog, NutritionPlan, NutritionValues } from '../schemas'
 
 interface NutritionSummaryProps {
   meals: MealLog[]
@@ -54,41 +44,26 @@ interface NutrientCardProps {
   unit: string
 }
 
-function NutrientCard({
-  label,
-  value,
-  goal,
-  unit,
-}: NutrientCardProps) {
+function NutrientCard({ label, value, goal, unit }: NutrientCardProps) {
   const hasGoal = goal != null && goal > 0
 
-  const percentage = hasGoal
-    ? (value / goal) * 100
-    : 0
+  const percentage = hasGoal ? (value / goal) * 100 : 0
 
-  const remaining = hasGoal
-    ? Math.max(goal - value, 0)
-    : 0
+  const remaining = hasGoal ? Math.max(goal - value, 0) : 0
 
   const exceeded = hasGoal && value > goal
 
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {label}
-        </CardTitle>
+        <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-3">
         <div className="flex items-baseline gap-1">
-          <span className="text-2xl font-bold">
-            {formatValue(value)}
-          </span>
+          <span className="text-2xl font-bold">{formatValue(value)}</span>
 
-          <span className="text-sm text-muted-foreground">
-            {unit}
-          </span>
+          <span className="text-sm text-muted-foreground">{unit}</span>
         </div>
 
         {hasGoal ? (
@@ -101,9 +76,7 @@ function NutrientCard({
               <span>{Math.round(percentage)} %</span>
             </div>
 
-            <Progress
-              value={Math.min(percentage, 100)}
-            />
+            <Progress value={Math.min(percentage, 100)} />
 
             <p className="text-xs text-muted-foreground">
               {exceeded
@@ -112,19 +85,14 @@ function NutrientCard({
             </p>
           </>
         ) : (
-          <p className="text-xs text-muted-foreground">
-            Aucun objectif défini
-          </p>
+          <p className="text-xs text-muted-foreground">Aucun objectif défini</p>
         )}
       </CardContent>
     </Card>
   )
 }
 
-export function NutritionSummary({
-  meals,
-  plan,
-}: NutritionSummaryProps) {
+export function NutritionSummary({ meals, plan }: NutritionSummaryProps) {
   const totals = calculateTotals(meals)
 
   return (
@@ -136,12 +104,7 @@ export function NutritionSummary({
         unit="kcal"
       />
 
-      <NutrientCard
-        label="Protéines"
-        value={totals.proteinG}
-        goal={plan?.proteinGoalG}
-        unit="g"
-      />
+      <NutrientCard label="Protéines" value={totals.proteinG} goal={plan?.proteinGoalG} unit="g" />
 
       <NutrientCard
         label="Glucides"
@@ -150,19 +113,9 @@ export function NutritionSummary({
         unit="g"
       />
 
-      <NutrientCard
-        label="Lipides"
-        value={totals.fatG}
-        goal={plan?.fatGoalG}
-        unit="g"
-      />
+      <NutrientCard label="Lipides" value={totals.fatG} goal={plan?.fatGoalG} unit="g" />
 
-      <NutrientCard
-        label="Fibres"
-        value={totals.fiberG}
-        goal={plan?.fiberGoalG}
-        unit="g"
-      />
+      <NutrientCard label="Fibres" value={totals.fiberG} goal={plan?.fiberGoalG} unit="g" />
     </div>
   )
 }
