@@ -1,6 +1,6 @@
 # FitCoach - Backend
 
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![Version](https://img.shields.io/badge/version-0.1.2-blue)
 [![Backend CI](https://github.com/Romdeux-ops/PROJET-M1-S1/actions/workflows/backend.yml/badge.svg)](https://github.com/Romdeux-ops/PROJET-M1-S1/actions/workflows/backend.yml)
 [![Frontend CI](https://github.com/Romdeux-ops/PROJET-M1-S1/actions/workflows/frontend.yml/badge.svg)](https://github.com/Romdeux-ops/PROJET-M1-S1/actions/workflows/frontend.yml)
 
@@ -21,11 +21,11 @@ reservation de creneaux, messagerie et generation de programmes par IA.
 
 Le frontend React / TypeScript / Tailwind vit dans [`frontend/`](frontend/README.md).
 
-## Tester la v0.1.0
+## Tester la v0.1.2
 
-Version livree pour le Rendu 2, figee par le tag `v0.1.0`
-([release GitHub](https://github.com/Romdeux-ops/PROJET-M1-S1/releases/tag/v0.1.0)). En attendant la fusion dans `main`, le meme code est sur la
-branche `release/v0.1.0`. Le detail des changements est dans
+Version livree pour le Rendu 3, figee par le tag `v0.1.2`
+([release GitHub](https://github.com/Romdeux-ops/PROJET-M1-S1/releases/tag/v0.1.2)). En attendant la fusion dans `main`, le meme code est sur la
+branche `release/v0.1.2`. Le detail des changements est dans
 [CHANGELOG.md](CHANGELOG.md).
 
 **Prerequis** : JDK 21, Docker Desktop **lance**, Node.js 22 ou plus, Git.
@@ -33,7 +33,7 @@ branche `release/v0.1.0`. Le detail des changements est dans
 ```bash
 git clone https://github.com/Romdeux-ops/PROJET-M1-S1.git
 cd PROJET-M1-S1
-git checkout v0.1.0
+git checkout v0.1.2
 cp .env.example .env               # PowerShell : Copy-Item .env.example .env
 docker compose up -d               # PostgreSQL (5432) et pgAdmin (5050)
 ./gradlew bootRun                  # Windows : .\gradlew.bat bootRun
@@ -203,11 +203,11 @@ Une feature majeure par etudiant, dans son module (backend `com.fitcoach.<module
 frontend `frontend/src/features/<module>`). Le detail est dans
 [doc/dossier-lancement.md](doc/dossier-lancement.md), section 1.
 
-| Membre | Compte GitHub | Feature majeure | v0.1.0 |
+| Membre | Compte GitHub | Feature majeure | v0.1.2 |
 | --- | --- | --- | --- |
 | Romain | `Romdeux-ops` | Messagerie coach / athlete (module `messaging`) et socle commun | Livree |
 | Youcef | `Krat0s-web` | Portail de coaching : invitations, notes privees, suivi, programmes pour les athletes du coach (modules `coaching`, `program`) | Livree |
-| Mathieu | `Mathieuleboss` | Nutrition (module `nutrition`) | En cours, prochaine version |
+| Mathieu | `Mathieuleboss` | Nutrition (module `nutrition`) | Livree (branche `feature/nutrition`, integree a la release) |
 
 ## Organisation du code
 

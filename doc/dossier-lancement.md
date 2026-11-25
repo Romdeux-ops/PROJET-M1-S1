@@ -1,13 +1,14 @@
 # FitCoach — Dossier de lancement
 
-**Projet M1 S1 — Rendu 2 : v0.1.0 de l'application** · Plateforme fitness pour athlètes et coachs
+**Projet M1 S1 — Rendu 3 : v0.1.2 de l'application** · Plateforme fitness pour athlètes et coachs
 Romain (`Romdeux-ops`), Youcef (`Krat0s-web`) et Mathieu (`Mathieuleboss`)
-Release : <https://github.com/Romdeux-ops/PROJET-M1-S1/releases/tag/v0.1.0>
+Release : <https://github.com/Romdeux-ops/PROJET-M1-S1/releases/tag/v0.1.2>
 
 | Version | Date | Objet |
 | --- | --- | --- |
 | 1.0 | novembre 2026 | Rendu 1 : dossier de lancement |
 | 1.1 | 2026-11-17 | Rendu 2 : v0.1.0 de l'application, intégration continue, évolution du dossier |
+| 1.2 | 2026-11-25 | Rendu 3 : v0.1.2, version complète (nutrition, profil public par QR code, nouveau design, corrections) |
 
 Ce dossier est versionné avec le code dans [`/doc`](.) : `dossier-lancement.md` est la source
 lisible, `dossier-lancement.pdf` en est la version compilée (voir `doc/README.md` pour la
@@ -19,13 +20,13 @@ Nous sommes trois. Chacun porte une **feature majeure** dans son propre module (
 `com.fitcoach.<module>`, frontend `frontend/src/features/<module>`), ce qui limite les
 conflits de fusion.
 
-| Membre | Compte GitHub | Feature majeure | État dans la v0.1.0 |
+| Membre | Compte GitHub | Feature majeure | État dans la v0.1.2 |
 | --- | --- | --- | --- |
 | Romain | `Romdeux-ops` (propriétaire du dépôt) | Messagerie coach ↔ athlète, et socle commun (architecture, JWT, Flyway, outillage frontend) | **Livrée** : conversation unique par paire, historique paginé par curseur, accusés de lecture, envoi conditionné à une relation active |
-| Youcef | `Krat0s-web` | Portail de coaching | **Livré** : invitations coach → athlète (acceptation, refus, annulation, fin de suivi), notes privées, suivi d'un athlète, publications à images protégées, validation hiérarchique des séances, programmes visibles par les athlètes du coach avec notation |
-| Mathieu | `Mathieuleboss` | Nutrition (plans alimentaires, journal des repas, besoins caloriques, recettes) | **En cours de développement, prévue dans la prochaine version** : le code de nutrition n'est pas dans la v0.1.0, que l'équipe livre sans elle d'un commun accord avec Mathieu. Le module est volontairement isolé (aucun autre module n'en dépend) ; sa route et son entrée de menu existent côté frontend avec un écran d'attente |
+| Youcef | `Krat0s-web` | Portail de coaching | **Livré** : invitations coach → athlète (acceptation, refus, annulation, fin de suivi), notes privées, suivi d'un athlète, publications à images protégées, validation hiérarchique des séances, programmes visibles par les athlètes du coach avec notation, **profil public par QR code et demandes de suivi** (v0.1.2) |
+| Mathieu | `Mathieuleboss` | Nutrition (plans alimentaires, journal des repas, besoins caloriques, recettes) | **Intégrée dans la v0.1.2** : le code est celui de sa branche `feature/nutrition` (commits de `Mathieuleboss`), fusionné dans `release/v0.1.2` ; l'équipe n'a fait que renuméroter ses deux migrations en V17 et V18 et formater ses fichiers (Prettier). Sa Pull Request n'est pas encore ouverte : elle reste à faire par Mathieu |
 
-Ce dossier présente l'état réel de la v0.1.0 : la nutrition de Mathieu est en cours de développement et sera ajoutée à la prochaine version.
+Ce dossier présente l'état réel de la v0.1.2, qui réunit les trois features majeures.
 Une fonctionnalité supplémentaire (génération de programmes, gamification, notifications) a
 été développée par l'équipe en plus des fonctionnalités majeures individuelles.
 
@@ -33,10 +34,11 @@ Une fonctionnalité supplémentaire (génération de programmes, gamification, n
 
 - Dépôt principal (backend, frontend, documentation) :
   <https://github.com/Romdeux-ops/PROJET-M1-S1>
-- **Release GitHub de la v0.1.0** (tag `v0.1.0`) :
-  <https://github.com/Romdeux-ops/PROJET-M1-S1/releases/tag/v0.1.0>
-- Version figée par le tag **`v0.1.0`** : `git checkout v0.1.0` donne exactement la version
-  livrée. La branche `release/v0.1.0` (Pull Request brouillon #15) porte le même code.
+- **Release GitHub de la v0.1.2** (tag `v0.1.2`) :
+  <https://github.com/Romdeux-ops/PROJET-M1-S1/releases/tag/v0.1.2>
+- Version figée par le tag **`v0.1.2`** : `git checkout v0.1.2` donne exactement la version
+  livrée. La branche `release/v0.1.2` porte le même code. La release précédente reste
+  disponible : <https://github.com/Romdeux-ops/PROJET-M1-S1/releases/tag/v0.1.0>.
 - Monorepo : backend Spring Boot à la racine, frontend React dans `frontend/`.
 
 **Règles d'équipe.** Aucun commit direct sur `main` : chaque fonctionnalité a sa branche
@@ -137,6 +139,26 @@ Pull Request, sa migration Flyway et ses tests.
 Hors plan numéroté : notifications et rappels (migration V12) et programmes visibles par les
 athlètes du coach (V14). Le détail est dans `CHANGELOG.md`.
 
+### 5.1 Ajouts de la v0.1.2
+
+La v0.1.2 réunit la v0.1.0, les corrections issues de la relecture d'un coéquipier, le nouveau
+design et deux modules. Le schéma de base de données va de `V1` à `V18`.
+
+| Ajout | Contenu | Branche d'origine |
+| --- | --- | --- |
+| Profil public et QR code (Youcef) | Page `/coach/<id>` lisible sans compte, désactivée par défaut, e-mail jamais exposé ; QR code téléchargeable en PNG avec zone de silence ; demande de suivi d'un athlète que le coach accepte ou refuse (seule l'acceptation ouvre des droits) ; notifications des deux côtés (V16) | `feature/profil-qr` |
+| Nutrition (Mathieu) | Catalogue d'aliments, objectifs nutritionnels journaliers, recettes, création de repas (V17, V18) | `feature/nutrition` |
+| Design « Aurora » | Palettes au contraste AA vérifié par un test, animations qui respectent `prefers-reduced-motion`, page d'accueil et pages d'authentification, Planning et Messagerie restructurés | `feature/dynamisme-pages` (pile de design) |
+| Corrections | Réponses d'erreur de sécurité uniformes, accès aux programmes, préférences de notifications, validation des données et e-mails en minuscules (V15) | `fix/securite-erreurs`, `fix/acces-notifs-ia`, `fix/validation-donnees` |
+
+**Vérifications de la v0.1.2** (2026-11-25) : 213 tests backend et 172 tests frontend verts,
+lint, typecheck, Prettier et build frontend propres. La couverture chiffrée plus haut reste
+celle mesurée sur la v0.1.0.
+
+**Revue du profil public par un coéquipier** : sa relecture a mené à quatre corrections (marge
+du QR exporté, redirection conservée à l'inscription, restauration de l'ancien statut quand une
+demande est retirée, adresse publique configurable pour scanner depuis un téléphone).
+
 ## 6. Architecture et frameworks
 
 ```
@@ -225,15 +247,15 @@ restent humaines**.
   inconnus sont écartés, séries et répétitions bornées) et **n'écrit jamais en base** :
   l'utilisateur l'enregistre explicitement par les routes habituelles des programmes.
 
-## 9. Installer et tester la v0.1.0
+## 9. Installer et tester la v0.1.2
 
 Prérequis : JDK 21, Docker Desktop lancé, Node.js 22 ou plus, Git. Le pas à pas complet,
-le parcours de test et le dépannage sont dans la section « Tester la v0.1.0 » du `README.md`.
+le parcours de test et le dépannage sont dans la section « Tester la v0.1.2 » du `README.md`.
 En résumé :
 
 ```
 git clone https://github.com/Romdeux-ops/PROJET-M1-S1.git && cd PROJET-M1-S1
-git checkout v0.1.0
+git checkout v0.1.2
 cp .env.example .env && docker compose up -d
 ./gradlew bootRun                  # terminal 1
 cd frontend && npm install && npm run dev    # terminal 2 : http://localhost:5173
@@ -246,7 +268,7 @@ avec un programme visible par les athlètes et une séance prévue aujourd'hui.
 
 ## 10. Limites connues et feuille de route
 
-- **Nutrition** (Mathieu) : en cours de développement, absente de la v0.1.0 et prévue dans la prochaine version.
+- **Nutrition** (Mathieu) : intégrée dans la v0.1.2 mais sans Pull Request ni CI sur sa branche ; son code n'a pas été relu en détail par le reste de l'équipe, seulement compilé et testé.
 - **Back-office d'administration** et **déploiement** : non réalisés.
 - **Défis** de la gamification : non implémentés (badges, expérience et classement le sont).
 - **Badges dynamiques** de couverture et de qualité de code : à brancher par le

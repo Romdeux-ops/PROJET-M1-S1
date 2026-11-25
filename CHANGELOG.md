@@ -3,6 +3,28 @@
 Toutes les evolutions notables de FitCoach. Format inspire de
 [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versionnement semantique.
 
+## [0.1.2] - 2026-11-25
+
+Version « tout-en-un » (Rendu 3) : la v0.1.0 plus les corrections, le nouveau design,
+le profil public par QR code et la nutrition. Le schema va de `V1` a `V18`.
+
+### Ajouts
+- **Profil public d'un coach et QR code** (`coaching`, V16) : page `/coach/<id>` lisible sans
+  compte (desactivee par defaut, e-mail jamais expose), QR code telechargeable en PNG, et
+  **demande de suivi** d'un athlete que le coach accepte ou refuse (notifications des deux
+  cotes). Seule l'acceptation ouvre des droits.
+- **Nutrition** (`nutrition`, V17 et V18, par Mathieu) : catalogue d'aliments, objectifs
+  nutritionnels journaliers, recettes et creation de repas. Migrations renumerotees pour
+  s'inserer apres V16.
+- **Nouveau design « Aurora »** : palettes accessibles (contraste AA mesure par un test),
+  animations respectant `prefers-reduced-motion`, nouvelle page d'accueil et pages
+  d'authentification, Planning et Messagerie restructures, devtools masques.
+
+### Corrections
+- Securite et erreurs (reponses d'erreur uniformes, secret JWT controle, temps de connexion constant).
+- Acces aux programmes, preferences de notifications, generateur de programmes.
+- Validation des donnees : e-mails en minuscules (V15), dates, longueurs.
+
 ## [0.1.0] - 2026-11-17
 
 Premiere version livrable (Rendu 2). Le schema de base de donnees va de `V1` a
