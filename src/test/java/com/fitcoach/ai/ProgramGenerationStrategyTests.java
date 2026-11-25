@@ -116,6 +116,21 @@ class ProgramGenerationStrategyTests {
     }
 
     @Test
+    void sevenSessionsWithoutEnoughRecoveryExercisesAnnounceTheRealDayCount() {
+        for (GenerationGoal goal : GenerationGoal.values()) {
+            GeneratedProgramResponse draft = service(new FakeModel("{}", false), GenerationStrategy.RULES)
+                    .generate(new ProgramGenerationRequest(goal, GenerationLevel.BEGINNER, 7, null, null, null));
+
+            assertThat(draft.days()).as(goal.name()).hasSize(6);
+            assertThat(draft.name()).as(goal.name()).contains("6 séances/semaine").doesNotContain("7 séances");
+            assertThat(draft.description())
+                    .as(goal.name())
+                    .contains("6 séances par semaine")
+                    .contains("7 séances demandées");
+        }
+    }
+
+    @Test
     void bodyweightEquipmentKeepsBarbellExercisesOut() {
         GeneratedProgramResponse draft =
                 service(new FakeModel("{}", false), GenerationStrategy.AUTO).generate(request("poids du corps", null));

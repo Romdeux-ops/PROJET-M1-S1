@@ -40,4 +40,9 @@ class JpaUserDirectory implements UserDirectory {
     public Optional<UserSummary> findByEmail(String email) {
         return userRepository.findByEmail(email).map(User::toSummary);
     }
+
+    @Override
+    public boolean notificationsEnabled(UUID userId) {
+        return userRepository.findById(userId).map(User::isNotificationsEnabled).orElse(true);
+    }
 }

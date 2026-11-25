@@ -26,6 +26,9 @@ export interface ScheduledSession {
 export const scheduleFormSchema = z.object({
   title: z.string().trim().min(1, 'Le titre est requis').max(150),
   scheduledDate: z.string().min(1, 'La date est requise'),
+  /** Vide = seance libre. Le jour n'a de sens qu'avec un programme. */
+  programId: z.string().optional().or(z.literal('')),
+  programDayId: z.string().optional().or(z.literal('')),
   notes: z.string().trim().max(1000).optional().or(z.literal('')),
 })
 export type ScheduleFormInput = z.infer<typeof scheduleFormSchema>

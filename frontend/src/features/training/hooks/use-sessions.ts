@@ -1,4 +1,13 @@
-import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  type QueryClient,
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
+
+import { gamificationKeys } from '@/features/gamification'
+import { statsKeys } from '@/features/stats'
 
 import { trainingApi } from '../api/training-api'
 import type { AddSetInput } from '../schemas'
@@ -44,7 +53,7 @@ export function useCreateSession() {
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: trainingKeys.all }),
-        queryClient.invalidateQueries({ queryKey: ['stats'] }),
+        ...invalidateDerived(queryClient),
       ]),
   })
 }
@@ -57,9 +66,17 @@ export function useDeleteSession() {
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: trainingKeys.all }),
-        queryClient.invalidateQueries({ queryKey: ['stats'] }),
+        ...invalidateDerived(queryClient),
       ]),
   })
+}
+
+/** XP, badges et statistiques sont derives des seances : a recharger apres chaque ecriture. */
+function invalidateDerived(queryClient: QueryClient) {
+  return [
+    queryClient.invalidateQueries({ queryKey: gamificationKeys.all }),
+    queryClient.invalidateQueries({ queryKey: statsKeys.all }),
+  ]
 }
 
 function useSessionMutator(sessionId: string) {
@@ -68,6 +85,7 @@ function useSessionMutator(sessionId: string) {
     queryClient.setQueryData(trainingKeys.session(sessionId), session)
     queryClient.invalidateQueries({ queryKey: trainingKeys.sessions() })
     queryClient.invalidateQueries({ queryKey: trainingKeys.personalRecords() })
+    invalidateDerived(queryClient)
   }
 }
 

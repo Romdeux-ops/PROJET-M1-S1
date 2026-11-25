@@ -5,6 +5,9 @@ import com.fitcoach.coaching.api.CoachRelations;
 import com.fitcoach.common.domain.Positions;
 import com.fitcoach.identity.api.UserDirectory;
 import com.fitcoach.identity.api.UserSummary;
+import com.fitcoach.program.api.ProgramAccess;
+import com.fitcoach.program.api.ProgramDayMismatchException;
+import com.fitcoach.program.api.UnusableProgramException;
 import com.fitcoach.program.domain.Program;
 import com.fitcoach.program.domain.ProgramCategory;
 import com.fitcoach.program.domain.ProgramDay;
@@ -42,7 +45,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class ProgramService {
+public class ProgramService implements ProgramAccess {
 
     private final ProgramRepository programRepository;
     private final ProgramDayRepository programDayRepository;
@@ -206,17 +209,15 @@ public class ProgramService {
 
     @Transactional
     public ProgramResponse rate(UUID programId, UUID userId, RatingRequest request) {
-        Program program = programRepository.findById(programId).orElseThrow(ProgramNotFoundException::new);
+        // Visibilite d'abord (404) : un programme invisible ne doit pas se reveler par une erreur metier.
+        // CLIENTS : relation ACTIVE relue maintenant ; une fois terminee, la note deja donnee reste comptee
+        // dans la moyenne mais ne peut plus etre modifiee.
+        Program program = findVisibleOrThrow(programId, userId);
         if (program.getVisibility() == ProgramVisibility.PRIVATE) {
             throw new ProgramNotPublicException();
         }
         if (program.isOwnedBy(userId)) {
             throw new CannotRateOwnProgramException();
-        }
-        // CLIENTS : relation ACTIVE relue maintenant ; une fois terminee, la note deja donnee reste comptee
-        // dans la moyenne mais ne peut plus etre modifiee (404 comme pour la lecture).
-        if (!canView(program, userId)) {
-            throw new ProgramNotFoundException();
         }
         ProgramRating rating = programRatingRepository
                 .findByProgramIdAndUserId(programId, userId)
@@ -235,8 +236,31 @@ public class ProgramService {
         program.setVisibility(request.visibility());
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public void assertCanUse(UUID userId, UUID programId, UUID programDayId) {
+        if (programId == null) {
+            if (programDayId != null) {
+                throw new ProgramDayMismatchException();
+            }
+            return;
+        }
+        Program program = programRepository
+                .findById(programId)
+                .filter(p -> canView(p, userId))
+                .orElseThrow(UnusableProgramException::new);
+        if (programDayId != null
+                && programDayRepository
+                        .findById(programDayId)
+                        .filter(d -> d.getProgramId().equals(program.getId()))
+                        .isEmpty()) {
+            throw new ProgramDayMismatchException();
+        }
+    }
+
+    /** 404 si invisible, puis 403 si visible mais pas a soi (ex. programme CLIENTS de son coach). */
     private Program findOwnedOrThrow(UUID programId, UUID ownerId) {
-        Program program = programRepository.findById(programId).orElseThrow(ProgramNotFoundException::new);
+        Program program = findVisibleOrThrow(programId, ownerId);
         if (!program.isOwnedBy(ownerId)) {
             throw new NotProgramOwnerException();
         }

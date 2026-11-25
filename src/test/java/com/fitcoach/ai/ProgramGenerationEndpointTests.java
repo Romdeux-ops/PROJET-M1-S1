@@ -12,6 +12,7 @@ import com.fitcoach.catalog.api.ExerciseCatalog;
 import com.fitcoach.support.TestUsers;
 import com.fitcoach.support.TestUsers.Registered;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -46,7 +47,13 @@ class ProgramGenerationEndpointTests {
 
     private JsonNode generate(String token, String level, int sessions, String equipment, Integer variant)
             throws Exception {
-        String body = "{\"goal\":\"MUSCLE_GAIN\",\"level\":\"" + level + "\",\"sessionsPerWeek\":" + sessions
+        return generate(token, "MUSCLE_GAIN", level, sessions, equipment, variant);
+    }
+
+    private JsonNode generate(
+            String token, String goal, String level, int sessions, String equipment, Integer variant)
+            throws Exception {
+        String body = "{\"goal\":\"" + goal + "\",\"level\":\"" + level + "\",\"sessionsPerWeek\":" + sessions
                 + (equipment == null ? "" : ",\"equipment\":\"" + equipment + "\"")
                 + (variant == null ? "" : ",\"variant\":" + variant) + "}";
         String response = mockMvc.perform(post("/api/ai/program-generation")
@@ -96,6 +103,52 @@ class ProgramGenerationEndpointTests {
                 assertThat(days).as(sessions + " seance(s)").isEqualTo(sessions);
             }
         }
+    }
+
+    @Test
+    void sevenSessionsNeverAnnounceMoreDaysThanGenerated() throws Exception {
+        String token = athleteToken();
+        for (String goal : List.of("MUSCLE_GAIN", "WEIGHT_LOSS", "ENDURANCE", "GENERAL_FITNESS")) {
+            for (String level : List.of("BEGINNER", "INTERMEDIATE", "ADVANCED")) {
+                JsonNode draft = generate(token, goal, level, 7, null, null);
+                int days = draft.get("days").size();
+                String context = goal + " / " + level;
+
+                assertThat(draft.get("name").asText()).as(context).contains(days + " séances/semaine");
+                assertThat(draft.get("description").asText()).as(context).contains(days + " séances par semaine");
+                if (days < 7) {
+                    assertThat(draft.get("description").asText()).as(context).contains("7 séances demandées");
+                }
+            }
+        }
+    }
+
+    @Test
+    void beginnerWithSevenSessionsGetsTheRecoveryDayFromTheSeededCatalog() throws Exception {
+        String token = athleteToken();
+        for (String goal : List.of("MUSCLE_GAIN", "WEIGHT_LOSS", "ENDURANCE", "GENERAL_FITNESS")) {
+            assertThat(generate(token, goal, "BEGINNER", 7, null, null).get("days").size()).as(goal).isEqualTo(7);
+        }
+    }
+
+    @Test
+    void variantIsBounded() throws Exception {
+        String token = athleteToken();
+        assertThat(generate(token, "BEGINNER", 3, null, 1000).get("description").asText()).contains("Variante 1001");
+
+        mockMvc.perform(post("/api/ai/program-generation")
+                        .with(csrf())
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"goal\":\"MUSCLE_GAIN\",\"level\":\"BEGINNER\",\"sessionsPerWeek\":3,\"variant\":1001}"))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(post("/api/ai/program-generation")
+                        .with(csrf())
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"goal\":\"MUSCLE_GAIN\",\"level\":\"BEGINNER\",\"sessionsPerWeek\":3,"
+                                + "\"variant\":2147483647}"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

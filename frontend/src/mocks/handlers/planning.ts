@@ -41,13 +41,23 @@ export const planningHandlers = [
     const user = userFromRequest(request)
     if (!user) return problem(401, 'Session invalide.')
     const body = await request.json()
+    // Meme regle que le backend : programme invisible ou inconnu -> 404, jour d'un autre programme -> 400.
+    const program = body.programId
+      ? db.programs.find(
+          (p) => p.id === body.programId && (p.ownerId === user.id || p.visibility !== 'PRIVATE'),
+        )
+      : undefined
+    if (body.programId && !program) return problem(404, 'Programme introuvable.')
+    if (body.programDayId && !program?.days.some((d) => d.id === body.programDayId)) {
+      return problem(400, "Le jour indique n'appartient pas au programme choisi.")
+    }
     const session: ScheduledSession = {
       id: crypto.randomUUID(),
       title: body.title,
       scheduledDate: body.scheduledDate,
       status: 'PLANNED',
-      programId: null,
-      programDayId: null,
+      programId: body.programId || null,
+      programDayId: body.programDayId || null,
       workoutSessionId: null,
       notes: body.notes || null,
       athleteId: user.id,

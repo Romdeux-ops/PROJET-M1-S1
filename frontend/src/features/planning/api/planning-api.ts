@@ -32,6 +32,8 @@ export const planningApi = {
         body: {
           title: input.title,
           scheduledDate: input.scheduledDate,
+          programId: input.programId || undefined,
+          programDayId: input.programId ? input.programDayId || undefined : undefined,
           notes: input.notes || undefined,
         },
       }),

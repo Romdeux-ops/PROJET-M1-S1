@@ -34,6 +34,8 @@ public class RuleBasedProgramGenerator {
     private static final int MAX_EXERCISES = 6;
     private static final int MIN_AFTER_FILTER = 3;
     private static final int MIN_RECOVERY_CANDIDATES = 3;
+    /** Le catalogue de base n'a que deux exercices de recuperation de niveau debutant. */
+    private static final int MIN_RECOVERY_CANDIDATES_BEGINNER = 2;
     private static final JsonMapper MAPPER = JsonMapper.builder().build();
 
     private static final Set<String> LOWER_BODY = Set.of("QUADS", "HAMSTRINGS", "GLUTES", "CALVES");
@@ -100,7 +102,7 @@ public class RuleBasedProgramGenerator {
                 levelPool.stream().filter(equipment::allows).toList();
 
         int variant = request.variantOrZero();
-        List<DayType> plan = plan(request.sessionsPerWeek(), levelPool);
+        List<DayType> plan = plan(request.sessionsPerWeek(), request.level(), levelPool);
         boolean relaxed = false;
 
         ArrayNode daysJson = MAPPER.createArrayNode();
@@ -141,15 +143,16 @@ public class RuleBasedProgramGenerator {
         }
 
         ObjectNode root = MAPPER.createObjectNode();
-        root.put("name", name(request));
-        root.put("description", description(request, equipment.isActive(), relaxed));
+        int generatedDays = daysJson.size();
+        root.put("name", name(request, generatedDays));
+        root.put("description", description(request, generatedDays, equipment.isActive(), relaxed));
         root.put("category", request.goal() == GenerationGoal.ENDURANCE ? "CARDIO" : "STRENGTH");
         root.set("days", daysJson);
         return ProgramDraftParser.parse(
                 MAPPER.writeValueAsString(root), names, request.level(), request.sessionsPerWeek(), GenerationSource.RULES);
     }
 
-    private static List<DayType> plan(int sessionsPerWeek, List<CatalogExercise> levelPool) {
+    private static List<DayType> plan(int sessionsPerWeek, GenerationLevel level, List<CatalogExercise> levelPool) {
         List<DayType> plan =
                 switch (sessionsPerWeek) {
                     case 1 -> List.of(DayType.FULL_A);
@@ -159,7 +162,8 @@ public class RuleBasedProgramGenerator {
                     case 5 -> List.of(DayType.PUSH, DayType.PULL, DayType.LEGS, DayType.UPPER_B, DayType.LOWER_B);
                     default -> List.of(DayType.PUSH, DayType.PULL, DayType.LEGS, DayType.PUSH, DayType.PULL, DayType.LEGS);
                 };
-        if (sessionsPerWeek >= 7 && recoveryCandidates(levelPool).size() >= MIN_RECOVERY_CANDIDATES) {
+        int minRecovery = level == GenerationLevel.BEGINNER ? MIN_RECOVERY_CANDIDATES_BEGINNER : MIN_RECOVERY_CANDIDATES;
+        if (sessionsPerWeek >= 7 && recoveryCandidates(levelPool).size() >= minRecovery) {
             List<DayType> withRecovery = new ArrayList<>(plan);
             withRecovery.add(DayType.RECOVERY);
             return withRecovery;
@@ -255,20 +259,27 @@ public class RuleBasedProgramGenerator {
         return base;
     }
 
-    private static String name(ProgramGenerationRequest request) {
-        return "Programme " + goalLabel(request.goal()) + " — " + request.sessionsPerWeek()
-                + (request.sessionsPerWeek() > 1 ? " séances" : " séance") + "/semaine (" + levelLabel(request.level()) + ")";
+    private static String name(ProgramGenerationRequest request, int days) {
+        return "Programme " + goalLabel(request.goal()) + " — " + days
+                + (days > 1 ? " séances" : " séance") + "/semaine (" + levelLabel(request.level()) + ")";
     }
 
-    private static String description(ProgramGenerationRequest request, boolean equipmentUsed, boolean relaxed) {
+    private static String description(
+            ProgramGenerationRequest request, int days, boolean equipmentUsed, boolean relaxed) {
         StringBuilder text = new StringBuilder("Programme généré par règles à partir du catalogue d'exercices (sans IA) : ")
-                .append(request.sessionsPerWeek())
-                .append(request.sessionsPerWeek() > 1 ? " séances" : " séance")
+                .append(days)
+                .append(days > 1 ? " séances" : " séance")
                 .append(" par semaine, objectif ")
                 .append(goalLabel(request.goal()))
                 .append(", niveau ")
                 .append(levelLabel(request.level()))
                 .append('.');
+        if (days < request.sessionsPerWeek()) {
+            text.append(' ')
+                    .append(request.sessionsPerWeek())
+                    .append(" séances demandées : le catalogue n'a pas assez d'exercices adaptés à ce niveau")
+                    .append(" pour les construire toutes, les jours restants sont à garder pour le repos.");
+        }
         if (equipmentUsed) {
             text.append(" Le matériel indiqué a été pris en compte.");
         }
