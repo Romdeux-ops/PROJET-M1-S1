@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,7 +65,12 @@ public class FollowRequestService {
         } else {
             relation.request();
         }
-        coachAthleteRepository.save(relation);
+        try {
+            coachAthleteRepository.saveAndFlush(relation);
+        } catch (DataIntegrityViolationException e) {
+            // Deux demandes simultanees (deux onglets) : la seconde se heurte a la cle (coach, athlete).
+            throw new InvitationConflictException("Votre demande est deja en attente.");
+        }
 
         notifier.notify(
                 coachId,
@@ -76,10 +82,16 @@ public class FollowRequestService {
         return new InvitationResponse(coach, athlete, relation.getInvitedAt());
     }
 
-    /** L'athlete retire sa demande : la ligne disparait, il pourra redemander. */
+    /**
+     * L'athlete retire sa demande. Une relation deja connue (DECLINED, ENDED) retrouve son statut ; une relation
+     * nee de la demande est supprimee. Dans les deux cas il pourra redemander.
+     */
     @Transactional
     public void cancel(UUID athleteId, UUID coachId) {
-        coachAthleteRepository.delete(findRequested(coachId, athleteId));
+        CoachAthlete relation = findRequested(coachId, athleteId);
+        if (!relation.withdrawRequest()) {
+            coachAthleteRepository.delete(relation);
+        }
     }
 
     public List<InvitationResponse> listReceived(UUID coachId) {

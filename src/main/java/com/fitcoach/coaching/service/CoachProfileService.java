@@ -50,30 +50,36 @@ public class CoachProfileService {
 
     /** Profil visible de tous, 404 tant que le coach ne l'a pas publie (ou si le compte n'est pas un coach). */
     public PublicCoachProfileResponse getPublicProfile(UUID coachId, UUID viewerId) {
-        UserSummary coach = requirePublicCoach(coachId);
-        CoachPublicProfile profile = profileRepository.findById(coachId).orElseThrow(PublicProfileNotFoundException::new);
+        PublishedCoach published = loadPublished(coachId);
+        UserSummary coach = published.coach();
         return new PublicCoachProfileResponse(
                 coach.id(),
                 coach.firstName(),
                 coach.lastName(),
                 coach.avatarUrl(),
-                profile.getHeadline(),
-                profile.getBio(),
+                published.profile().getHeadline(),
+                published.profile().getBio(),
                 viewerStatus(coachId, viewerId));
     }
 
     /** Verifie qu'un coach existe et a publie son profil ; sert aussi de garde aux demandes de suivi. */
     UserSummary requirePublicCoach(UUID coachId) {
+        return loadPublished(coachId).coach();
+    }
+
+    private PublishedCoach loadPublished(UUID coachId) {
         UserSummary coach = userDirectory
                 .findById(coachId)
                 .filter(user -> user.hasRole(RoleCode.COACH))
                 .orElseThrow(PublicProfileNotFoundException::new);
-        boolean published = profileRepository.findById(coachId).map(CoachPublicProfile::isEnabled).orElse(false);
-        if (!published) {
-            throw new PublicProfileNotFoundException();
-        }
-        return coach;
+        CoachPublicProfile profile = profileRepository
+                .findById(coachId)
+                .filter(CoachPublicProfile::isEnabled)
+                .orElseThrow(PublicProfileNotFoundException::new);
+        return new PublishedCoach(coach, profile);
     }
+
+    private record PublishedCoach(UserSummary coach, CoachPublicProfile profile) {}
 
     private ViewerStatus viewerStatus(UUID coachId, UUID viewerId) {
         if (viewerId == null) {
