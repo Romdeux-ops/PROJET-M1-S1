@@ -16,6 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ApiError } from '@/lib/api/errors'
 import { initials } from '@/lib/utils'
 
 import { PublicProfileCardLink } from '../components/public-profile-card-link'
@@ -24,7 +25,8 @@ import type { PublicCoachProfile } from '../schemas'
 
 /** Page ouverte en scannant le QR code d'un coach : lisible sans compte, avec la demande de suivi pour un athlete. */
 export function CoachProfilePage({ coachId }: { coachId: string }) {
-  const { data: profile, isLoading, isError } = usePublicProfile(coachId)
+  const { data: profile, isLoading, error, refetch } = usePublicProfile(coachId)
+  const notFound = error instanceof ApiError && error.status === 404
 
   return (
     <div className="min-h-dvh">
@@ -37,7 +39,18 @@ export function CoachProfilePage({ coachId }: { coachId: string }) {
       <main className="mx-auto max-w-xl px-4 pb-16">
         {isLoading ? (
           <Skeleton className="h-72 w-full rounded-2xl" />
-        ) : isError || !profile ? (
+        ) : error && !notFound ? (
+          <EmptyState
+            icon={UserCheck}
+            title="Impossible de charger ce profil"
+            description="Un problème est survenu, vérifiez votre connexion puis réessayez."
+            action={
+              <Button variant="outline" onClick={() => void refetch()}>
+                Réessayer
+              </Button>
+            }
+          />
+        ) : !profile ? (
           <EmptyState
             icon={UserCheck}
             title="Ce profil n'est pas disponible"
@@ -110,7 +123,9 @@ function FollowAction({ profile }: { profile: PublicCoachProfile }) {
               </Link>
             </Button>
             <Button asChild variant="outline">
-              <Link to="/register">Créer un compte</Link>
+              <Link to="/register" search={{ redirect: `/coach/${profile.id}` }}>
+                Créer un compte
+              </Link>
             </Button>
           </div>
         </div>

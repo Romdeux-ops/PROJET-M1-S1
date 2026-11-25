@@ -30,8 +30,8 @@ const ROLE_OPTIONS = [
   { value: 'COACH', label: 'Coach', description: "J'accompagne des athlètes", icon: Users },
 ] as const
 
-export function RegisterForm() {
-  const registerMutation = useRegister()
+export function RegisterForm({ redirectTo }: { redirectTo?: string }) {
+  const registerMutation = useRegister(redirectTo)
   const animated = useAnimationsEnabled()
   const pillId = useId()
   const form = useForm<RegisterInput>({
