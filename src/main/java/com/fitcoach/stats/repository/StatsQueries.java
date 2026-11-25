@@ -134,11 +134,14 @@ public class StatsQueries {
     }
 
     /** Jours locaux distincts d'entrainement, du plus recent au plus ancien, bornes a {@code limit}. */
-    public List<LocalDate> recentTrainingDays(UUID athleteId, ZoneId zone, int limit) {
+    /** Jours d'entrainement les plus recents jusqu'a {@code to} inclus ; les jours posterieurs sont ignores. */
+    public List<LocalDate> recentTrainingDays(UUID athleteId, ZoneId zone, LocalDate to, int limit) {
         return jdbcClient.sql("SELECT DISTINCT " + LOCAL_DATE + " AS date FROM workout_sessions ws"
-                        + " WHERE ws.athlete_id = :athleteId ORDER BY 1 DESC LIMIT :limit")
+                        + " WHERE ws.athlete_id = :athleteId AND " + LOCAL_DATE + " <= :to"
+                        + " ORDER BY 1 DESC LIMIT :limit")
                 .param("athleteId", athleteId)
                 .param("zone", zone.getId())
+                .param("to", to)
                 .param("limit", limit)
                 .query(LocalDate.class)
                 .list();

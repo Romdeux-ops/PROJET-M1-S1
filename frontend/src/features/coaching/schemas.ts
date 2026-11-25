@@ -6,7 +6,7 @@ export const NOTE_MAX_LENGTH = 5000
 
 /** Invitation du coach a un athlete : tant qu'elle est en attente, aucun droit d'acces n'est ouvert. */
 export const inviteAthleteSchema = z.object({
-  athleteEmail: z.email('Adresse e-mail invalide'),
+  athleteEmail: z.string().trim().toLowerCase().pipe(z.email('Adresse e-mail invalide')),
 })
 export type InviteAthleteInput = z.infer<typeof inviteAthleteSchema>
 

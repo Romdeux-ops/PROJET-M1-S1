@@ -32,7 +32,7 @@ class JpaAthleteActivity implements AthleteActivity {
         int sessions = statsQueries.dailyActivity(athleteId, zone, today.minusDays(RECENT_DAYS - 1L), today).stream()
                 .mapToInt(DailyActivity::sessions)
                 .sum();
-        List<LocalDate> latest = statsQueries.recentTrainingDays(athleteId, zone, 1);
+        List<LocalDate> latest = statsQueries.recentTrainingDays(athleteId, zone, today, 1);
         LocalDate lastSessionDate = latest.isEmpty() ? null : latest.get(0);
         return new Snapshot(sessions, lastSessionDate, statsService.streak(athleteId).currentStreakDays());
     }
