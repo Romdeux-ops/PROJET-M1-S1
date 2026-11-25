@@ -92,6 +92,14 @@ features/training/
 > individuels (exercice, charge, repetitions, RPE) et un `totalVolume` calcule,
 > sans notion de type global.
 
+## QR code du profil coach en dev
+
+Le QR code encode `window.location.origin`. En dev c'est `localhost`, que le téléphone qui scanne ne peut
+pas ouvrir. Pour un QR scannable, ouvrir l'application via l'IP du poste : lancer `npm run dev -- --host`,
+renseigner `VITE_PUBLIC_URL=http://<ip>:5173` dans `.env.local`, et ajouter cette adresse à
+`CORS_ALLOWED_ORIGINS` côté backend. En production, laisser `VITE_PUBLIC_URL` vide : l'adresse du site est
+utilisée.
+
 ## Ajouter une fonctionnalite en 5 etapes
 
 Exemple : la liste des programmes dans `features/program`.

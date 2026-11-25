@@ -6,6 +6,8 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 
 const PNG_SIZE = 1024
+/** Zone de silence exigee autour d'un QR code (4 modules) : elle fait partie du SVG, donc du PNG exporte. */
+const QUIET_ZONE_MODULES = 4
 
 interface QrCodePanelProps {
   /** Adresse encodee dans le QR code. */
@@ -51,12 +53,12 @@ export function QrCodePanel({ url, fileName }: QrCodePanelProps) {
   return (
     <div className="flex flex-col items-center gap-4">
       {/* Fond blanc impose : un QR code se lit mal sur un fond sombre. */}
-      <div ref={wrapper} className="rounded-2xl border bg-white p-4 shadow-sm">
+      <div ref={wrapper} className="overflow-hidden rounded-2xl border bg-white shadow-sm">
         <QRCodeSVG
           value={url}
           size={208}
           level="M"
-          marginSize={0}
+          marginSize={QUIET_ZONE_MODULES}
           title="QR code du profil public"
           role="img"
         />

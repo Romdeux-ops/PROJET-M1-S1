@@ -23,8 +23,8 @@ export function useLogin(redirectTo?: string) {
   })
 }
 
-export function useRegister() {
-  const onSuccess = useOnAuthenticated()
+export function useRegister(redirectTo?: string) {
+  const onSuccess = useOnAuthenticated(redirectTo)
   return useMutation({
     mutationFn: authApi.register,
     onSuccess,

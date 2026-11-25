@@ -6,8 +6,10 @@ import {
   RouterProvider,
 } from '@tanstack/react-router'
 import { screen } from '@testing-library/react'
+import { http, HttpResponse } from 'msw'
 
 import { db } from '@/mocks/db'
+import { server } from '@/mocks/node'
 import { useSession } from '@/lib/auth/session'
 import { loginAs, renderWithProviders } from '@/test/utils'
 
@@ -129,5 +131,25 @@ describe('CoachProfilePage', () => {
     renderProfile('inconnu')
 
     expect(await screen.findByText("Ce profil n'est pas disponible")).toBeInTheDocument()
+  })
+
+  it('ne prétend pas que le profil est privé quand le serveur est en panne', async () => {
+    server.use(
+      http.get('*/api/coaching/public/coaches/:coachId', () =>
+        HttpResponse.json({ title: 'Erreur' }, { status: 500 }),
+      ),
+    )
+    renderProfile()
+
+    expect(await screen.findByText('Impossible de charger ce profil')).toBeInTheDocument()
+    expect(screen.queryByText("Ce profil n'est pas disponible")).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Réessayer' })).toBeInTheDocument()
+  })
+
+  it('garde la page du coach en destination quand le visiteur crée un compte', async () => {
+    renderProfile()
+
+    const link = await screen.findByRole('link', { name: 'Créer un compte' })
+    expect(link).toHaveAttribute('href', expect.stringContaining('redirect=%2Fcoach%2Fu-coach'))
   })
 })
