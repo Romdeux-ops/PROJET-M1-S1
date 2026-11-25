@@ -156,3 +156,82 @@ describe('CoachingPage', () => {
     expect(screen.queryByRole('region', { name: 'Suivi de Léa Martin' })).not.toBeInTheDocument()
   })
 })
+
+describe('CoachingPage : demandes de suivi', () => {
+  function requestFromAthlete() {
+    db.coachAthletes = [
+      {
+        coachId: 'u-coach',
+        athleteId: 'u-athlete',
+        status: 'REQUESTED',
+        invitedAt: new Date().toISOString(),
+      },
+    ]
+  }
+
+  it('montre au coach la demande reçue, sans lui donner l’athlète avant réponse', async () => {
+    requestFromAthlete()
+    loginAs('COACH')
+    renderWithProviders(<CoachingPage />)
+
+    const panel = (await screen.findByText('Demandes de suivi')).closest('[data-slot="card"]')!
+    expect(within(panel as HTMLElement).getByText('Léa Martin')).toBeInTheDocument()
+    expect(screen.getByText('Aucun athlète pour le moment')).toBeInTheDocument()
+  })
+
+  it('rattache l’athlète quand le coach accepte', async () => {
+    requestFromAthlete()
+    loginAs('COACH')
+    const { user } = renderWithProviders(<CoachingPage />)
+
+    await user.click(await screen.findByRole('button', { name: /accepter/i }))
+
+    await waitFor(() => expect(screen.queryByText('Demandes de suivi')).not.toBeInTheDocument())
+    expect(await screen.findByRole('button', { name: /léa martin/i })).toBeInTheDocument()
+    expect(db.coachAthletes[0]?.status).toBe('ACTIVE')
+  })
+
+  it('ne rattache personne quand le coach refuse', async () => {
+    requestFromAthlete()
+    loginAs('COACH')
+    const { user } = renderWithProviders(<CoachingPage />)
+
+    await user.click(await screen.findByRole('button', { name: /refuser/i }))
+
+    await waitFor(() => expect(screen.queryByText('Demandes de suivi')).not.toBeInTheDocument())
+    expect(screen.getByText('Aucun athlète pour le moment')).toBeInTheDocument()
+    expect(db.coachAthletes[0]?.status).toBe('DECLINED')
+  })
+
+  it('permet à l’athlète de retirer sa demande en attente', async () => {
+    requestFromAthlete()
+    loginAs('ATHLETE')
+    const { user } = renderWithProviders(<CoachingPage />)
+
+    expect(await screen.findByText('Mes demandes de suivi')).toBeInTheDocument()
+    expect(screen.getByText('Hugo Bernard')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /retirer/i }))
+
+    await waitFor(() => expect(screen.queryByText('Mes demandes de suivi')).not.toBeInTheDocument())
+    expect(db.coachAthletes).toHaveLength(0)
+  })
+
+  it('mentionne le QR code à l’athlète qui n’a pas encore de coach', async () => {
+    db.coachAthletes = []
+    loginAs('ATHLETE')
+    renderWithProviders(<CoachingPage />)
+
+    expect(await screen.findByText(/scanner son qr code/i)).toBeInTheDocument()
+  })
+
+  it('propose au coach son profil public avec le QR code', async () => {
+    loginAs('COACH')
+    renderWithProviders(<CoachingPage />)
+
+    expect(await screen.findByText('Mon profil public')).toBeInTheDocument()
+    expect(
+      await screen.findByRole('img', { name: /qr code du profil public/i }),
+    ).toBeInTheDocument()
+  })
+})

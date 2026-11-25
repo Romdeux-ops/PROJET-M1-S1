@@ -5,6 +5,9 @@ export const NOTIFICATION_TYPES = [
   'BOOKING_CREATED',
   'BOOKING_CANCELLED',
   'BOOKING_REMINDER',
+  'FOLLOW_REQUESTED',
+  'FOLLOW_ACCEPTED',
+  'FOLLOW_DECLINED',
 ] as const
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number]
 

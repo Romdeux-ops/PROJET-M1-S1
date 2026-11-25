@@ -54,6 +54,8 @@ public class CoachingService implements CoachRelations {
             throw new InvitationConflictException("Cet athlete fait deja partie de vos clients.");
         } else if (relation.isPending()) {
             throw new InvitationConflictException("Une invitation est deja en attente pour cet athlete.");
+        } else if (relation.isRequested()) {
+            throw new InvitationConflictException("Cet athlete a deja demande a etre suivi : acceptez sa demande.");
         } else {
             relation.invite();
         }

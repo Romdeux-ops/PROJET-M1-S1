@@ -23,8 +23,16 @@ export interface MockUser extends SessionUser {
 export interface MockCoachAthlete {
   coachId: string
   athleteId: string
-  status: 'PENDING' | 'ACTIVE' | 'DECLINED' | 'ENDED'
+  status: 'PENDING' | 'REQUESTED' | 'ACTIVE' | 'DECLINED' | 'ENDED'
   invitedAt?: string
+}
+
+/** Profil public d'un coach (V16) : invisible tant que `enabled` est faux. */
+export interface MockPublicProfile {
+  coachId: string
+  enabled: boolean
+  headline: string | null
+  bio: string | null
 }
 
 /** Note privee d'un coach ; `coachId` n'est jamais renvoye par l'API. */
@@ -358,6 +366,17 @@ function seedCoachAthletes(): MockCoachAthlete[] {
   ]
 }
 
+function seedPublicProfiles(): MockPublicProfile[] {
+  return [
+    {
+      coachId: 'u-coach',
+      enabled: true,
+      headline: 'Préparateur physique · Musculation',
+      bio: 'Dix ans à accompagner des débutants comme des compétiteurs.\nMon approche : progresser en sécurité, avec un plan clair et des charges suivies séance après séance.',
+    },
+  ]
+}
+
 function seedCoachNotes(): MockCoachNote[] {
   const now = new Date().toISOString()
   return [
@@ -489,6 +508,7 @@ export const db = {
   scheduledSessions: seedScheduledSessions(),
   posts: seedPosts(),
   coachAthletes: seedCoachAthletes(),
+  coachPublicProfiles: seedPublicProfiles(),
   coachNotes: seedCoachNotes(),
   slots: seedSlots(),
   bookings: seedBookings(),
@@ -507,6 +527,7 @@ export function resetDb() {
   db.scheduledSessions = seedScheduledSessions()
   db.posts = seedPosts()
   db.coachAthletes = seedCoachAthletes()
+  db.coachPublicProfiles = seedPublicProfiles()
   db.coachNotes = seedCoachNotes()
   db.slots = seedSlots()
   db.bookings = seedBookings()

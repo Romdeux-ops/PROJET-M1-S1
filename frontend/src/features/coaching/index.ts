@@ -1,10 +1,13 @@
 export { coachingApi } from './api/coaching-api'
 export {
+  useAcceptFollowRequest,
   useAcceptInvitation,
   useAthleteOverview,
+  useCancelFollowRequest,
   useCancelInvitation,
   useCreateNote,
   useCreatePost,
+  useDeclineFollowRequest,
   useDeclineInvitation,
   useDeleteNote,
   useDeletePost,
@@ -15,10 +18,17 @@ export {
   useMyCoaches,
   useNotes,
   usePosts,
+  usePublicProfile,
+  usePublicSettings,
+  useReceivedFollowRequests,
   useReceivedInvitations,
+  useRequestFollow,
+  useSentFollowRequests,
   useSentInvitations,
   useUpdateNote,
+  useUpdatePublicSettings,
 } from './hooks/use-coaching'
+export { CoachProfilePage } from './pages/coach-profile-page'
 export { CoachingPage } from './pages/coaching-page'
 export type {
   AthleteOverview,
@@ -27,4 +37,7 @@ export type {
   CreatePostInput,
   InviteAthleteInput,
   Invitation,
+  PublicCoachProfile,
+  PublicProfileSettings,
+  ViewerStatus,
 } from './schemas'

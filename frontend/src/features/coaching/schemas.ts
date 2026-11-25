@@ -37,6 +37,35 @@ export interface CoachPost {
 
 export type CoachingContact = SessionUser
 
+/** Reglages du profil public d'un coach : invisible tant qu'il n'est pas publie. */
+export const publicProfileSettingsSchema = z.object({
+  enabled: z.boolean(),
+  headline: z.string().trim().max(120, '120 caractères maximum').optional().or(z.literal('')),
+  bio: z.string().trim().max(1000, '1000 caractères maximum').optional().or(z.literal('')),
+})
+export type PublicProfileSettingsInput = z.infer<typeof publicProfileSettingsSchema>
+
+export interface PublicProfileSettings {
+  enabled: boolean
+  headline: string | null
+  bio: string | null
+}
+
+/** Position du visiteur par rapport au coach dont il consulte le profil public. */
+export type ViewerStatus =
+  'ANONYMOUS' | 'SELF' | 'NOT_ATHLETE' | 'NONE' | 'REQUESTED' | 'INVITED' | 'ACTIVE'
+
+/** Ce qu'un visiteur voit d'un coach : jamais son e-mail. */
+export interface PublicCoachProfile {
+  id: string
+  firstName: string
+  lastName: string
+  avatarUrl: string | null
+  headline: string | null
+  bio: string | null
+  viewerStatus: ViewerStatus
+}
+
 export interface Invitation {
   coach: SessionUser
   athlete: SessionUser

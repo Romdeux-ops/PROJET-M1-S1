@@ -58,6 +58,9 @@ public class SecurityConfig {
                 // Les @PreAuthorize des controleurs restent en defense en profondeur.
                 .authorizeHttpRequests(auth -> auth.requestMatchers(PUBLIC_ROUTES)
                         .permitAll()
+                        // Profil public d'un coach (page ouverte via le QR code) : lisible sans compte.
+                        .requestMatchers(HttpMethod.GET, "/api/coaching/public/coaches/*")
+                        .permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/booking/bookings")
                         .hasAuthority(ATHLETE)
                         .requestMatchers(HttpMethod.POST, "/api/booking/slots")

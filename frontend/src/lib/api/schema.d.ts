@@ -36,6 +36,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/coaching/public-profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_1"];
+        put: operations["update_1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/coaching/athletes/{athleteId}/notes/{noteId}": {
         parameters: {
             query?: never;
@@ -59,8 +75,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_1"];
-        put: operations["update_1"];
+        get: operations["get_2"];
+        put: operations["update_2"];
         post?: never;
         delete: operations["delete_1"];
         options?: never;
@@ -244,6 +260,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/coaching/public/coaches/{coachId}/follow-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["requestFollow"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/coaching/posts": {
         parameters: {
             query?: never;
@@ -302,6 +334,38 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["accept"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/coaching/follow-requests/received/{athleteId}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["decline_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/coaching/follow-requests/received/{athleteId}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["accept_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -443,13 +507,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_2"];
+        get: operations["get_3"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        patch: operations["update_2"];
+        patch: operations["update_3"];
         trace?: never;
     };
     "/api/programs/{programId}/days/{dayId}/exercises/positions": {
@@ -900,6 +964,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/coaching/public/coaches/{coachId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_4"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/coaching/posts/{coachId}": {
         parameters: {
             query?: never;
@@ -956,6 +1036,38 @@ export interface paths {
             cookie?: never;
         };
         get: operations["listReceived"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/coaching/follow-requests/sent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listSent_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/coaching/follow-requests/received": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listReceived_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1140,6 +1252,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/coaching/follow-requests/sent/{coachId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["cancel_2"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/coaching/coaches/{coachId}": {
         parameters: {
             query?: never;
@@ -1300,6 +1428,16 @@ export interface components {
             createdAt?: string;
             /** Format: date-time */
             updatedAt?: string;
+        };
+        UpdatePublicProfileRequest: {
+            enabled?: boolean;
+            headline?: string;
+            bio?: string;
+        };
+        PublicProfileSettingsResponse: {
+            enabled?: boolean;
+            headline?: string;
+            bio?: string;
         };
         NoteRequest: {
             content: string;
@@ -1465,6 +1603,21 @@ export interface components {
             /** Format: date-time */
             readAt?: string;
         };
+        InvitationResponse: {
+            coach?: components["schemas"]["UserSummary"];
+            athlete?: components["schemas"]["UserSummary"];
+            /** Format: date-time */
+            invitedAt?: string;
+        };
+        UserSummary: {
+            /** Format: uuid */
+            id?: string;
+            email?: string;
+            firstName?: string;
+            lastName?: string;
+            roles?: ("ATHLETE" | "COACH" | "ADMIN")[];
+            avatarUrl?: string;
+        };
         PostRequest: {
             content: string;
             imageUrl?: string;
@@ -1489,21 +1642,6 @@ export interface components {
         AddAthleteRequest: {
             /** Format: email */
             athleteEmail: string;
-        };
-        InvitationResponse: {
-            coach?: components["schemas"]["UserSummary"];
-            athlete?: components["schemas"]["UserSummary"];
-            /** Format: date-time */
-            invitedAt?: string;
-        };
-        UserSummary: {
-            /** Format: uuid */
-            id?: string;
-            email?: string;
-            firstName?: string;
-            lastName?: string;
-            roles?: ("ATHLETE" | "COACH" | "ADMIN")[];
-            avatarUrl?: string;
         };
         SlotRequest: {
             /** Format: date-time */
@@ -1751,7 +1889,7 @@ export interface components {
             /** Format: uuid */
             id?: string;
             /** @enum {string} */
-            type?: "SESSION_REMINDER" | "SESSION_PENDING_VALIDATION" | "SESSION_VALIDATED" | "BOOKING_CREATED" | "BOOKING_CANCELLED" | "BOOKING_REMINDER";
+            type?: "SESSION_REMINDER" | "SESSION_PENDING_VALIDATION" | "SESSION_VALIDATED" | "BOOKING_CREATED" | "BOOKING_CANCELLED" | "BOOKING_REMINDER" | "FOLLOW_REQUESTED" | "FOLLOW_ACCEPTED" | "FOLLOW_DECLINED";
             title?: string;
             body?: string;
             link?: string;
@@ -1813,6 +1951,17 @@ export interface components {
             /** Format: int32 */
             level?: number;
             you?: boolean;
+        };
+        PublicCoachProfileResponse: {
+            /** Format: uuid */
+            id?: string;
+            firstName?: string;
+            lastName?: string;
+            avatarUrl?: string;
+            headline?: string;
+            bio?: string;
+            /** @enum {string} */
+            viewerStatus?: "ANONYMOUS" | "SELF" | "NOT_ATHLETE" | "NONE" | "REQUESTED" | "INVITED" | "ACTIVE";
         };
         AthleteOverviewResponse: {
             athlete?: components["schemas"]["UserSummary"];
@@ -2006,6 +2155,50 @@ export interface operations {
             };
         };
     };
+    get_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PublicProfileSettingsResponse"];
+                };
+            };
+        };
+    };
+    update_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePublicProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PublicProfileSettingsResponse"];
+                };
+            };
+        };
+    };
     updateNote: {
         parameters: {
             query?: never;
@@ -2054,7 +2247,7 @@ export interface operations {
             };
         };
     };
-    get_1: {
+    get_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -2076,7 +2269,7 @@ export interface operations {
             };
         };
     };
-    update_1: {
+    update_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -2515,6 +2708,28 @@ export interface operations {
             };
         };
     };
+    requestFollow: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                coachId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["InvitationResponse"];
+                };
+            };
+        };
+    };
     create_1: {
         parameters: {
             query?: never;
@@ -2592,6 +2807,46 @@ export interface operations {
             header?: never;
             path: {
                 coachId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    decline_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                athleteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    accept_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                athleteId: string;
             };
             cookie?: never;
         };
@@ -2918,7 +3173,7 @@ export interface operations {
             };
         };
     };
-    get_2: {
+    get_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -2938,7 +3193,7 @@ export interface operations {
             };
         };
     };
-    update_2: {
+    update_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -3569,6 +3824,28 @@ export interface operations {
             };
         };
     };
+    get_4: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                coachId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PublicCoachProfileResponse"];
+                };
+            };
+        };
+    };
     listForCoach: {
         parameters: {
             query?: never;
@@ -3635,6 +3912,46 @@ export interface operations {
         };
     };
     listReceived: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["InvitationResponse"][];
+                };
+            };
+        };
+    };
+    listSent_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["InvitationResponse"][];
+                };
+            };
+        };
+    };
+    listReceived_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -3875,6 +4192,26 @@ export interface operations {
             header?: never;
             path: {
                 athleteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    cancel_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                coachId: string;
             };
             cookie?: never;
         };
