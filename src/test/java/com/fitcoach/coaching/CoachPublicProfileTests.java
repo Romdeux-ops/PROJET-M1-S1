@@ -5,12 +5,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fitcoach.support.ApiClient;
 import com.fitcoach.support.TestUsers.Registered;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,10 +31,14 @@ import org.springframework.test.web.servlet.MockMvc;
 class CoachPublicProfileTests {
 
     private static final String SETTINGS = "/api/coaching/public-profile";
+    private static final int RACERS = 4;
     private static final String REQUESTS = "/api/coaching/follow-requests";
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private JdbcTemplate jdbc;
 
     private ApiClient api;
     private Registered coach;
@@ -214,5 +227,81 @@ class CoachPublicProfileTests {
                 .andExpect(status().isNoContent());
         api.get(athlete, "/api/notifications")
                 .andExpect(jsonPath("$.content[0].type").value("FOLLOW_ACCEPTED"));
+    }
+
+    @Test
+    void withdrawingARequestKeepsAnEndedOrDeclinedRelation() throws Exception {
+        publish();
+        api.attachCoach(coach, athlete);
+        api.delete(athlete, "/api/coaching/coaches/" + coach.id()).andExpect(status().isNoContent());
+        Map<String, Object> before = relationRow();
+        assertEquals("ENDED", before.get("status"));
+
+        request();
+        api.delete(athlete, REQUESTS + "/sent/" + coach.id()).andExpect(status().isNoContent());
+
+        Map<String, Object> after = relationRow();
+        assertEquals("ENDED", after.get("status"));
+        assertEquals(before.get("created_at"), after.get("created_at"));
+        assertEquals(null, after.get("status_before_request"));
+        api.get(athlete, publicPath(coach)).andExpect(jsonPath("$.viewerStatus").value("NONE"));
+        request();
+
+        api.post(coach, REQUESTS + "/received/" + athlete.id() + "/decline", Map.of())
+                .andExpect(status().isNoContent());
+        request();
+        api.delete(athlete, REQUESTS + "/sent/" + coach.id()).andExpect(status().isNoContent());
+        assertEquals("DECLINED", relationRow().get("status"));
+    }
+
+    @Test
+    void aWithdrawnFirstRequestLeavesNoRelationBehind() throws Exception {
+        publish();
+        request();
+        api.delete(athlete, REQUESTS + "/sent/" + coach.id()).andExpect(status().isNoContent());
+
+        Integer rows = jdbc.queryForObject(
+                "SELECT count(*) FROM coach_athlete WHERE coach_id = ? AND athlete_id = ?",
+                Integer.class,
+                coach.id(),
+                athlete.id());
+        assertEquals(0, rows);
+    }
+
+    @Test
+    void twoSimultaneousRequestsNeverEndInAServerError() throws Exception {
+        publish();
+        ExecutorService pool = Executors.newFixedThreadPool(RACERS);
+        try {
+            for (int round = 0; round < 20; round++) {
+                Registered racer = api.register("ATHLETE");
+                CyclicBarrier start = new CyclicBarrier(RACERS);
+                List<Future<Integer>> calls = new ArrayList<>();
+                for (int i = 0; i < RACERS; i++) {
+                    calls.add(pool.submit(() -> {
+                        start.await();
+                        return api.post(racer, publicPath(coach) + "/follow-requests", Map.of())
+                                .andReturn()
+                                .getResponse()
+                                .getStatus();
+                    }));
+                }
+                List<Integer> statuses = new ArrayList<>();
+                for (Future<Integer> call : calls) {
+                    statuses.add(call.get());
+                }
+                assertEquals(1, statuses.stream().filter(code -> code == 201).count(), statuses.toString());
+                assertEquals(RACERS - 1, statuses.stream().filter(code -> code == 409).count(), statuses.toString());
+            }
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
+    private Map<String, Object> relationRow() {
+        return jdbc.queryForMap(
+                "SELECT status, created_at, status_before_request FROM coach_athlete WHERE coach_id = ? AND athlete_id = ?",
+                coach.id(),
+                athlete.id());
     }
 }

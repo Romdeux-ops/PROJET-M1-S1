@@ -34,6 +34,11 @@ public class CoachAthlete {
     @Column(nullable = false)
     private CoachAthleteStatus status = CoachAthleteStatus.PENDING;
 
+    /** Statut a retrouver si l'athlete retire sa demande ; null quand la relation est nee de cette demande. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status_before_request")
+    private CoachAthleteStatus statusBeforeRequest;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 
@@ -89,9 +94,23 @@ public class CoachAthlete {
 
     /** Nouvelle demande de l'athlete (depuis DECLINED ou ENDED). */
     public void request() {
+        statusBeforeRequest = status;
         status = CoachAthleteStatus.REQUESTED;
         invitedAt = Instant.now();
         respondedAt = null;
+    }
+
+    /**
+     * L'athlete retire sa demande. Retourne {@code true} si l'ancien statut (DECLINED, ENDED) est restaure ;
+     * {@code false} si la relation est nee de cette demande et peut donc etre supprimee.
+     */
+    public boolean withdrawRequest() {
+        if (statusBeforeRequest == null) {
+            return false;
+        }
+        status = statusBeforeRequest;
+        statusBeforeRequest = null;
+        return true;
     }
 
     /** Relance une invitation (depuis DECLINED ou ENDED) ; une relation PENDING ou ACTIVE se suffit. */
@@ -115,6 +134,7 @@ public class CoachAthlete {
 
     private void respond(CoachAthleteStatus outcome) {
         status = outcome;
+        statusBeforeRequest = null;
         respondedAt = Instant.now();
     }
 }

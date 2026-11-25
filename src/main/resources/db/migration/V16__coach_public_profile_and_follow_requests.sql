@@ -12,6 +12,12 @@ ALTER TABLE coach_athlete
     ADD CONSTRAINT coach_athlete_status_check
         CHECK (status IN ('PENDING', 'REQUESTED', 'ACTIVE', 'DECLINED', 'ENDED'));
 
+-- Statut a restaurer si l'athlete retire sa demande : une relation deja connue (DECLINED, ENDED)
+-- ne doit pas disparaitre. NULL = la ligne est nee de la demande, on peut la supprimer.
+ALTER TABLE coach_athlete
+    ADD COLUMN status_before_request text
+        CHECK (status_before_request IN ('DECLINED', 'ENDED'));
+
 CREATE TABLE coach_public_profiles (
     coach_id   uuid PRIMARY KEY REFERENCES users (id) ON DELETE CASCADE,
     enabled    boolean NOT NULL DEFAULT false,
