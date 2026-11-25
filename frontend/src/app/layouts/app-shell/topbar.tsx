@@ -1,6 +1,7 @@
 import { useNavigate } from '@tanstack/react-router'
 import { Menu, Search } from 'lucide-react'
 
+import { PalettePicker } from '@/components/palette-picker'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { NotificationBell } from '@/features/notification'
@@ -28,7 +29,7 @@ export function Topbar() {
       <button
         type="button"
         onClick={() => setCommandOpen(true)}
-        className="flex h-9 w-full max-w-sm items-center gap-2 rounded-lg border bg-muted/60 px-3 text-sm text-muted-foreground transition-colors hover:bg-muted"
+        className="flex h-10 w-full max-w-sm items-center gap-2 rounded-xl border bg-muted/60 px-3 text-sm text-muted-foreground transition-colors hover:bg-muted"
       >
         <Search className="size-4" />
         <span className="flex-1 text-left">Rechercher…</span>
@@ -39,6 +40,7 @@ export function Topbar() {
 
       <div className="ml-auto flex items-center gap-1">
         <NotificationBell onNavigate={(link) => void navigate({ to: link })} />
+        <PalettePicker />
         <ThemeToggle />
         <UserMenu />
       </div>

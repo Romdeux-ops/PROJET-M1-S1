@@ -6,8 +6,10 @@ import {
   CalendarX,
   CheckCheck,
 } from 'lucide-react'
-import { useState } from 'react'
+import { motion } from 'motion/react'
+import { useEffect, useRef, useState } from 'react'
 
+import { useAnimationsEnabled } from '@/components/motion/use-animations-enabled'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -49,6 +51,15 @@ interface NotificationBellProps {
 export function NotificationBell({ onNavigate }: NotificationBellProps) {
   const [open, setOpen] = useState(false)
   const { data: unread = 0 } = useUnreadCount()
+  const animated = useAnimationsEnabled()
+  const [ring, setRing] = useState(0)
+  const previousUnread = useRef(0)
+
+  useEffect(() => {
+    if (unread > previousUnread.current) setRing((n) => n + 1)
+    previousUnread.current = unread
+  }, [unread])
+
   const { data: page, isPending } = useNotifications(open)
   const markRead = useMarkNotificationRead()
   const markAllRead = useMarkAllNotificationsRead()
@@ -69,11 +80,26 @@ export function NotificationBell({ onNavigate }: NotificationBellProps) {
           className="relative"
           aria-label={unread > 0 ? `Notifications, ${unread} non lue(s)` : 'Notifications'}
         >
-          <Bell />
+          {animated && ring > 0 ? (
+            <motion.span
+              key={ring}
+              className="inline-flex origin-top"
+              animate={{ rotate: [0, -18, 14, -10, 6, -2, 0] }}
+              transition={{ duration: 0.8, ease: 'easeInOut' }}
+            >
+              <Bell />
+            </motion.span>
+          ) : (
+            <Bell />
+          )}
           {unread > 0 && (
             <span
+              key={animated ? unread : undefined}
               data-testid="notification-badge"
-              className="text-destructive-foreground absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold"
+              className={cn(
+                'text-destructive-foreground absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold',
+                animated && 'animate-in duration-300 zoom-in-50',
+              )}
             >
               {unread > MAX_BADGE ? `${MAX_BADGE}+` : unread}
             </span>

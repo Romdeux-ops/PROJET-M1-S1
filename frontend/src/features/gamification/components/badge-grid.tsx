@@ -1,5 +1,6 @@
 import { Award, Lock } from 'lucide-react'
 
+import { Stagger, StaggerItem } from '@/components/motion/stagger'
 import { cn } from '@/lib/utils'
 
 import type { Badge } from '../schemas'
@@ -8,16 +9,19 @@ const dateFormatter = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 
 
 export function BadgeGrid({ badges }: { badges: Badge[] }) {
   return (
-    <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <Stagger as="ul" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {badges.map((badge) => {
         const earned = badge.awardedAt !== null
         return (
-          <li
+          <StaggerItem
+            as="li"
             key={badge.id}
             data-earned={earned}
             className={cn(
-              'flex gap-3 rounded-xl border p-4',
-              earned ? 'bg-card' : 'bg-muted/40 text-muted-foreground',
+              'flex gap-3 rounded-xl border p-4 transition-all',
+              earned
+                ? 'bg-card hover:border-primary/40 hover:shadow-md motion-safe:hover:-translate-y-0.5'
+                : 'bg-muted/40 text-muted-foreground',
             )}
           >
             <span
@@ -37,9 +41,9 @@ export function BadgeGrid({ badges }: { badges: Badge[] }) {
                 </p>
               )}
             </div>
-          </li>
+          </StaggerItem>
         )
       })}
-    </ul>
+    </Stagger>
   )
 }

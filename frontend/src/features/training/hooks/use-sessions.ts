@@ -10,6 +10,7 @@ import { gamificationKeys } from '@/features/gamification'
 import { statsKeys } from '@/features/stats'
 
 import { trainingApi } from '../api/training-api'
+import { celebrateProgress, snapshotRecords } from '../celebrate'
 import type { AddSetInput } from '../schemas'
 
 /** Cles de cache centralisees : toute invalidation passe par ici. */
@@ -50,11 +51,13 @@ export function useCreateSession() {
   return useMutation({
     mutationFn: trainingApi.create,
     meta: { successMessage: 'Séance enregistrée' },
-    onSuccess: () =>
-      Promise.all([
+    onSuccess: async () => {
+      await Promise.all([
         queryClient.invalidateQueries({ queryKey: trainingKeys.all }),
         ...invalidateDerived(queryClient),
-      ]),
+      ])
+      void celebrateProgress(queryClient)
+    },
   })
 }
 
@@ -90,11 +93,16 @@ function useSessionMutator(sessionId: string) {
 }
 
 export function useAddSet(sessionId: string) {
+  const queryClient = useQueryClient()
   const onSuccess = useSessionMutator(sessionId)
   return useMutation({
     mutationFn: (input: AddSetInput) => trainingApi.addSet(sessionId, input),
     meta: { successMessage: 'Série ajoutée' },
-    onSuccess,
+    onMutate: () => snapshotRecords(queryClient),
+    onSuccess: (session, _input, recordsBefore) => {
+      onSuccess(session)
+      void celebrateProgress(queryClient, recordsBefore)
+    },
   })
 }
 

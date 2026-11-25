@@ -1,13 +1,15 @@
-import { ChevronLeft, ChevronRight, Loader2, Plus } from 'lucide-react'
+import { Loader2, Plus } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
+import { Stagger, StaggerItem } from '@/components/motion/stagger'
 import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
+import { DayRow } from '../components/day-row'
 import { ScheduleForm } from '../components/schedule-form'
-import { ScheduledItem } from '../components/scheduled-item'
+import { WeekSummary } from '../components/week-summary'
+import { WeekToolbar } from '../components/week-toolbar'
 import { useScheduledRange } from '../hooks/use-planning'
 
 function toIso(date: Date) {
@@ -25,6 +27,7 @@ function startOfWeek(date: Date) {
 const WEEKDAY_LABELS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
 
 export function PlanningPage() {
+  const [todayIso] = useState(() => toIso(new Date()))
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()))
   const [scheduleDate, setScheduleDate] = useState<string | null>(null)
 
@@ -38,6 +41,7 @@ export function PlanningPage() {
   )
   const from = toIso(days[0]!)
   const to = toIso(days[6]!)
+  const isCurrentWeek = todayIso >= from && todayIso <= to
   const { data: sessions = [], isLoading } = useScheduledRange(from, to)
 
   function shiftWeek(delta: number) {
@@ -52,57 +56,45 @@ export function PlanningPage() {
         title="Planning"
         description="Calendrier des séances prévues, réalisées et sautées."
         actions={
-          <Button onClick={() => setScheduleDate(toIso(new Date()))}>
+          <Button onClick={() => setScheduleDate(todayIso)}>
             <Plus /> Planifier une séance
           </Button>
         }
       />
 
-      <div className="mb-4 flex items-center justify-between">
-        <Button type="button" variant="outline" size="icon-sm" onClick={() => shiftWeek(-1)}>
-          <ChevronLeft />
-        </Button>
-        <p className="text-sm font-medium">
-          {from} — {to}
-        </p>
-        <Button type="button" variant="outline" size="icon-sm" onClick={() => shiftWeek(1)}>
-          <ChevronRight />
-        </Button>
-      </div>
+      <div className="space-y-6">
+        <WeekToolbar
+          days={days}
+          isCurrentWeek={isCurrentWeek}
+          onShift={shiftWeek}
+          onToday={() => setWeekStart(startOfWeek(new Date()))}
+        />
 
-      {isLoading ? (
-        <Loader2 className="size-5 animate-spin text-muted-foreground" />
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-7">
-          {days.map((day, i) => {
-            const iso = toIso(day)
-            const daySessions = sessions.filter((s) => s.scheduledDate === iso)
-            return (
-              <Card key={iso}>
-                <CardHeader className="space-y-0 pb-2">
-                  <CardTitle className="flex items-center justify-between text-sm">
-                    <span>{WEEKDAY_LABELS[i]}</span>
-                    <button
-                      type="button"
-                      className="text-xs text-muted-foreground hover:text-foreground"
-                      onClick={() => setScheduleDate(iso)}
-                    >
-                      {day.getDate()}/{day.getMonth() + 1}
-                    </button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {daySessions.length === 0 ? (
-                    <p className="text-xs text-muted-foreground">Rien de prévu</p>
-                  ) : (
-                    daySessions.map((s) => <ScheduledItem key={s.id} session={s} />)
-                  )}
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
-      )}
+        {isLoading ? (
+          <Loader2 className="size-5 animate-spin text-muted-foreground" />
+        ) : (
+          <>
+            <WeekSummary sessions={sessions} />
+            <Stagger className="space-y-3">
+              {days.map((day, i) => {
+                const iso = toIso(day)
+                return (
+                  <StaggerItem key={iso}>
+                    <DayRow
+                      label={WEEKDAY_LABELS[i]!}
+                      date={day}
+                      isToday={iso === todayIso}
+                      isPast={iso < todayIso}
+                      sessions={sessions.filter((s) => s.scheduledDate === iso)}
+                      onAdd={() => setScheduleDate(iso)}
+                    />
+                  </StaggerItem>
+                )
+              })}
+            </Stagger>
+          </>
+        )}
+      </div>
 
       <Dialog open={scheduleDate !== null} onOpenChange={(open) => !open && setScheduleDate(null)}>
         <DialogContent>

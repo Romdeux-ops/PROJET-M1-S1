@@ -109,3 +109,49 @@ describe('MessagingPage', () => {
     })
   })
 })
+
+describe('MessagingPage : ergonomie', () => {
+  beforeEach(() => loginAs('ATHLETE'))
+
+  it('ouvre la création de conversation depuis le bouton Nouvelle', async () => {
+    const { user } = renderWithProviders(<MessagingPage />)
+    await screen.findByRole('button', { name: /hugo bernard/i })
+
+    await user.click(screen.getByRole('button', { name: /nouvelle/i }))
+
+    expect(
+      await screen.findByRole('dialog', { name: /nouvelle conversation/i }),
+    ).toBeInTheDocument()
+  })
+
+  it('filtre les conversations par nom', async () => {
+    const { user } = renderWithProviders(<MessagingPage />)
+    await screen.findByRole('button', { name: /hugo bernard/i })
+
+    await user.type(screen.getByRole('searchbox', { name: /rechercher une conversation/i }), 'zzz')
+    expect(screen.queryByRole('button', { name: /hugo bernard/i })).not.toBeInTheDocument()
+    expect(screen.getByText(/aucun résultat/i)).toBeInTheDocument()
+
+    await user.clear(screen.getByRole('searchbox', { name: /rechercher une conversation/i }))
+    expect(screen.getByRole('button', { name: /hugo bernard/i })).toBeInTheDocument()
+  })
+
+  it("n'active l'envoi qu'une fois un message saisi", async () => {
+    const { user } = renderWithProviders(<MessagingPage />)
+    await user.click(await screen.findByRole('button', { name: /hugo bernard/i }))
+    await screen.findByText('Merci ! Je commence demain.')
+
+    expect(screen.getByRole('button', { name: 'Envoyer' })).toBeDisabled()
+    await user.type(screen.getByRole('textbox', { name: 'Message' }), 'Salut')
+    expect(screen.getByRole('button', { name: 'Envoyer' })).toBeEnabled()
+  })
+
+  it('propose un retour à la liste depuis une conversation ouverte', async () => {
+    const { user } = renderWithProviders(<MessagingPage />)
+    await user.click(await screen.findByRole('button', { name: /hugo bernard/i }))
+
+    await user.click(await screen.findByRole('button', { name: /retour aux conversations/i }))
+
+    expect(await screen.findByText('Sélectionnez une conversation')).toBeInTheDocument()
+  })
+})

@@ -39,6 +39,6 @@ export function useLogout() {
   return () => {
     logout()
     queryClient.clear()
-    void navigate({ to: '/login' })
+    void navigate({ to: '/' })
   }
 }

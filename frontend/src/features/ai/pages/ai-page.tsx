@@ -1,10 +1,10 @@
-import { Loader2 } from 'lucide-react'
 import { useState } from 'react'
 
 import { PageHeader } from '@/components/page-header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 import { GeneratedProgramPreview } from '../components/generated-program-preview'
+import { GeneratingState } from '../components/generating-state'
 import { GenerationForm } from '../components/generation-form'
 import { useGenerateProgram, useSaveGeneratedProgram } from '../hooks/use-ai'
 import type { GeneratedProgram, GenerationFormInput } from '../schemas'
@@ -56,9 +56,7 @@ export function AiPage({ onSaved }: { onSaved?: () => void }) {
           </CardHeader>
           <CardContent>
             {generate.isPending ? (
-              <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="size-4 animate-spin" /> Génération en cours...
-              </p>
+              <GeneratingState />
             ) : draft ? (
               <GeneratedProgramPreview
                 draft={draft}

@@ -19,6 +19,10 @@ export function PageHeader({ title, description, actions, className }: PageHeade
       )}
     >
       <div className="space-y-1">
+        <span
+          aria-hidden
+          className="animate-bar-grow mb-2 block h-1 w-10 origin-left rounded-full bg-brand"
+        />
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h1>
         {description && <p className="max-w-2xl text-sm text-muted-foreground">{description}</p>}
       </div>

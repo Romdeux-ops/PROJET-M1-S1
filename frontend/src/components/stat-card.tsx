@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react'
 import { TrendingDown, TrendingUp } from 'lucide-react'
 
+import { AnimatedNumber } from '@/components/motion/animated-number'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
@@ -18,15 +19,17 @@ interface StatCardProps {
 export function StatCard({ label, value, icon: Icon, trend, hint, className }: StatCardProps) {
   const positive = trend !== undefined && trend >= 0
   return (
-    <Card className={cn('gap-0 py-5 transition-shadow hover:shadow-md', className)}>
+    <Card className={cn('gap-0 py-5 transition-all motion-safe:hover:-translate-y-0.5', className)}>
       <CardContent className="space-y-3 px-5">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium text-muted-foreground">{label}</span>
-          <span className="grid size-8 place-items-center rounded-lg bg-accent text-accent-foreground">
+          <span className="grid size-9 place-items-center rounded-xl bg-brand text-white shadow-md shadow-primary/25">
             <Icon className="size-4" />
           </span>
         </div>
-        <div className="text-3xl font-semibold tracking-tight tabular-nums">{value}</div>
+        <div className="text-3xl font-semibold tracking-tight tabular-nums">
+          <AnimatedNumber value={value} />
+        </div>
         {(trend !== undefined || hint) && (
           <div className="flex items-center gap-2 text-xs">
             {trend !== undefined && (
