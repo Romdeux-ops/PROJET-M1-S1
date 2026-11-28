@@ -155,3 +155,13 @@ describe('MessagingPage : ergonomie', () => {
     expect(await screen.findByText('Sélectionnez une conversation')).toBeInTheDocument()
   })
 })
+
+describe('MessagingPage : lien direct', () => {
+  beforeEach(() => loginAs('ATHLETE'))
+
+  it('ouvre la conversation passée en paramètre (lien depuis un match FitMatch)', async () => {
+    renderWithProviders(<MessagingPage initialConversationId="conv-1" />)
+
+    expect(await screen.findByText('Merci ! Je commence demain.')).toBeInTheDocument()
+  })
+})

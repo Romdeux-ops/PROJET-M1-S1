@@ -48,3 +48,10 @@ export function isoInDays(days: number) {
   d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
   return d.toISOString().slice(0, 10)
 }
+
+/** Taille stockee en cm, affichee selon la preference d'unites du compte. */
+export function formatHeight(heightCm: number, unitSystem: 'METRIC' | 'IMPERIAL' = 'METRIC') {
+  if (unitSystem === 'METRIC') return `${formatNumber(heightCm)} cm`
+  const totalInches = Math.round(heightCm / 2.54)
+  return `${Math.floor(totalInches / 12)} ft ${totalInches % 12} in`
+}

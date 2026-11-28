@@ -9,12 +9,27 @@ const DEFAULT_PAGE_SIZE = 30
 const MAX_PAGE_SIZE = 100
 const PREVIEW_LENGTH = 120
 const NOT_ACTIVE =
-  "La messagerie n'est ouverte qu'entre un coach et un athlète qu'il suit activement."
+  "La messagerie n'est ouverte qu'entre un coach et un athlète qu'il suit activement, ou après un match FitMatch."
 
+/** Relation de coaching active ou match FitMatch actif, comme le backend. */
 function isActiveClient(coachId: string, athleteId: string) {
-  return db.coachAthletes.some(
-    (c) => c.coachId === coachId && c.athleteId === athleteId && c.status === 'ACTIVE',
+  return (
+    db.coachAthletes.some(
+      (c) => c.coachId === coachId && c.athleteId === athleteId && c.status === 'ACTIVE',
+    ) ||
+    db.matches.some(
+      (m) => m.coachId === coachId && m.athleteId === athleteId && m.status === 'ACTIVE',
+    )
   )
+}
+
+/** Comme le backend : un match sans relation de coaching active ne revele que le prenom. */
+function firstNameOnly(viewerId: string, counterpartId: string) {
+  const pair = (m: { coachId: string; athleteId: string }) =>
+    (m.coachId === viewerId && m.athleteId === counterpartId) ||
+    (m.coachId === counterpartId && m.athleteId === viewerId)
+  const coaching = db.coachAthletes.some((c) => pair(c) && c.status === 'ACTIVE')
+  return !coaching && db.matches.some(pair)
 }
 
 /** Plus recent d'abord, `id` pour departager, comme l'index du backend. */
@@ -40,7 +55,11 @@ function toView(conversation: MockConversation, viewerId: string): Conversation 
   return {
     id: conversation.id,
     counterpartId,
-    counterpartName: counterpart ? `${counterpart.firstName} ${counterpart.lastName}` : '',
+    counterpartName: counterpart
+      ? firstNameOnly(viewerId, counterpartId)
+        ? counterpart.firstName
+        : `${counterpart.firstName} ${counterpart.lastName}`
+      : '',
     lastMessagePreview: last
       ? last.body.length <= PREVIEW_LENGTH
         ? last.body

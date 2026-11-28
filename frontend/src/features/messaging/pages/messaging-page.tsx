@@ -19,8 +19,13 @@ import { MessageThread } from '../components/message-thread'
 import { NewConversation } from '../components/new-conversation'
 import { useConversations } from '../hooks/use-messaging'
 
-export function MessagingPage() {
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+interface MessagingPageProps {
+  /** Conversation selectionnee a l'ouverture (lien depuis un match FitMatch). */
+  initialConversationId?: string
+}
+
+export function MessagingPage({ initialConversationId }: MessagingPageProps = {}) {
+  const [selectedId, setSelectedId] = useState<string | null>(initialConversationId ?? null)
   const [newOpen, setNewOpen] = useState(false)
 
   return (

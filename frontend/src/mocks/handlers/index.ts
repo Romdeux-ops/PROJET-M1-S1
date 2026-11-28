@@ -4,6 +4,7 @@ import { catalogHandlers } from './catalog'
 import { coachingHandlers } from './coaching'
 import { gamificationHandlers } from './gamification'
 import { identityHandlers } from './identity'
+import { matchingHandlers } from './matching'
 import { messagingHandlers } from './messaging'
 import { notificationHandlers } from './notification'
 import { planningHandlers } from './planning'
@@ -25,4 +26,5 @@ export const handlers = [
   ...gamificationHandlers,
   ...notificationHandlers,
   ...aiHandlers,
+  ...matchingHandlers,
 ]

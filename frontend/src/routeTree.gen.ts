@@ -19,6 +19,7 @@ import { Route as AppCatalogRouteImport } from './routes/_app/catalog'
 import { Route as AppCoachingRouteImport } from './routes/_app/coaching'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppGamificationRouteImport } from './routes/_app/gamification'
+import { Route as AppMatchingRouteImport } from './routes/_app/matching'
 import { Route as AppMessagingRouteImport } from './routes/_app/messaging'
 import { Route as AppNutritionRouteImport } from './routes/_app/nutrition'
 import { Route as AppPlanningRouteImport } from './routes/_app/planning'
@@ -76,6 +77,11 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
 const AppGamificationRoute = AppGamificationRouteImport.update({
   id: '/gamification',
   path: '/gamification',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMatchingRoute = AppMatchingRouteImport.update({
+  id: '/matching',
+  path: '/matching',
   getParentRoute: () => AppRoute,
 } as any)
 const AppMessagingRoute = AppMessagingRouteImport.update({
@@ -138,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/coaching': typeof AppCoachingRoute
   '/dashboard': typeof AppDashboardRoute
   '/gamification': typeof AppGamificationRoute
+  '/matching': typeof AppMatchingRoute
   '/messaging': typeof AppMessagingRoute
   '/nutrition': typeof AppNutritionRoute
   '/planning': typeof AppPlanningRoute
@@ -158,6 +165,7 @@ export interface FileRoutesByTo {
   '/coaching': typeof AppCoachingRoute
   '/dashboard': typeof AppDashboardRoute
   '/gamification': typeof AppGamificationRoute
+  '/matching': typeof AppMatchingRoute
   '/messaging': typeof AppMessagingRoute
   '/nutrition': typeof AppNutritionRoute
   '/planning': typeof AppPlanningRoute
@@ -181,6 +189,7 @@ export interface FileRoutesById {
   '/_app/coaching': typeof AppCoachingRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/gamification': typeof AppGamificationRoute
+  '/_app/matching': typeof AppMatchingRoute
   '/_app/messaging': typeof AppMessagingRoute
   '/_app/nutrition': typeof AppNutritionRoute
   '/_app/planning': typeof AppPlanningRoute
@@ -203,6 +212,7 @@ export interface FileRouteTypes {
     | '/coaching'
     | '/dashboard'
     | '/gamification'
+    | '/matching'
     | '/messaging'
     | '/nutrition'
     | '/planning'
@@ -223,6 +233,7 @@ export interface FileRouteTypes {
     | '/coaching'
     | '/dashboard'
     | '/gamification'
+    | '/matching'
     | '/messaging'
     | '/nutrition'
     | '/planning'
@@ -245,6 +256,7 @@ export interface FileRouteTypes {
     | '/_app/coaching'
     | '/_app/dashboard'
     | '/_app/gamification'
+    | '/_app/matching'
     | '/_app/messaging'
     | '/_app/nutrition'
     | '/_app/planning'
@@ -336,6 +348,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppGamificationRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/matching': {
+      id: '/_app/matching'
+      path: '/matching'
+      fullPath: '/matching'
+      preLoaderRoute: typeof AppMatchingRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/messaging': {
       id: '/_app/messaging'
       path: '/messaging'
@@ -417,6 +436,7 @@ interface AppRouteChildren {
   AppCoachingRoute: typeof AppCoachingRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppGamificationRoute: typeof AppGamificationRoute
+  AppMatchingRoute: typeof AppMatchingRoute
   AppMessagingRoute: typeof AppMessagingRoute
   AppNutritionRoute: typeof AppNutritionRoute
   AppPlanningRoute: typeof AppPlanningRoute
@@ -434,6 +454,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCoachingRoute: AppCoachingRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppGamificationRoute: AppGamificationRoute,
+  AppMatchingRoute: AppMatchingRoute,
   AppMessagingRoute: AppMessagingRoute,
   AppNutritionRoute: AppNutritionRoute,
   AppPlanningRoute: AppPlanningRoute,

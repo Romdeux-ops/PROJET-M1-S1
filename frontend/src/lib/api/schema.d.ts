@@ -68,6 +68,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/matching/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["profile"];
+        put: operations["saveProfile"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/coaching/public-profile": {
         parameters: {
             query?: never;
@@ -350,6 +366,22 @@ export interface paths {
         get: operations["messages"];
         put?: never;
         post: operations["send"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/matching/swipes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["swipe"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1124,6 +1156,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/matching/matches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["matches"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/matching/feed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["feed"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/gamification/me": {
         parameters: {
             query?: never;
@@ -1428,6 +1492,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/matching/matches/{matchId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["unmatch"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/coaching/posts/{postId}": {
         parameters: {
             query?: never;
@@ -1714,6 +1794,56 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
         };
+        MatchProfileRequest: {
+            headline: string;
+            about?: string;
+            sports: string[];
+            goals?: string[];
+            levels?: string[];
+            availability: string[];
+            /** @enum {string} */
+            trainingMode: "ONSITE" | "REMOTE" | "BOTH";
+            city?: string;
+            /** Format: int32 */
+            maxBudgetEur?: number;
+            /** Format: int32 */
+            sessionRateEur?: number;
+            visible?: boolean;
+            /** Format: date */
+            birthDate?: string;
+            heightCm?: number;
+        };
+        Details: {
+            headline?: string;
+            about?: string;
+            sports?: string[];
+            goals?: string[];
+            levels?: string[];
+            availability?: string[];
+            /** @enum {string} */
+            trainingMode?: "ONSITE" | "REMOTE" | "BOTH";
+            city?: string;
+            /** Format: int32 */
+            maxBudgetEur?: number;
+            /** Format: int32 */
+            sessionRateEur?: number;
+            visible?: boolean;
+        };
+        MyMatchProfileResponse: {
+            /** @enum {string} */
+            side?: "ATHLETE" | "COACH";
+            firstName?: string;
+            avatarUrl?: string;
+            /** Format: date */
+            birthDate?: string;
+            /** Format: int32 */
+            age?: number;
+            heightCm?: number;
+            fitnessGoal?: string;
+            experienceLevel?: string;
+            missing?: string[];
+            profile?: components["schemas"]["Details"];
+        };
         UpdatePublicProfileRequest: {
             enabled?: boolean;
             headline?: string;
@@ -1923,6 +2053,34 @@ export interface components {
             sentAt?: string;
             /** Format: date-time */
             readAt?: string;
+        };
+        SwipeRequest: {
+            /** Format: uuid */
+            targetId: string;
+            /** @enum {string} */
+            decision: "LIKE" | "SUPER_LIKE" | "PASS";
+        };
+        MatchResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            counterpartId?: string;
+            /** @enum {string} */
+            counterpartSide?: "ATHLETE" | "COACH";
+            counterpartFirstName?: string;
+            /** Format: int32 */
+            counterpartAge?: number;
+            counterpartAvatarUrl?: string;
+            counterpartHeadline?: string;
+            counterpartSports?: string[];
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        SwipeResponse: {
+            /** @enum {string} */
+            decision?: "LIKE" | "SUPER_LIKE" | "PASS";
+            match?: components["schemas"]["MatchResponse"];
+            newMatch?: boolean;
         };
         InvitationResponse: {
             coach?: components["schemas"]["UserSummary"];
@@ -2249,6 +2407,32 @@ export interface components {
             items?: components["schemas"]["MessageResponse"][];
             /** Format: uuid */
             nextCursor?: string;
+        };
+        CandidateResponse: {
+            /** Format: uuid */
+            userId?: string;
+            /** @enum {string} */
+            side?: "ATHLETE" | "COACH";
+            firstName?: string;
+            /** Format: int32 */
+            age?: number;
+            heightCm?: number;
+            avatarUrl?: string;
+            headline?: string;
+            about?: string;
+            sports?: string[];
+            goals?: string[];
+            levels?: string[];
+            availability?: string[];
+            /** @enum {string} */
+            trainingMode?: "ONSITE" | "REMOTE" | "BOTH";
+            city?: string;
+            /** Format: int32 */
+            sessionRateEur?: number;
+            /** Format: int32 */
+            score?: number;
+            reasons?: string[];
+            superLikedYou?: boolean;
         };
         BadgeResponse: {
             /** Format: uuid */
@@ -2601,6 +2785,50 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["MealLogResponse"];
+                };
+            };
+        };
+    };
+    profile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MyMatchProfileResponse"];
+                };
+            };
+        };
+    };
+    saveProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MatchProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MyMatchProfileResponse"];
                 };
             };
         };
@@ -3315,6 +3543,30 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["MessageResponse"];
+                };
+            };
+        };
+    };
+    swipe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SwipeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SwipeResponse"];
                 };
             };
         };
@@ -4545,6 +4797,48 @@ export interface operations {
             };
         };
     };
+    matches: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MatchResponse"][];
+                };
+            };
+        };
+    };
+    feed: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CandidateResponse"][];
+                };
+            };
+        };
+    };
     me_1: {
         parameters: {
             query?: never;
@@ -4933,6 +5227,26 @@ export interface operations {
             header?: never;
             path: {
                 scheduledSessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    unmatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                matchId: string;
             };
             cookie?: never;
         };
