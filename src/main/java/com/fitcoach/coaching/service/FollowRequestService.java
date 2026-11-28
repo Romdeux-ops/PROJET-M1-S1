@@ -11,6 +11,7 @@ import com.fitcoach.identity.api.UserNotFoundException;
 import com.fitcoach.identity.api.UserSummary;
 import com.fitcoach.notification.api.NotificationType;
 import com.fitcoach.notification.api.Notifier;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +52,8 @@ public class FollowRequestService {
         UserSummary coach = profileService.requirePublicCoach(coachId);
         UserSummary athlete = findUser(athleteId);
 
+        // Une seule demande a la fois par paire : la suivante voit la relation creee et recoit 409.
+        coachAthleteRepository.lockPair(pairLockKey(coachId, athleteId));
         CoachAthlete relation = coachAthleteRepository
                 .findByCoachIdAndAthleteId(coachId, athleteId)
                 .orElse(null);
@@ -148,6 +151,12 @@ public class FollowRequestService {
                 .filter(r -> users.containsKey(r.getCoachId()) && users.containsKey(r.getAthleteId()))
                 .map(r -> new InvitationResponse(users.get(r.getCoachId()), users.get(r.getAthleteId()), r.getInvitedAt()))
                 .toList();
+    }
+
+    /** Cle 64 bits du verrou consultatif d'une paire (coach, athlete), propre au module coaching. */
+    private static long pairLockKey(UUID coachId, UUID athleteId) {
+        return UUID.nameUUIDFromBytes(("coach-athlete:" + coachId + ":" + athleteId).getBytes(StandardCharsets.UTF_8))
+                .getMostSignificantBits();
     }
 
     private UserSummary findUser(UUID userId) {
