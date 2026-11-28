@@ -358,4 +358,157 @@ class MatchingFlowTests {
             }
         }
     }
+
+    // ------------------------------------------------- suites de la revue
+
+    private String matchBetween(Registered athlete, Registered coach) throws Exception {
+        swipe(athlete, coach, "LIKE");
+        return swipe(coach, athlete, "LIKE").get("match").get("id").asText();
+    }
+
+    @Test
+    void aMatchOnlyRevealsTheFirstNameInMessaging() throws Exception {
+        Registered athlete = member("ATHLETE", athleteProfile());
+        Registered coach = member("COACH", coachProfile());
+        matchBetween(athlete, coach);
+        api.startConversation(athlete, coach);
+
+        // Le nom de famille ("ATHLETE" / "COACH" pour les comptes de test) reste prive.
+        api.get(athlete, CONVERSATIONS).andExpect(jsonPath("$[0].counterpartName").value("Test"));
+        api.get(coach, CONVERSATIONS).andExpect(jsonPath("$[0].counterpartName").value("Test"));
+
+        // Une relation de coaching active revele le nom complet, comme avant FitMatch.
+        api.attachCoach(coach, athlete);
+        api.get(athlete, CONVERSATIONS).andExpect(jsonPath("$[0].counterpartName").value("Test COACH"));
+    }
+
+    @Test
+    void endingAMatchClosesConversationsThatWereNeverOpened() throws Exception {
+        Registered athlete = member("ATHLETE", athleteProfile());
+        Registered coach = member("COACH", coachProfile());
+        String matchId = matchBetween(athlete, coach);
+
+        api.delete(athlete, MATCHES + "/" + matchId).andExpect(status().isNoContent());
+
+        api.post(coach, CONVERSATIONS, Map.of("counterpartId", athlete.id().toString()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void aPassAfterAMatchKeepsTheMatch() throws Exception {
+        Registered athlete = member("ATHLETE", athleteProfile());
+        Registered coach = member("COACH", coachProfile());
+        String matchId = matchBetween(athlete, coach);
+
+        JsonNode pass = swipe(athlete, coach, "PASS");
+        assertThat(pass.get("decision").asText()).isEqualTo("LIKE");
+        assertThat(pass.get("newMatch").asBoolean()).isFalse();
+        assertThat(pass.get("match").get("id").asText()).isEqualTo(matchId);
+        api.get(athlete, MATCHES).andExpect(jsonPath("$[0].id").value(matchId));
+    }
+
+    @Test
+    void suspendedAccountsLeaveTheFeedAndTheMatches() throws Exception {
+        Registered athlete = member("ATHLETE", athleteProfile());
+        Registered coach = member("COACH", coachProfile());
+        Registered other = member("COACH", coachProfile());
+        matchBetween(athlete, coach);
+
+        jdbc.update("UPDATE users SET status = 'SUSPENDED' WHERE id IN (?, ?)", coach.id(), other.id());
+
+        assertThat(cardOf(api.json(api.get(athlete, FEED)), other)).isNull();
+        api.get(athlete, MATCHES).andExpect(jsonPath("$.length()").value(0));
+        api.post(athlete, SWIPES, Map.of("targetId", other.id().toString(), "decision", "LIKE"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void becomingTooYoungAfterRegistrationHidesTheProfile() throws Exception {
+        Registered athlete = member("ATHLETE", athleteProfile());
+        Registered coach = member("COACH", coachProfile());
+
+        api.patch(athlete, "/api/users/me/profile", Map.of("birthDate", LocalDate.now().minusYears(14).toString()))
+                .andExpect(status().isOk());
+
+        assertThat(cardOf(api.json(api.get(coach, FEED)), athlete)).isNull();
+        api.get(athlete, FEED).andExpect(status().isBadRequest());
+        api.post(coach, SWIPES, Map.of("targetId", athlete.id().toString(), "decision", "LIKE"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void fitMatchOnlyCompletesTheAccountAndUsesItsHeightRules() throws Exception {
+        Registered athlete = member("ATHLETE", athleteProfile());
+        String birthDate = api.json(api.get(athlete, PROFILE)).get("birthDate").asText();
+
+        Map<String, Object> body = athleteProfile();
+        body.put("birthDate", LocalDate.now().minusYears(40).toString());
+        body.put("heightCm", 280);
+        api.put(athlete, PROFILE, body)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.birthDate").value(birthDate))
+                .andExpect(jsonPath("$.heightCm").value(280));
+
+        // Une taille deja connue n'est plus ecrasee depuis FitMatch.
+        body.put("heightCm", 170);
+        api.put(athlete, PROFILE, body).andExpect(jsonPath("$.heightCm").value(280));
+
+        body.put("heightCm", 178.55);
+        api.put(athlete, PROFILE, body).andExpect(status().isBadRequest());
+        body.put("birthDate", "1800-01-01");
+        body.remove("heightCm");
+        Registered fresh = api.register("ATHLETE");
+        api.put(fresh, PROFILE, body).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void theFeedSizeIsBounded() throws Exception {
+        Registered athlete = member("ATHLETE", athleteProfile());
+        member("COACH", coachProfile());
+        member("COACH", coachProfile());
+
+        assertThat(api.json(api.get(athlete, "/api/matching/feed?limit=0"))).hasSize(1);
+        assertThat(api.json(api.get(athlete, "/api/matching/feed?limit=999")).size()).isBetween(2, 50);
+    }
+
+    @Test
+    void concurrentFirstRegistrationsNeverEndInAServerError() throws Exception {
+        Registered athlete = api.register("ATHLETE");
+        CountDownLatch start = new CountDownLatch(1);
+        Callable<Integer> put = () -> {
+            start.await();
+            return api.put(athlete, PROFILE, athleteProfile()).andReturn().getResponse().getStatus();
+        };
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            List<Future<Integer>> results = List.of(executor.submit(put), executor.submit(put));
+            start.countDown();
+            List<Integer> statuses = new ArrayList<>();
+            for (Future<Integer> result : results) {
+                statuses.add(result.get());
+            }
+            assertThat(statuses).allSatisfy(s -> assertThat(s).isIn(200, 409)).contains(200);
+            Integer rows = jdbc.queryForObject(
+                    "SELECT count(*) FROM match_profiles WHERE user_id = ?", Integer.class, athlete.id());
+            assertThat(rows).isEqualTo(1);
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    void anAccountWithoutAthleteOrCoachRoleIsRefused() throws Exception {
+        Registered admin = api.register("ATHLETE");
+        jdbc.update("DELETE FROM user_roles WHERE user_id = ?", admin.id());
+        jdbc.update("INSERT INTO user_roles (user_id, role_code) VALUES (?, 'ADMIN')", admin.id());
+        // Les roles sont portes par le jeton : on se reconnecte pour en obtenir un nouveau.
+        String token = api.json(api.post(null, "/api/auth/login", Map.of("email", admin.email(), "password", "Password1"))
+                        .andExpect(status().isOk()))
+                .get("accessToken")
+                .asText();
+        Registered relogged = new Registered(admin.id(), admin.email(), token);
+
+        api.get(relogged, PROFILE).andExpect(status().isForbidden());
+    }
 }

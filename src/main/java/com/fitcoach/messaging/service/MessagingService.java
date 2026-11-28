@@ -20,7 +20,9 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -169,12 +171,13 @@ public class MessagingService {
                 .collect(Collectors.toMap(UnreadCount::getConversationId, UnreadCount::getCount));
         Map<UUID, UserSummary> users = userDirectory.findAllById(
                 conversations.stream().map(c -> c.counterpartOf(viewerId)).distinct().toList());
+        Set<UUID> firstNameOnly = firstNameOnlyCounterparts(viewerId);
 
         return conversations.stream()
                 .map(c -> ConversationResponse.from(
                         c,
                         viewerId,
-                        displayName(users.get(c.counterpartOf(viewerId))),
+                        displayName(users.get(c.counterpartOf(viewerId)), firstNameOnly),
                         lastMessages.get(c.getId()),
                         unread.getOrDefault(c.getId(), 0L)))
                 .toList();
@@ -185,7 +188,21 @@ public class MessagingService {
         return clock.instant().truncatedTo(ChronoUnit.MICROS);
     }
 
-    private static String displayName(UserSummary user) {
-        return user == null ? "" : user.displayName();
+    /**
+     * Un match FitMatch ne revele que le prenom : le nom complet n'apparait que
+     * si une relation de coaching active existe aussi entre les deux personnes.
+     */
+    private Set<UUID> firstNameOnlyCounterparts(UUID viewerId) {
+        Set<UUID> matched = new HashSet<>(matchRelations.matchedWith(viewerId));
+        matched.removeAll(coachRelations.activeAthleteIds(viewerId));
+        matched.removeAll(coachRelations.activeCoachIds(viewerId));
+        return matched;
+    }
+
+    private static String displayName(UserSummary user, Set<UUID> firstNameOnly) {
+        if (user == null) {
+            return "";
+        }
+        return firstNameOnly.contains(user.id()) ? user.firstName() : user.displayName();
     }
 }

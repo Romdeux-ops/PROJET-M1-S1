@@ -20,14 +20,22 @@ import type {
  */
 export const matchingApi = {
   getProfile: () => unwrap(api.GET('/api/matching/profile')) as Promise<MyMatchProfile>,
-  saveProfile: (values: MatchProfileFormValues) =>
+  /**
+   * Date de naissance et taille ne sont envoyees que si le compte ne les
+   * connait pas (`missing`) : FitMatch complete le profil, il ne le modifie pas.
+   */
+  saveProfile: (
+    { birthDate, heightCm, ...values }: MatchProfileFormValues,
+    missing: MyMatchProfile['missing'],
+  ) =>
     unwrap(
       api.PUT('/api/matching/profile', {
         body: {
           ...values,
           about: values.about || undefined,
           city: values.city || undefined,
-          heightCm: values.heightCm,
+          birthDate: missing.includes('BIRTH_DATE') ? birthDate : undefined,
+          heightCm: missing.includes('HEIGHT') ? heightCm : undefined,
         },
       }),
     ) as Promise<MyMatchProfile>,

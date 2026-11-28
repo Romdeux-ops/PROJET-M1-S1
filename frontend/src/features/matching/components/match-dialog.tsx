@@ -1,6 +1,7 @@
 import { Loader2, MessageCircleHeart } from 'lucide-react'
 import { motion } from 'motion/react'
 
+import { HeartDumbbell } from '@/components/heart-dumbbell-icon'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,7 +16,6 @@ import { useSession } from '@/lib/auth/session'
 import { initials } from '@/lib/utils'
 
 import type { Match } from '../schemas'
-import { HeartDumbbell } from '@/components/heart-dumbbell-icon'
 
 interface MatchDialogProps {
   match: Match | null

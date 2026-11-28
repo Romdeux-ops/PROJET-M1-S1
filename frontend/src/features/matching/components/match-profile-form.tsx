@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ArrowLeft, ArrowRight, Loader2, Lock } from 'lucide-react'
-import { useState } from 'react'
+import { type ComponentProps, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { Badge } from '@/components/ui/badge'
@@ -24,6 +24,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { useProfile } from '@/features/identity'
+import { formatHeight } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 import { useSaveMatchProfile } from '../hooks/use-matching'
@@ -47,15 +49,15 @@ import { ChipGroup } from './chip-group'
 
 const STEPS = [
   {
-    title: 'Toi',
+    title: 'Vous',
     fields: ['birthDate', 'heightCm', 'headline', 'about'],
   },
   {
-    title: 'Ton sport',
+    title: 'Votre sport',
     fields: ['sports', 'goals', 'levels', 'availability'],
   },
   {
-    title: 'Tes rencontres',
+    title: 'Vos rencontres',
     fields: ['trainingMode', 'city', 'maxBudgetEur', 'sessionRateEur', 'visible'],
   },
 ] as const satisfies { title: string; fields: (keyof MatchProfileFormInput)[] }[]
@@ -74,6 +76,9 @@ export function MatchProfileForm({ me, onSaved }: MatchProfileFormProps) {
   const [step, setStep] = useState(0)
   const save = useSaveMatchProfile()
   const isCoach = me.side === 'COACH'
+  const birthDateMissing = me.missing.includes('BIRTH_DATE')
+  const heightMissing = me.missing.includes('HEIGHT')
+  const { data: account } = useProfile()
   const editing = me.profile !== null
 
   const form = useForm<MatchProfileFormInput, unknown, MatchProfileFormValues>({
@@ -101,7 +106,7 @@ export function MatchProfileForm({ me, onSaved }: MatchProfileFormProps) {
     if (await form.trigger([...fields])) setStep((s) => s + 1)
   }
   const onSubmit = form.handleSubmit((values) =>
-    save.mutate(values, { onSuccess: () => onSaved?.() }),
+    save.mutate({ values, me }, { onSuccess: () => onSaved?.() }),
   )
 
   return (
@@ -144,9 +149,13 @@ export function MatchProfileForm({ me, onSaved }: MatchProfileFormProps) {
                       )}
                     </FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <LockableInput locked={!birthDateMissing} type="date" {...field} />
                     </FormControl>
-                    <FormDescription>Seul votre âge est affiché.</FormDescription>
+                    <FormDescription>
+                      {birthDateMissing
+                        ? 'Seul votre âge est affiché.'
+                        : 'Reprise de votre compte, modifiable dans « Mon profil ».'}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -158,13 +167,14 @@ export function MatchProfileForm({ me, onSaved }: MatchProfileFormProps) {
                   <FormItem>
                     <FormLabel className="flex items-center gap-2">
                       Taille (cm)
-                      {me.missing.includes('HEIGHT') && <Badge variant="outline">Facultatif</Badge>}
+                      {heightMissing && <Badge variant="outline">Facultatif</Badge>}
                     </FormLabel>
                     <FormControl>
-                      <Input
+                      <LockableInput
+                        locked={!heightMissing}
                         type="number"
                         inputMode="decimal"
-                        step="0.5"
+                        step="0.1"
                         name={field.name}
                         ref={field.ref}
                         onBlur={field.onBlur}
@@ -172,6 +182,18 @@ export function MatchProfileForm({ me, onSaved }: MatchProfileFormProps) {
                         onChange={(e) => field.onChange(e.target.value)}
                       />
                     </FormControl>
+                    {!heightMissing ? (
+                      <FormDescription>
+                        Reprise de votre compte, modifiable dans « Mon profil ».
+                      </FormDescription>
+                    ) : (
+                      account?.unitSystem === 'IMPERIAL' &&
+                      Number(field.value) > 0 && (
+                        <FormDescription>
+                          Soit {formatHeight(Number(field.value), 'IMPERIAL')}
+                        </FormDescription>
+                      )
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -182,12 +204,12 @@ export function MatchProfileForm({ me, onSaved }: MatchProfileFormProps) {
               name="headline"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Ton accroche</FormLabel>
+                  <FormLabel>Votre accroche</FormLabel>
                   <FormControl>
                     <Input
                       placeholder={
                         isCoach
-                          ? 'Coach running, je prépare ton premier semi'
+                          ? 'Coach running, je prépare votre premier semi'
                           : 'Je veux courir mon premier 10 km'
                       }
                       {...field}
@@ -208,8 +230,8 @@ export function MatchProfileForm({ me, onSaved }: MatchProfileFormProps) {
                       rows={3}
                       placeholder={
                         isCoach
-                          ? 'Ton parcours, tes diplômes, ta façon de coacher…'
-                          : 'Ton passé sportif, ce qui te motive, tes contraintes…'
+                          ? 'Votre parcours, vos diplômes, votre façon de coacher…'
+                          : 'Votre passé sportif, ce qui vous motive, vos contraintes…'
                       }
                       {...field}
                     />
@@ -229,7 +251,7 @@ export function MatchProfileForm({ me, onSaved }: MatchProfileFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {isCoach ? 'Sports que tu coaches' : 'Sports que tu pratiques'}
+                    {isCoach ? 'Sports que vous coachez' : 'Sports que vous pratiquez'}
                   </FormLabel>
                   <ChipGroup
                     label="Sports"
@@ -250,7 +272,7 @@ export function MatchProfileForm({ me, onSaved }: MatchProfileFormProps) {
                   name="goals"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Objectifs que tu accompagnes</FormLabel>
+                      <FormLabel>Objectifs que vous accompagnez</FormLabel>
                       <ChipGroup
                         label="Objectifs"
                         options={GOALS}
@@ -293,7 +315,7 @@ export function MatchProfileForm({ me, onSaved }: MatchProfileFormProps) {
               name="availability"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tes créneaux</FormLabel>
+                  <FormLabel>Vos créneaux</FormLabel>
                   <ChipGroup
                     label="Créneaux"
                     options={SLOTS}
@@ -454,5 +476,23 @@ function Stepper({ step }: { step: number }) {
         </li>
       ))}
     </ol>
+  )
+}
+
+/**
+ * Champ repris du compte : en lecture seule (et non `disabled`, pour que la
+ * valeur reste validee par le formulaire), avec un cadenas.
+ */
+function LockableInput({
+  locked,
+  className,
+  ...props
+}: ComponentProps<typeof Input> & { locked: boolean }) {
+  if (!locked) return <Input className={className} {...props} />
+  return (
+    <div className="relative">
+      <Input readOnly aria-readonly className={cn('bg-muted pr-9', className)} {...props} />
+      <Lock className="absolute top-1/2 right-3 size-3.5 -translate-y-1/2 text-muted-foreground" />
+    </div>
   )
 }

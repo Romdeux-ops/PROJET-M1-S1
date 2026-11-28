@@ -42,13 +42,14 @@ CREATE TRIGGER trg_match_profiles_updated_at
 
 
 -- -----------------------------------------------------------------------------
--- Decisions de swipe : une par paire orientee, la derniere l'emporte.
+-- Decisions de swipe : une par paire orientee, la derniere l'emporte tant que
+-- la paire n'a pas matche (decided_at date cette derniere decision).
 -- -----------------------------------------------------------------------------
 CREATE TABLE match_swipes (
     swiper_id  uuid NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     target_id  uuid NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     decision   text NOT NULL CHECK (decision IN ('LIKE', 'SUPER_LIKE', 'PASS')),
-    created_at timestamptz NOT NULL DEFAULT now(),
+    decided_at timestamptz NOT NULL DEFAULT now(),
 
     PRIMARY KEY (swiper_id, target_id),
     CONSTRAINT chk_match_swipes_distinct CHECK (swiper_id <> target_id)

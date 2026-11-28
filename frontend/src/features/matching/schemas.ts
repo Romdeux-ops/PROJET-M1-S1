@@ -157,12 +157,20 @@ export interface SwipeResult {
   newMatch: boolean
 }
 
-function ageOn(birthDate: string, today = new Date()) {
-  const birth = new Date(birthDate)
-  let age = today.getFullYear() - birth.getFullYear()
+export const MAXIMUM_AGE = 120
+
+/**
+ * Age revolu a la date locale `today` pour une date `YYYY-MM-DD`. La date est
+ * lue a la main : `new Date('2010-05-20')` serait minuit UTC, donc la veille
+ * pour un navigateur a l'ouest de Greenwich, ce qui decalerait l'anniversaire.
+ */
+export function ageFromIsoDate(birthDate: string, today = new Date()): number | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(birthDate)
+  if (!match) return null
+  const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])]
+  let age = today.getFullYear() - year
   const beforeBirthday =
-    today.getMonth() < birth.getMonth() ||
-    (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())
+    today.getMonth() + 1 < month || (today.getMonth() + 1 === month && today.getDate() < day)
   if (beforeBirthday) age -= 1
   return age
 }
@@ -177,10 +185,22 @@ export const matchProfileFormSchema = z.object({
   birthDate: z
     .string()
     .min(1, 'Votre date de naissance est nécessaire')
-    .refine((v) => !Number.isNaN(Date.parse(v)) && ageOn(v) >= MINIMUM_AGE, {
+    .refine((v) => (ageFromIsoDate(v) ?? -1) >= MINIMUM_AGE, {
       message: `FitMatch est réservé aux ${MINIMUM_AGE} ans et plus`,
+    })
+    .refine((v) => (ageFromIsoDate(v) ?? 0) <= MAXIMUM_AGE, {
+      message: 'Cette date de naissance semble erronée',
     }),
-  heightCm: optionalNumber(50, 272, 'Taille entre 50 et 272 cm'),
+  // Memes regles que le profil du compte : ]0 ; 300[ cm, une decimale au plus.
+  heightCm: z.preprocess(
+    (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
+    z
+      .number({ error: 'Taille invalide' })
+      .gt(0, 'Taille invalide')
+      .lt(300, 'La taille doit être inférieure à 300 cm')
+      .refine((v) => Number.isInteger(v * 10), 'Une décimale au plus')
+      .optional(),
+  ),
   headline: z
     .string()
     .trim()

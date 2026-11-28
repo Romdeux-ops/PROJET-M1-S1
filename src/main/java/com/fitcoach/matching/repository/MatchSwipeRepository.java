@@ -16,7 +16,7 @@ public interface MatchSwipeRepository extends JpaRepository<MatchSwipe, MatchSwi
     @Modifying
     @Query(value = """
             INSERT INTO match_swipes (swiper_id, target_id, decision) VALUES (:swiperId, :targetId, :decision)
-            ON CONFLICT (swiper_id, target_id) DO UPDATE SET decision = EXCLUDED.decision, created_at = now()
+            ON CONFLICT (swiper_id, target_id) DO UPDATE SET decision = EXCLUDED.decision, decided_at = now()
             """, nativeQuery = true)
     void upsert(@Param("swiperId") UUID swiperId, @Param("targetId") UUID targetId, @Param("decision") String decision);
 
@@ -41,7 +41,6 @@ public interface MatchSwipeRepository extends JpaRepository<MatchSwipe, MatchSwi
      * sans ce verrou, deux LIKE croises simultanes ne verraient chacun pas
      * l'autre (READ COMMITTED) et aucun match ne serait cree.
      */
-    @Query(value = "SELECT 1 FROM (SELECT pg_advisory_xact_lock(hashtextextended(:pairKey, 0))) AS lock",
-            nativeQuery = true)
-    int lockPair(@Param("pairKey") String pairKey);
+    @Query(value = "SELECT 1 FROM (SELECT pg_advisory_xact_lock(:key)) AS lock", nativeQuery = true)
+    int lockPair(@Param("key") long key);
 }

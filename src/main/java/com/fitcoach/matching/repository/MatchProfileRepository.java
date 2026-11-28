@@ -12,7 +12,12 @@ public interface MatchProfileRepository extends JpaRepository<MatchProfile, UUID
     /**
      * Profils visibles du camp {@code side} que {@code viewerId} n'a pas encore
      * swipes, sans ceux qui l'ont deja ecarte (le match est alors impossible).
-     * Les plus recemment mis a jour d'abord ; le tri par score se fait ensuite.
+     *
+     * <p>Le pool est borne : pour que les meilleurs profils y entrent meme
+     * quand ils sont anciens, on prend d'abord ceux qui ont envoye un SUPER_LIKE,
+     * puis ceux qui partagent le plus de sports ({@code sports} est un litteral
+     * de tableau PostgreSQL), puis les plus recents. Le score exact est calcule
+     * ensuite en Java.
      */
     @Query(value = """
             SELECT p.* FROM match_profiles p
@@ -25,9 +30,18 @@ public interface MatchProfileRepository extends JpaRepository<MatchProfile, UUID
               AND NOT EXISTS (
                   SELECT 1 FROM match_swipes s
                   WHERE s.swiper_id = p.user_id AND s.target_id = :viewerId AND s.decision = 'PASS')
-            ORDER BY p.updated_at DESC
+            ORDER BY
+              EXISTS (
+                  SELECT 1 FROM match_swipes s
+                  WHERE s.swiper_id = p.user_id AND s.target_id = :viewerId AND s.decision = 'SUPER_LIKE') DESC,
+              cardinality(ARRAY(
+                  SELECT unnest(p.sports) INTERSECT SELECT unnest(CAST(:sports AS text[])))) DESC,
+              p.updated_at DESC
             LIMIT :poolSize
             """, nativeQuery = true)
     List<MatchProfile> findFeedCandidates(
-            @Param("viewerId") UUID viewerId, @Param("side") String side, @Param("poolSize") int poolSize);
+            @Param("viewerId") UUID viewerId,
+            @Param("side") String side,
+            @Param("sports") String sports,
+            @Param("poolSize") int poolSize);
 }

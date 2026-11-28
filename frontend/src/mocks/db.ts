@@ -524,6 +524,18 @@ function seedSessions(): TrainingSession[] {
   ]
 }
 
+/**
+ * Date de naissance `YYYY-MM-DD` donnant exactement `age` ans aujourd'hui : un
+ * mois avant l'anniversaire, pour que l'age ne change pas selon la date du test.
+ */
+function birthDateForAge(age: number) {
+  const d = new Date()
+  d.setFullYear(d.getFullYear() - age)
+  d.setMonth(d.getMonth() - 1)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
 /** Personnes de demo FitMatch : elles n'ont pas de mot de passe connu, on ne s'y connecte pas. */
 function seedFitMatchPeople(): MockUser[] {
   const person = (
@@ -544,7 +556,7 @@ function seedFitMatchPeople(): MockUser[] {
     password: crypto.randomUUID(),
     profile: {
       ...defaultProfile(),
-      birthDate: `${new Date().getFullYear() - age}-03-14`,
+      birthDate: birthDateForAge(age),
       heightCm,
       fitnessGoal,
       experienceLevel,

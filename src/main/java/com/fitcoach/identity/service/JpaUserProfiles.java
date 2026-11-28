@@ -42,8 +42,8 @@ class JpaUserProfiles implements UserProfiles {
     @Transactional
     public ProfileSnapshot complete(UUID userId, LocalDate birthDate, BigDecimal heightCm) {
         User user = findUser(userId);
-        if (birthDate != null) user.setBirthDate(birthDate);
-        if (heightCm != null) user.setHeightCm(heightCm);
+        if (birthDate != null && user.getBirthDate() == null) user.setBirthDate(birthDate);
+        if (heightCm != null && user.getHeightCm() == null) user.setHeightCm(heightCm);
         return snapshot(user);
     }
 

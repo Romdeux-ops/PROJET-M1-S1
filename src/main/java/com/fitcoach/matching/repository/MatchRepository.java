@@ -28,6 +28,14 @@ public interface MatchRepository extends JpaRepository<Match, UUID> {
             """, nativeQuery = true)
     int insertIfAbsent(@Param("coachId") UUID coachId, @Param("athleteId") UUID athleteId);
 
+    /** Personnes avec qui l'utilisateur a eu un match, actif ou termine. */
+    @Query("""
+            SELECT CASE WHEN m.coachId = :userId THEN m.athleteId ELSE m.coachId END
+            FROM Match m
+            WHERE m.coachId = :userId OR m.athleteId = :userId
+            """)
+    List<UUID> findCounterpartIds(@Param("userId") UUID userId);
+
     /** Matchs actifs de l'utilisateur, les plus recents d'abord. */
     @Query("""
             SELECT m FROM Match m

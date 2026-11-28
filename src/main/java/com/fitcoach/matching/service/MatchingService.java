@@ -9,6 +9,9 @@ import com.fitcoach.matching.domain.Match;
 import com.fitcoach.matching.domain.MatchProfile;
 import com.fitcoach.matching.domain.MatchSide;
 import com.fitcoach.matching.domain.MatchStatus;
+import com.fitcoach.matching.domain.MatchSwipe;
+import com.fitcoach.matching.domain.MatchSwipeId;
+import com.fitcoach.matching.domain.SwipeDecision;
 import com.fitcoach.matching.dto.CandidateResponse;
 import com.fitcoach.matching.dto.MatchProfileRequest;
 import com.fitcoach.matching.dto.MatchResponse;
@@ -23,6 +26,7 @@ import com.fitcoach.matching.exception.MatchProfileRequiredException;
 import com.fitcoach.matching.repository.MatchProfileRepository;
 import com.fitcoach.matching.repository.MatchRepository;
 import com.fitcoach.matching.repository.MatchSwipeRepository;
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.Period;
@@ -52,6 +56,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class MatchingService implements MatchRelations {
 
     public static final int MINIMUM_AGE = 16;
+    /** Au-dela, la date de naissance est consideree comme une erreur de saisie. */
+    public static final int MAXIMUM_AGE = 120;
     public static final int DEFAULT_FEED_SIZE = 20;
     public static final int MAX_FEED_SIZE = 50;
 
@@ -87,11 +93,13 @@ public class MatchingService implements MatchRelations {
     @Transactional
     public MyMatchProfileResponse saveProfile(UUID userId, MatchProfileRequest request) {
         ProfileSnapshot account = userProfiles.get(userId);
-        LocalDate birthDate = request.birthDate() != null ? request.birthDate() : account.birthDate();
-        if (birthDate == null || ageOf(birthDate) < MINIMUM_AGE) {
+        // Une date deja connue du compte prime : FitMatch ne fait que completer.
+        LocalDate birthDate = account.birthDate() != null ? account.birthDate() : request.birthDate();
+        if (!hasValidAge(birthDate)) {
             throw new AgeRequirementException(MINIMUM_AGE);
         }
-        if (request.birthDate() != null || request.heightCm() != null) {
+        if ((request.birthDate() != null && account.birthDate() == null)
+                || (request.heightCm() != null && account.heightCm() == null)) {
             account = userProfiles.complete(userId, request.birthDate(), request.heightCm());
         }
 
@@ -119,15 +127,16 @@ public class MatchingService implements MatchRelations {
     /**
      * Profils du camp oppose pas encore swipes, les SUPER_LIKE recus d'abord,
      * puis par score decroissant. {@code limit} est ramene entre 1 et
-     * {@value #MAX_FEED_SIZE}.
+     * {@value #MAX_FEED_SIZE}. Les comptes inactifs ou trop jeunes (age modifie
+     * apres l'inscription) n'y figurent pas.
      */
     public List<CandidateResponse> feed(UUID viewerId, Integer limit) {
         int size = Math.clamp(limit == null ? DEFAULT_FEED_SIZE : limit, 1, MAX_FEED_SIZE);
         MatchProfile me = profileRepository.findById(viewerId).orElseThrow(MatchProfileRequiredException::new);
-        ProfileSnapshot myAccount = userProfiles.get(viewerId);
+        ProfileSnapshot myAccount = eligibleAccount(viewerId);
 
-        List<MatchProfile> pool =
-                profileRepository.findFeedCandidates(viewerId, me.getSide().opposite().name(), FEED_POOL_SIZE);
+        List<MatchProfile> pool = profileRepository.findFeedCandidates(
+                viewerId, me.getSide().opposite().name(), toSqlArray(me.getSports()), FEED_POOL_SIZE);
         if (pool.isEmpty()) {
             return List.of();
         }
@@ -136,7 +145,7 @@ public class MatchingService implements MatchRelations {
         Set<UUID> superLikers = new HashSet<>(swipeRepository.findSuperLikers(viewerId, ids));
 
         return pool.stream()
-                .filter(p -> isActive(accounts.get(p.getUserId())))
+                .filter(p -> isEligible(accounts.get(p.getUserId())))
                 .map(p -> toCandidate(me, myAccount, p, accounts.get(p.getUserId()), superLikers))
                 .sorted(Comparator.comparing(CandidateResponse::superLikedYou)
                         .thenComparingInt(CandidateResponse::score)
@@ -147,9 +156,15 @@ public class MatchingService implements MatchRelations {
 
     // --------------------------------------------------------------- swipes
 
+    /**
+     * Enregistre la decision et cree le match si elle est reciproque. Une paire
+     * deja matchee (match actif ou termine) ne se re-swipe pas : la decision qui
+     * a cree le match reste en place et l'etat courant est renvoye, sans erreur.
+     */
     @Transactional
     public SwipeResponse swipe(UUID viewerId, SwipeRequest request) {
         MatchProfile me = profileRepository.findById(viewerId).orElseThrow(MatchProfileRequiredException::new);
+        eligibleAccount(viewerId);
         UUID targetId = request.targetId();
         if (targetId.equals(viewerId)) {
             throw new InvalidSwipeTargetException();
@@ -162,14 +177,26 @@ public class MatchingService implements MatchRelations {
             throw new InvalidSwipeTargetException();
         }
         ProfileSnapshot targetAccount = userProfiles.get(targetId);
-        if (!targetAccount.active()) {
+        if (!isEligible(targetAccount)) {
             throw new MatchProfileNotFoundException();
         }
 
         UUID coachId = me.getSide() == MatchSide.COACH ? viewerId : targetId;
         UUID athleteId = me.getSide() == MatchSide.COACH ? targetId : viewerId;
 
-        swipeRepository.lockPair(coachId + ":" + athleteId);
+        swipeRepository.lockPair(pairLockKey(coachId, athleteId));
+        Optional<Match> existing = matchRepository.findByCoachIdAndAthleteId(coachId, athleteId);
+        if (existing.isPresent()) {
+            SwipeDecision kept = swipeRepository
+                    .findById(new MatchSwipeId(viewerId, targetId))
+                    .map(MatchSwipe::getDecision)
+                    .orElse(request.decision());
+            MatchResponse match = existing.filter(m -> m.getStatus() == MatchStatus.ACTIVE)
+                    .map(m -> toMatch(viewerId, m, target, targetAccount))
+                    .orElse(null);
+            return new SwipeResponse(kept, match, false);
+        }
+
         swipeRepository.upsert(viewerId, targetId, request.decision().name());
         boolean created = request.decision().isPositive()
                 && swipeRepository.hasLiked(targetId, viewerId)
@@ -199,7 +226,8 @@ public class MatchingService implements MatchRelations {
         for (Match match : matches) {
             UUID counterpart = match.counterpartOf(userId);
             ProfileSnapshot account = accounts.get(counterpart);
-            if (account != null) {
+            // Un compte desactive disparait des matchs (et n'est plus joignable).
+            if (account != null && account.active()) {
                 responses.add(toMatch(userId, match, profiles.get(counterpart), account));
             }
         }
@@ -219,6 +247,11 @@ public class MatchingService implements MatchRelations {
     @Override
     public boolean isActiveMatch(UUID coachId, UUID athleteId) {
         return matchRepository.existsByCoachIdAndAthleteIdAndStatus(coachId, athleteId, MatchStatus.ACTIVE);
+    }
+
+    @Override
+    public Set<UUID> matchedWith(UUID userId) {
+        return new HashSet<>(matchRepository.findCounterpartIds(userId));
     }
 
     // ------------------------------------------------------------ conversion
@@ -288,8 +321,37 @@ public class MatchingService implements MatchRelations {
         return account.hasRole(RoleCode.COACH) ? MatchSide.COACH : MatchSide.ATHLETE;
     }
 
-    private static boolean isActive(ProfileSnapshot account) {
-        return account != null && account.active();
+    /** Compte actif, d'age connu et compris entre {@value #MINIMUM_AGE} et {@value #MAXIMUM_AGE} ans. */
+    private boolean isEligible(ProfileSnapshot account) {
+        return account != null && account.active() && hasValidAge(account.birthDate());
+    }
+
+    private boolean hasValidAge(LocalDate birthDate) {
+        if (birthDate == null) {
+            return false;
+        }
+        int age = ageOf(birthDate);
+        return age >= MINIMUM_AGE && age <= MAXIMUM_AGE;
+    }
+
+    /** Le compte de l'utilisateur courant, refuse s'il ne remplit plus la condition d'age. */
+    private ProfileSnapshot eligibleAccount(UUID userId) {
+        ProfileSnapshot account = userProfiles.get(userId);
+        if (!hasValidAge(account.birthDate())) {
+            throw new AgeRequirementException(MINIMUM_AGE);
+        }
+        return account;
+    }
+
+    /** Cle 64 bits du verrou consultatif d'une paire, derivee des deux UUID. */
+    private static long pairLockKey(UUID coachId, UUID athleteId) {
+        return UUID.nameUUIDFromBytes((coachId + ":" + athleteId).getBytes(StandardCharsets.UTF_8))
+                .getMostSignificantBits();
+    }
+
+    /** Litteral de tableau PostgreSQL ; les codes de sport sont valides en amont (lettres et _). */
+    private static String toSqlArray(List<String> values) {
+        return "{" + String.join(",", values) + "}";
     }
 
     private int ageOf(LocalDate birthDate) {

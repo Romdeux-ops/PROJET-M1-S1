@@ -1,6 +1,7 @@
 import { HeartOff, Loader2, MessageCircle } from 'lucide-react'
 
 import { EmptyState } from '@/components/empty-state'
+import { HeartDumbbell } from '@/components/heart-dumbbell-icon'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -10,7 +11,6 @@ import { initials } from '@/lib/utils'
 
 import { useMatches, useUnmatch } from '../hooks/use-matching'
 import { type Match, SPORT_LABELS } from '../schemas'
-import { HeartDumbbell } from '@/components/heart-dumbbell-icon'
 
 interface MatchListProps {
   onMessage: (match: Match) => void

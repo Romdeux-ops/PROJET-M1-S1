@@ -16,8 +16,9 @@ public interface UserProfiles {
     Map<UUID, ProfileSnapshot> findAll(Collection<UUID> userIds);
 
     /**
-     * Complete le profil avec les valeurs non nulles fournies, sans toucher aux
-     * autres. Les valeurs doivent avoir ete validees par l'appelant.
+     * Complete le profil : chaque valeur fournie n'est appliquee que si le compte
+     * n'en a pas encore. Une valeur deja connue se modifie uniquement depuis le
+     * profil du compte. Les valeurs doivent avoir ete validees par l'appelant.
      *
      * @throws UserNotFoundException si le compte n'existe pas
      */

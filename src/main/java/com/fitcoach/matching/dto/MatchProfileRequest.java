@@ -3,6 +3,7 @@ package com.fitcoach.matching.dto;
 import com.fitcoach.matching.domain.TrainingMode;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -18,9 +19,9 @@ import java.util.List;
 /**
  * {@code PUT /api/matching/profile} : cree ou remplace le profil FitMatch.
  *
- * <p>{@code birthDate} et {@code heightCm} completent le compte s'ils sont
- * fournis (utile quand l'inscription ne les a pas demandes) ; omis, les
- * valeurs du compte sont conservees. {@code goals} et {@code levels} ne
+ * <p>{@code birthDate} et {@code heightCm} completent le compte uniquement
+ * s'il ne les connait pas encore (memes contraintes que le profil du compte) ;
+ * une valeur deja connue se modifie depuis {@code PATCH /api/users/me/profile}. {@code goals} et {@code levels} ne
  * concernent que les coachs, {@code maxBudgetEur} que les athletes et
  * {@code sessionRateEur} que les coachs : le reste est ignore.
  */
@@ -37,7 +38,9 @@ public record MatchProfileRequest(
         @Min(0) @Max(1000) Integer sessionRateEur,
         Boolean visible,
         @Past LocalDate birthDate,
-        @DecimalMin("50") @DecimalMax("272") BigDecimal heightCm) {
+        @DecimalMin(value = "0", inclusive = false) @DecimalMax(value = "300", inclusive = false)
+                @Digits(integer = 3, fraction = 1)
+                BigDecimal heightCm) {
 
     public static final String SPORTS = "STRENGTH|RUNNING|CYCLING|SWIMMING|CROSSFIT|HIIT|YOGA|PILATES|BOXING"
             + "|MARTIAL_ARTS|CLIMBING|TRIATHLON|FOOTBALL|BASKETBALL|TENNIS|DANCE";

@@ -23,6 +23,15 @@ function isActiveClient(coachId: string, athleteId: string) {
   )
 }
 
+/** Comme le backend : un match sans relation de coaching active ne revele que le prenom. */
+function firstNameOnly(viewerId: string, counterpartId: string) {
+  const pair = (m: { coachId: string; athleteId: string }) =>
+    (m.coachId === viewerId && m.athleteId === counterpartId) ||
+    (m.coachId === counterpartId && m.athleteId === viewerId)
+  const coaching = db.coachAthletes.some((c) => pair(c) && c.status === 'ACTIVE')
+  return !coaching && db.matches.some(pair)
+}
+
 /** Plus recent d'abord, `id` pour departager, comme l'index du backend. */
 const newestFirst = (a: Message, b: Message) =>
   b.sentAt.localeCompare(a.sentAt) || b.id.localeCompare(a.id)
@@ -46,7 +55,11 @@ function toView(conversation: MockConversation, viewerId: string): Conversation 
   return {
     id: conversation.id,
     counterpartId,
-    counterpartName: counterpart ? `${counterpart.firstName} ${counterpart.lastName}` : '',
+    counterpartName: counterpart
+      ? firstNameOnly(viewerId, counterpartId)
+        ? counterpart.firstName
+        : `${counterpart.firstName} ${counterpart.lastName}`
+      : '',
     lastMessagePreview: last
       ? last.body.length <= PREVIEW_LENGTH
         ? last.body

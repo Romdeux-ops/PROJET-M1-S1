@@ -1,5 +1,6 @@
 import { http, HttpResponse } from 'msw'
 
+import { ageFromIsoDate, MAXIMUM_AGE, MINIMUM_AGE } from '@/features/matching/schemas'
 import type {
   Candidate,
   Match,
@@ -13,20 +14,14 @@ import type {
 import { db, type MockMatch, type MockMatchProfile, type MockUser, userFromRequest } from '../db'
 import { networkDelay, problem } from '../utils'
 
-const MINIMUM_AGE = 16
-
 function ageOf(birthDate: string | null) {
-  if (!birthDate) return null
-  const birth = new Date(birthDate)
-  const today = new Date()
-  let age = today.getFullYear() - birth.getFullYear()
-  if (
-    today.getMonth() < birth.getMonth() ||
-    (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())
-  ) {
-    age -= 1
-  }
-  return age
+  return birthDate ? ageFromIsoDate(birthDate) : null
+}
+
+/** Age connu et compris entre l'age minimum et l'age maximum, comme cote backend. */
+function hasValidAge(birthDate: string | null) {
+  const age = ageOf(birthDate)
+  return age !== null && age >= MINIMUM_AGE && age <= MAXIMUM_AGE
 }
 
 function sideOf(user: MockUser): MatchSide {
@@ -69,8 +64,16 @@ function toMyProfile(user: MockUser): MyMatchProfile {
   }
 }
 
-/** Meme bareme que `Compatibility` cote backend. */
-function compatibility(athlete: MockMatchProfile, athleteUser: MockUser, coach: MockMatchProfile) {
+/**
+ * Meme bareme que `Compatibility.java`. A SYNCHRONISER : toute modification du
+ * bareme se fait des deux cotes ; `matching.test.ts` rejoue les cas de
+ * `CompatibilityTests.java` pour detecter un ecart.
+ */
+export function compatibility(
+  athlete: MockMatchProfile,
+  athleteUser: MockUser,
+  coach: MockMatchProfile,
+) {
   let score = 0
   const reasons: string[] = []
   const shared = <T>(a: T[], b: T[]) => a.filter((v) => b.includes(v)).length
@@ -187,13 +190,15 @@ export const matchingHandlers = [
     if (!user) return problem(401, 'Session invalide.')
     const body = await request.json()
 
-    const birthDate = body.birthDate || user.profile.birthDate
-    const age = ageOf(birthDate)
-    if (age === null || age < MINIMUM_AGE) {
+    // FitMatch complete le compte sans jamais ecraser une valeur deja connue.
+    const birthDate = user.profile.birthDate ?? body.birthDate ?? null
+    if (!hasValidAge(birthDate)) {
       return problem(400, `FitMatch est réservé aux personnes de ${MINIMUM_AGE} ans ou plus.`)
     }
     user.profile.birthDate = birthDate
-    if (body.heightCm !== undefined && body.heightCm !== null) user.profile.heightCm = body.heightCm
+    if (user.profile.heightCm === null && body.heightCm !== undefined && body.heightCm !== null) {
+      user.profile.heightCm = body.heightCm
+    }
 
     const existing = profileOf(user.id)
     const side = existing?.side ?? sideOf(user)
@@ -225,6 +230,9 @@ export const matchingHandlers = [
     if (!user) return problem(401, 'Session invalide.')
     const me = profileOf(user.id)
     if (!me) return problem(409, "Créez d'abord votre profil FitMatch.")
+    if (!hasValidAge(user.profile.birthDate)) {
+      return problem(400, `FitMatch est réservé aux personnes de ${MINIMUM_AGE} ans ou plus.`)
+    }
     const limit = Math.min(
       Math.max(Number(new URL(request.url).searchParams.get('limit') ?? 20), 1),
       50,
@@ -236,7 +244,7 @@ export const matchingHandlers = [
           p.side !== me.side &&
           p.visible &&
           p.userId !== user.id &&
-          userOf(p.userId) &&
+          hasValidAge(userOf(p.userId)?.profile.birthDate ?? null) &&
           !db.swipes.some((s) => s.swiperId === user.id && s.targetId === p.userId) &&
           !db.swipes.some(
             (s) => s.swiperId === p.userId && s.targetId === user.id && s.decision === 'PASS',
@@ -259,18 +267,30 @@ export const matchingHandlers = [
       const { targetId, decision } = await request.json()
       if (targetId === user.id) return problem(400, 'Choix invalide.')
       const target = profileOf(targetId)
-      if (!target || !target.visible) return problem(404, 'Profil FitMatch introuvable.')
+      if (!target || !target.visible || !hasValidAge(userOf(targetId)?.profile.birthDate ?? null)) {
+        return problem(404, 'Profil FitMatch introuvable.')
+      }
       if (target.side === me.side) {
         return problem(400, "Un athlète ne peut swiper qu'un coach, et un coach qu'un athlète.")
+      }
+
+      const coachId = me.side === 'COACH' ? user.id : targetId
+      const athleteId = me.side === 'COACH' ? targetId : user.id
+      let existing = db.matches.find((m) => m.coachId === coachId && m.athleteId === athleteId)
+      if (existing) {
+        // Une paire deja matchee ne se re-swipe pas : la decision d'origine reste en place.
+        const kept = db.swipes.find((s) => s.swiperId === user.id && s.targetId === targetId)
+        return HttpResponse.json({
+          decision: kept?.decision ?? decision,
+          match: existing.status === 'ACTIVE' ? toMatch(user.id, existing) : null,
+          newMatch: false,
+        } satisfies SwipeResult)
       }
 
       db.swipes = [
         ...db.swipes.filter((s) => !(s.swiperId === user.id && s.targetId === targetId)),
         { swiperId: user.id, targetId, decision },
       ]
-      const coachId = me.side === 'COACH' ? user.id : targetId
-      const athleteId = me.side === 'COACH' ? targetId : user.id
-      let existing = db.matches.find((m) => m.coachId === coachId && m.athleteId === athleteId)
       let newMatch = false
       if (decision !== 'PASS' && liked(targetId, user.id) && !existing) {
         existing = {

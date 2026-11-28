@@ -3,6 +3,8 @@ import { CalendarClock, Euro, MapPin, Ruler, Sparkles, Star, Target, Video } fro
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
+import { useProfile } from '@/features/identity'
+import { formatHeight } from '@/lib/format'
 import { cn, initials } from '@/lib/utils'
 
 import {
@@ -18,6 +20,8 @@ import {
 /** Contenu d'une carte du fil ; le glisser et l'animation sont geres par `SwipeDeck`. */
 export function CandidateCard({ candidate }: { candidate: Candidate }) {
   const isCoach = candidate.side === 'COACH'
+  // La taille est stockee en cm ; l'affichage suit la preference d'unites du compte.
+  const { data: account } = useProfile()
 
   return (
     <article
@@ -34,7 +38,7 @@ export function CandidateCard({ candidate }: { candidate: Candidate }) {
           </AvatarFallback>
         </Avatar>
         <ScoreRing score={candidate.score} />
-        <Badge className="absolute top-4 left-4 bg-black/30 text-white backdrop-blur">
+        <Badge className="absolute top-4 left-4 bg-background/80 text-foreground backdrop-blur">
           {isCoach ? 'Coach' : 'Athlète'}
         </Badge>
         {candidate.superLikedYou && (
@@ -99,7 +103,7 @@ export function CandidateCard({ candidate }: { candidate: Candidate }) {
           )}
           {candidate.heightCm !== null && (
             <Detail icon={Ruler} label="Taille">
-              {candidate.heightCm} cm
+              {formatHeight(candidate.heightCm, account?.unitSystem)}
             </Detail>
           )}
         </dl>
@@ -121,13 +125,14 @@ function Detail({
   label: string
   children: ReactNode
 }) {
+  // <dl> n'accepte que des <div> qui regroupent directement <dt> et <dd>.
   return (
-    <div className="flex items-start gap-2">
-      <Icon className="mt-0.5 size-4 shrink-0 text-primary" />
-      <div>
-        <dt className="sr-only">{label}</dt>
-        <dd>{children}</dd>
-      </div>
+    <div>
+      <dt className="sr-only">{label}</dt>
+      <dd className="flex items-start gap-2">
+        <Icon className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+        <span>{children}</span>
+      </dd>
     </div>
   )
 }

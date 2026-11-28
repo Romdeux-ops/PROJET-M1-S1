@@ -3,13 +3,13 @@ import { AnimatePresence, motion, type PanInfo, useMotionValue, useTransform } f
 import { type ComponentProps, type ReactNode, useCallback, useEffect, useState } from 'react'
 
 import { EmptyState } from '@/components/empty-state'
+import { HeartDumbbell } from '@/components/heart-dumbbell-icon'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 import { useSwipe } from '../hooks/use-matching'
 import type { Candidate, Match, SwipeDecision } from '../schemas'
 import { CandidateCard } from './candidate-card'
-import { HeartDumbbell } from '@/components/heart-dumbbell-icon'
 
 /** Distance (px) ou vitesse (px/s) au-dela de laquelle un glisser vaut decision. */
 const SWIPE_DISTANCE = 120
@@ -22,49 +22,38 @@ interface SwipeDeckProps {
   refreshing?: boolean
 }
 
+/** Zones ou les fleches ont deja un sens (saisie, onglets, menus, dialogues). */
+const KEYBOARD_EXCLUDED =
+  'input, textarea, select, [contenteditable="true"], [role="dialog"], [role="tablist"], [role="menu"], [role="listbox"], [role="radiogroup"]'
+
 /**
  * Pile de cartes : glisser a droite pour liker, a gauche pour passer, vers le
  * haut pour un super like ; boutons et fleches du clavier font de meme.
- * Une carte quitte la pile des le geste ; elle y revient si le serveur refuse.
+ * `candidates` est le cache du fil : `useSwipe` en retire la carte des le
+ * geste et ne la remet que si l'erreur est passagere (reseau, 5xx).
  */
 export function SwipeDeck({ candidates, onMatch, onRefresh, refreshing }: SwipeDeckProps) {
-  const swipe = useSwipe()
-  const [gone, setGone] = useState<ReadonlySet<string>>(new Set())
+  const { swipe } = useSwipe({ onMatch })
   const [lastDecision, setLastDecision] = useState<SwipeDecision>('PASS')
 
-  const remaining = candidates.filter((c) => !gone.has(c.userId))
-  const top = remaining[0]
-  const next = remaining[1]
+  const top = candidates[0]
+  const next = candidates[1]
 
   const decide = useCallback(
     (decision: SwipeDecision) => {
       if (!top) return
-      const targetId = top.userId
       setLastDecision(decision)
-      setGone((prev) => new Set(prev).add(targetId))
-      swipe.mutate(
-        { targetId, decision },
-        {
-          onSuccess: (result) => {
-            if (result.newMatch && result.match) onMatch(result.match)
-          },
-          onError: () =>
-            setGone((prev) => {
-              const restored = new Set(prev)
-              restored.delete(targetId)
-              return restored
-            }),
-        },
-      )
+      swipe(top.userId, decision)
     },
-    [top, swipe, onMatch],
+    [top, swipe],
   )
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.repeat) return
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
       const target = event.target as HTMLElement | null
-      if (target?.closest('input, textarea, select, [contenteditable="true"], [role="dialog"]'))
-        return
+      if (target?.closest(KEYBOARD_EXCLUDED)) return
       if (event.key === 'ArrowRight') decide('LIKE')
       else if (event.key === 'ArrowLeft') decide('PASS')
       else if (event.key === 'ArrowUp') decide('SUPER_LIKE')
@@ -82,14 +71,7 @@ export function SwipeDeck({ candidates, onMatch, onRefresh, refreshing }: SwipeD
         title="Plus personne à découvrir pour l'instant"
         description="Revenez plus tard : de nouveaux profils arrivent chaque jour. Élargir vos sports ou passer en « présentiel ou distance » aide aussi."
         action={
-          <Button
-            variant="outline"
-            onClick={() => {
-              setGone(new Set())
-              onRefresh()
-            }}
-            disabled={refreshing}
-          >
+          <Button variant="outline" onClick={onRefresh} disabled={refreshing}>
             <RotateCcw /> Actualiser
           </Button>
         }

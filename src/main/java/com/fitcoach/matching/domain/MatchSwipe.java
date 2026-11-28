@@ -31,8 +31,9 @@ public class MatchSwipe {
     @Column(nullable = false)
     private SwipeDecision decision;
 
-    @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
-    private Instant createdAt;
+    /** Date de la derniere decision : une nouvelle decision sur la meme personne la remplace. */
+    @Column(name = "decided_at", nullable = false, insertable = false, updatable = false)
+    private Instant decidedAt;
 
     protected MatchSwipe() {
         // JPA
@@ -50,7 +51,7 @@ public class MatchSwipe {
         return decision;
     }
 
-    public Instant getCreatedAt() {
-        return createdAt;
+    public Instant getDecidedAt() {
+        return decidedAt;
     }
 }

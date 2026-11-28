@@ -1,12 +1,15 @@
-import { Flame, Loader2, Settings2, Sparkles, Users } from 'lucide-react'
+import { Flame, Loader2, RotateCcw, Settings2, Sparkles, Users } from 'lucide-react'
 import { useState } from 'react'
 
+import { EmptyState } from '@/components/empty-state'
+import { HeartDumbbell } from '@/components/heart-dumbbell-icon'
 import { PageHeader } from '@/components/page-header'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { getErrorMessage } from '@/lib/api/errors'
 
-import { HeartDumbbell } from '@/components/heart-dumbbell-icon'
 import { MatchDialog } from '../components/match-dialog'
 import { MatchList } from '../components/match-list'
 import { MatchProfileForm } from '../components/match-profile-form'
@@ -20,7 +23,7 @@ interface MatchingPageProps {
 }
 
 export function MatchingPage({ onOpenConversation }: MatchingPageProps) {
-  const { data: me, isLoading } = useMatchProfile()
+  const { data: me, isLoading, isError, error, refetch, isFetching } = useMatchProfile()
 
   return (
     <>
@@ -33,7 +36,18 @@ export function MatchingPage({ onOpenConversation }: MatchingPageProps) {
           </span>
         }
       />
-      {isLoading || !me ? (
+      {isError ? (
+        <EmptyState
+          icon={HeartDumbbell}
+          title="FitMatch est indisponible pour le moment"
+          description={getErrorMessage(error)}
+          action={
+            <Button variant="outline" onClick={() => void refetch()} disabled={isFetching}>
+              <RotateCcw /> Réessayer
+            </Button>
+          }
+        />
+      ) : isLoading || !me ? (
         <Loader2 className="size-5 animate-spin text-muted-foreground" aria-label="Chargement" />
       ) : me.profile === null ? (
         <Onboarding me={me} />
@@ -111,6 +125,8 @@ function MatchingHome({
       const conversationId = await messageMatch.open(match.counterpartId)
       setCelebrated(null)
       onOpenConversation?.(conversationId)
+    } catch {
+      // Refus possible (match retire entre-temps) : le toast global des mutations l'affiche deja.
     } finally {
       setOpeningId(null)
     }

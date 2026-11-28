@@ -1,6 +1,8 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { delay, http, HttpResponse } from 'msw'
 
 import { db, type MockMatchProfile } from '@/mocks/db'
+import { server } from '@/mocks/node'
 import { loginAs, renderWithProviders } from '@/test/utils'
 
 import { MatchingPage } from './matching-page'
@@ -38,7 +40,7 @@ describe('MatchingPage', () => {
     expect(screen.getByLabelText('Prénom')).toHaveValue('Léa')
     expect(screen.getByText('À compléter')).toBeInTheDocument()
 
-    await user.type(screen.getByLabelText('Ton accroche'), 'Premier 10 km en vue')
+    await user.type(screen.getByLabelText('Votre accroche'), 'Premier 10 km en vue')
     await user.click(screen.getByRole('button', { name: /suivant/i }))
     expect(await screen.findByText('Votre date de naissance est nécessaire')).toBeInTheDocument()
 
@@ -57,7 +59,7 @@ describe('MatchingPage', () => {
       target: { value: '1999-06-01' },
     })
     await user.type(screen.getByLabelText(/taille/i), '168')
-    await user.type(screen.getByLabelText('Ton accroche'), 'Je veux me mettre à la muscu')
+    await user.type(screen.getByLabelText('Votre accroche'), 'Je veux me mettre à la muscu')
     await user.click(screen.getByRole('button', { name: /suivant/i }))
 
     await user.click(
@@ -142,5 +144,125 @@ describe('MatchingPage', () => {
 
     expect(await screen.findByText('Pas encore de match')).toBeInTheDocument()
     expect(db.matches[0]?.status).toBe('ENDED')
+  })
+})
+
+describe('MatchingPage : pile de cartes', () => {
+  beforeEach(() => {
+    loginAs('ATHLETE')
+    registerLea()
+  })
+
+  it('rend la carte après une erreur passagère (5xx)', async () => {
+    server.use(
+      http.post('*/api/matching/swipes', () =>
+        HttpResponse.json({ status: 503, detail: 'Indisponible' }, { status: 503 }),
+      ),
+    )
+    const { user } = renderWithProviders(<MatchingPage />)
+    await screen.findByRole('article', { name: /sarah/i })
+
+    await user.click(screen.getByRole('button', { name: 'Passer' }))
+
+    await waitFor(() =>
+      expect(screen.getAllByRole('article', { name: /sarah/i }).length).toBeGreaterThan(0),
+    )
+    expect(db.swipes.some((s) => s.swiperId === 'u-athlete')).toBe(false)
+  })
+
+  it('ne rend pas une carte refusée définitivement (4xx)', async () => {
+    server.use(
+      http.post('*/api/matching/swipes', () =>
+        HttpResponse.json({ status: 404, detail: 'Profil FitMatch introuvable.' }, { status: 404 }),
+      ),
+    )
+    const { user } = renderWithProviders(<MatchingPage />)
+    await screen.findByRole('article', { name: /sarah/i })
+
+    await user.click(screen.getByRole('button', { name: 'Passer' }))
+
+    expect(await screen.findByRole('article', { name: /inès/i })).toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.queryByRole('article', { name: /sarah/i })).not.toBeInTheDocument(),
+    )
+  })
+
+  it('affiche le match même si on swipe la carte suivante avant la réponse', async () => {
+    // Les reponses arrivent apres le second clic ; sans contenu, le handler passe la main au mock.
+    server.use(
+      http.post('*/api/matching/swipes', async () => {
+        await delay(80)
+      }),
+    )
+    const { user } = renderWithProviders(<MatchingPage />)
+    await screen.findByRole('article', { name: /sarah/i })
+
+    await user.click(screen.getByRole('button', { name: "J'aime" }))
+    await user.click(screen.getByRole('button', { name: 'Passer' }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText(/sarah et vous/i)).toBeInTheDocument()
+    // Le second swipe vise bien la carte suivante (et se termine avant la fin du test).
+    await waitFor(() =>
+      expect(db.swipes).toContainEqual({
+        swiperId: 'u-athlete',
+        targetId: 'u-fm-ines',
+        decision: 'PASS',
+      }),
+    )
+  })
+
+  it('ne ressuscite pas les cartes swipées après un changement d’onglet', async () => {
+    const { user } = renderWithProviders(<MatchingPage />)
+    await screen.findByRole('article', { name: /sarah/i })
+
+    await user.click(screen.getByRole('button', { name: 'Passer' }))
+    await screen.findByRole('article', { name: /inès/i })
+    await user.click(screen.getByRole('tab', { name: /mes matchs/i }))
+    await user.click(screen.getByRole('tab', { name: /découvrir/i }))
+
+    expect(await screen.findByRole('article', { name: /inès/i })).toBeInTheDocument()
+    expect(screen.queryByRole('article', { name: /sarah/i })).not.toBeInTheDocument()
+  })
+
+  it('les flèches swipent, sauf quand le focus est sur les onglets', async () => {
+    const { user } = renderWithProviders(<MatchingPage />)
+    await screen.findByRole('article', { name: /sarah/i })
+
+    screen.getByRole('tab', { name: /découvrir/i }).focus()
+    await user.keyboard('{ArrowRight}')
+    expect(db.swipes.some((s) => s.swiperId === 'u-athlete')).toBe(false)
+
+    await user.click(screen.getByRole('tab', { name: /découvrir/i }))
+    ;(document.activeElement as HTMLElement | null)?.blur()
+    await user.keyboard('{ArrowLeft}')
+    await waitFor(() =>
+      expect(db.swipes).toContainEqual({
+        swiperId: 'u-athlete',
+        targetId: 'u-fm-sarah',
+        decision: 'PASS',
+      }),
+    )
+  })
+
+  it('verrouille la date de naissance déjà connue du compte', async () => {
+    const { user } = renderWithProviders(<MatchingPage />)
+    await user.click(await screen.findByRole('tab', { name: /mon profil/i }))
+
+    const birthDate = await screen.findByLabelText(/date de naissance/i)
+    expect(birthDate).toHaveAttribute('readonly')
+    expect(birthDate).toHaveValue('1999-06-01')
+  })
+
+  it('affiche un état d’erreur si le profil ne se charge pas', async () => {
+    server.use(
+      http.get('*/api/matching/profile', () =>
+        HttpResponse.json({ status: 500, detail: 'Erreur interne' }, { status: 500 }),
+      ),
+    )
+    renderWithProviders(<MatchingPage />)
+
+    expect(await screen.findByText('FitMatch est indisponible pour le moment')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /réessayer/i })).toBeInTheDocument()
   })
 })
