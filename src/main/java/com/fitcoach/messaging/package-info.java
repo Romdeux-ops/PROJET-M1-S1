@@ -4,8 +4,9 @@
  * <p>Une conversation par paire (coach, athlete), creee a la demande et
  * idempotente : l'unicite de la paire est garantie par la base, y compris sous
  * acces concurrent. Seuls ses deux participants la voient. L'ouvrir ou y
- * ecrire exige une relation coach / athlete active ; une fois la relation
- * terminee, l'historique reste lisible mais l'envoi est refuse. Les messages
+ * ecrire exige une relation coach / athlete active ou un match FitMatch actif
+ * ({@code matching.api.MatchRelations}) ; une fois les deux termines,
+ * l'historique reste lisible mais l'envoi est refuse. Les messages
  * sont immuables (1 a 2000 caracteres).
  *
  * <p>Le contrat est REST : historique pagine par curseur (keyset sur

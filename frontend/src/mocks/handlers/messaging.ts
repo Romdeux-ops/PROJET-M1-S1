@@ -9,11 +9,17 @@ const DEFAULT_PAGE_SIZE = 30
 const MAX_PAGE_SIZE = 100
 const PREVIEW_LENGTH = 120
 const NOT_ACTIVE =
-  "La messagerie n'est ouverte qu'entre un coach et un athlète qu'il suit activement."
+  "La messagerie n'est ouverte qu'entre un coach et un athlète qu'il suit activement, ou après un match FitMatch."
 
+/** Relation de coaching active ou match FitMatch actif, comme le backend. */
 function isActiveClient(coachId: string, athleteId: string) {
-  return db.coachAthletes.some(
-    (c) => c.coachId === coachId && c.athleteId === athleteId && c.status === 'ACTIVE',
+  return (
+    db.coachAthletes.some(
+      (c) => c.coachId === coachId && c.athleteId === athleteId && c.status === 'ACTIVE',
+    ) ||
+    db.matches.some(
+      (m) => m.coachId === coachId && m.athleteId === athleteId && m.status === 'ACTIVE',
+    )
   )
 }
 

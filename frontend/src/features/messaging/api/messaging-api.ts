@@ -7,7 +7,7 @@ import type { Conversation, Message, MessagePage } from '../schemas'
  *   GET   /api/messaging/conversations                          -> Conversation[] (les plus actives d'abord)
  *   POST  /api/messaging/conversations                          -> Conversation (201 creee, 200 existante)
  *   GET   /api/messaging/conversations/{id}/messages?before=&size= -> MessagePage (plus recent d'abord)
- *   POST  /api/messaging/conversations/{id}/messages            -> Message (201, relation coach / athlete active)
+ *   POST  /api/messaging/conversations/{id}/messages            -> Message (201, relation coach / athlete active ou match FitMatch)
  *   PATCH /api/messaging/conversations/{id}/read                -> 204 (marque lus les messages recus)
  *
  * `before` est le `nextCursor` de la page precedente ; seuls les participants voient une conversation (404 sinon).

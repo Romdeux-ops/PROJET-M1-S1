@@ -16,6 +16,7 @@ import {
   Users,
 } from 'lucide-react'
 
+import { HeartDumbbell } from '@/components/heart-dumbbell-icon'
 import type { Role } from '@/lib/auth/session'
 
 export type ModuleKey =
@@ -27,6 +28,7 @@ export type ModuleKey =
   | 'coaching'
   | 'booking'
   | 'messaging'
+  | 'matching'
   | 'ai'
   | 'gamification'
   | 'nutrition'
@@ -116,6 +118,14 @@ export const NAVIGATION: NavGroup[] = [
         label: 'Messages',
         description: 'Conversations entre athlètes et coachs.',
         icon: MessagesSquare,
+      },
+      {
+        key: 'matching',
+        to: '/matching',
+        label: 'FitMatch',
+        description: 'Rencontres sportives entre athlètes et coachs : swipez, matchez, discutez.',
+        icon: HeartDumbbell,
+        roles: ['ATHLETE', 'COACH'],
       },
       {
         key: 'ai',

@@ -2,6 +2,7 @@ import type { Booking, Slot } from '@/features/booking/schemas'
 import type { CoachNote, CoachPost } from '@/features/coaching/schemas'
 import type { Exercise, MuscleGroup, Tag } from '@/features/catalog/schemas'
 import type { ProfileResponse } from '@/features/identity/schemas'
+import type { MatchProfileDetails, MatchSide, SwipeDecision } from '@/features/matching/schemas'
 import type { Message } from '@/features/messaging/schemas'
 import type { AppNotification } from '@/features/notification/schemas'
 import type { ScheduledSession } from '@/features/planning/schemas'
@@ -119,6 +120,27 @@ function seedNotifications(): MockNotification[] {
   ]
 }
 
+/** Profil FitMatch tel que stocke ; prenom, age et taille restent dans l'utilisateur. */
+export interface MockMatchProfile extends MatchProfileDetails {
+  userId: string
+  side: MatchSide
+  updatedAt: string
+}
+
+export interface MockSwipe {
+  swiperId: string
+  targetId: string
+  decision: SwipeDecision
+}
+
+export interface MockMatch {
+  id: string
+  coachId: string
+  athleteId: string
+  status: 'ACTIVE' | 'ENDED'
+  createdAt: string
+}
+
 export function defaultProfile(): MockUser['profile'] {
   return {
     avatarUrl: null,
@@ -134,6 +156,10 @@ export function defaultProfile(): MockUser['profile'] {
 }
 
 function seedUsers(): MockUser[] {
+  return [...seedAccounts(), ...seedFitMatchPeople()]
+}
+
+function seedAccounts(): MockUser[] {
   return [
     {
       id: 'u-athlete',
@@ -498,6 +524,138 @@ function seedSessions(): TrainingSession[] {
   ]
 }
 
+/** Personnes de demo FitMatch : elles n'ont pas de mot de passe connu, on ne s'y connecte pas. */
+function seedFitMatchPeople(): MockUser[] {
+  const person = (
+    id: string,
+    firstName: string,
+    lastName: string,
+    role: 'ATHLETE' | 'COACH',
+    age: number,
+    heightCm: number,
+    fitnessGoal: MockUser['profile']['fitnessGoal'] = 'GENERAL_FITNESS',
+    experienceLevel: MockUser['profile']['experienceLevel'] = 'BEGINNER',
+  ): MockUser => ({
+    id,
+    email: `${id}@fitmatch.demo`,
+    firstName,
+    lastName,
+    roles: [role],
+    password: crypto.randomUUID(),
+    profile: {
+      ...defaultProfile(),
+      birthDate: `${new Date().getFullYear() - age}-03-14`,
+      heightCm,
+      fitnessGoal,
+      experienceLevel,
+    },
+  })
+  return [
+    person('u-fm-sarah', 'Sarah', 'Lemoine', 'COACH', 31, 168),
+    person('u-fm-karim', 'Karim', 'Haddad', 'COACH', 38, 181),
+    person('u-fm-julie', 'Julie', 'Roux', 'COACH', 27, 165),
+    person('u-fm-thomas', 'Thomas', 'Petit', 'COACH', 44, 178),
+    person('u-fm-ines', 'Inès', 'Garcia', 'COACH', 29, 170),
+    person('u-fm-nathan', 'Nathan', 'Moreau', 'ATHLETE', 22, 183, 'MUSCLE_GAIN', 'INTERMEDIATE'),
+    person('u-fm-chloe', 'Chloé', 'Fournier', 'ATHLETE', 34, 162, 'ENDURANCE', 'BEGINNER'),
+    person('u-fm-mehdi', 'Mehdi', 'Benali', 'ATHLETE', 27, 176, 'WEIGHT_LOSS', 'BEGINNER'),
+  ]
+}
+
+type SeedDetails = Partial<MatchProfileDetails> & Pick<MatchProfileDetails, 'headline' | 'sports'>
+
+function seedMatchProfiles(): MockMatchProfile[] {
+  const at = hoursAgo(3)
+  const base = (userId: string, side: MatchSide): MockMatchProfile => ({
+    userId,
+    side,
+    headline: '',
+    about: null,
+    sports: [],
+    goals: [],
+    levels: [],
+    availability: ['EVENING', 'WEEKEND'],
+    trainingMode: 'BOTH',
+    city: 'Paris',
+    maxBudgetEur: side === 'ATHLETE' ? 50 : null,
+    sessionRateEur: side === 'COACH' ? 45 : null,
+    visible: true,
+    updatedAt: at,
+  })
+  const coach = (userId: string, details: SeedDetails) => ({ ...base(userId, 'COACH'), ...details })
+  const athlete = (userId: string, details: SeedDetails) => ({
+    ...base(userId, 'ATHLETE'),
+    ...details,
+  })
+  return [
+    coach('u-fm-sarah', {
+      headline: 'Coach force et remise en forme, je te fais aimer la salle',
+      about: 'BPJEPS AF, 8 ans de coaching. Spécialiste des débutants qui veulent se sentir forts.',
+      sports: ['STRENGTH', 'HIIT', 'RUNNING'],
+      goals: ['GENERAL_FITNESS', 'MUSCLE_GAIN', 'WEIGHT_LOSS'],
+      levels: ['BEGINNER', 'INTERMEDIATE'],
+      sessionRateEur: 40,
+    }),
+    coach('u-fm-karim', {
+      headline: 'Préparateur running : du premier 10 km au marathon',
+      sports: ['RUNNING', 'TRIATHLON', 'CYCLING'],
+      goals: ['ENDURANCE'],
+      levels: ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'],
+      availability: ['MORNING', 'WEEKEND'],
+      sessionRateEur: 55,
+    }),
+    coach('u-fm-julie', {
+      headline: 'Yoga et mobilité pour sportifs raides comme des piquets',
+      sports: ['YOGA', 'PILATES'],
+      availability: ['MORNING', 'NOON'],
+      trainingMode: 'REMOTE',
+      city: null,
+      sessionRateEur: 30,
+    }),
+    coach('u-fm-thomas', {
+      headline: 'Ancien boxeur pro, cardio et confiance en soi garantis',
+      sports: ['BOXING', 'MARTIAL_ARTS', 'HIIT'],
+      goals: ['WEIGHT_LOSS', 'GENERAL_FITNESS'],
+      levels: ['BEGINNER', 'INTERMEDIATE'],
+      city: 'Lyon',
+      trainingMode: 'ONSITE',
+      sessionRateEur: 60,
+    }),
+    coach('u-fm-ines', {
+      headline: 'CrossFit L2 : technique d’haltérophilie et WOD',
+      sports: ['CROSSFIT', 'STRENGTH'],
+      goals: ['MUSCLE_GAIN'],
+      levels: ['INTERMEDIATE', 'ADVANCED'],
+      availability: ['EVENING'],
+      sessionRateEur: 50,
+    }),
+    athlete('u-fm-nathan', {
+      headline: 'Je veux prendre 5 kg de muscle propre cette année',
+      sports: ['STRENGTH', 'CROSSFIT'],
+      availability: ['EVENING'],
+    }),
+    athlete('u-fm-chloe', {
+      headline: 'Objectif : finir mon premier semi-marathon',
+      sports: ['RUNNING', 'YOGA'],
+      availability: ['MORNING', 'WEEKEND'],
+      trainingMode: 'REMOTE',
+    }),
+    athlete('u-fm-mehdi', {
+      headline: 'Reprise du sport après 3 ans de canapé',
+      sports: ['STRENGTH', 'BOXING', 'HIIT'],
+      maxBudgetEur: 35,
+    }),
+  ]
+}
+
+/** Sarah a déjà liké Léa et Nathan a super-liké Hugo : un like en retour suffit pour matcher. */
+function seedSwipes(): MockSwipe[] {
+  return [
+    { swiperId: 'u-fm-sarah', targetId: 'u-athlete', decision: 'LIKE' },
+    { swiperId: 'u-fm-nathan', targetId: 'u-coach', decision: 'SUPER_LIKE' },
+  ]
+}
+
 export const db = {
   users: seedUsers(),
   sessions: seedSessions(),
@@ -515,6 +673,9 @@ export const db = {
   conversations: seedConversations(),
   messages: seedMessages(),
   notifications: seedNotifications(),
+  matchProfiles: seedMatchProfiles(),
+  swipes: seedSwipes(),
+  matches: [] as MockMatch[],
 }
 
 export function resetDb() {
@@ -534,6 +695,9 @@ export function resetDb() {
   db.conversations = seedConversations()
   db.messages = seedMessages()
   db.notifications = seedNotifications()
+  db.matchProfiles = seedMatchProfiles()
+  db.swipes = seedSwipes()
+  db.matches = []
 }
 
 export function tokenFor(userId: string) {

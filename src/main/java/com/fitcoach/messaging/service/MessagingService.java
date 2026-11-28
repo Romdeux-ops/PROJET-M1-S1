@@ -3,6 +3,7 @@ package com.fitcoach.messaging.service;
 import com.fitcoach.coaching.api.CoachRelations;
 import com.fitcoach.identity.api.UserDirectory;
 import com.fitcoach.identity.api.UserSummary;
+import com.fitcoach.matching.api.MatchRelations;
 import com.fitcoach.messaging.domain.Conversation;
 import com.fitcoach.messaging.domain.Message;
 import com.fitcoach.messaging.dto.ConversationResponse;
@@ -32,7 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * <p>Seuls les participants voient une conversation (un tiers recoit 404).
  * Ouvrir une conversation ou y ecrire exige une relation coach / athlete
- * active ; une fois la relation terminee, l'historique reste lisible.
+ * active ou un match FitMatch actif ; une fois les deux termines,
+ * l'historique reste lisible.
  */
 @Service
 @Transactional(readOnly = true)
@@ -44,6 +46,7 @@ public class MessagingService {
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
     private final CoachRelations coachRelations;
+    private final MatchRelations matchRelations;
     private final UserDirectory userDirectory;
     private final Clock clock;
 
@@ -51,11 +54,13 @@ public class MessagingService {
             ConversationRepository conversationRepository,
             MessageRepository messageRepository,
             CoachRelations coachRelations,
+            MatchRelations matchRelations,
             UserDirectory userDirectory,
             Clock clock) {
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
         this.coachRelations = coachRelations;
+        this.matchRelations = matchRelations;
         this.userDirectory = userDirectory;
         this.clock = clock;
     }
@@ -68,10 +73,10 @@ public class MessagingService {
     public StartedConversation startConversation(UUID userId, UUID counterpartId) {
         UUID coachId;
         UUID athleteId;
-        if (coachRelations.isActiveClient(userId, counterpartId)) {
+        if (canTalk(userId, counterpartId)) {
             coachId = userId;
             athleteId = counterpartId;
-        } else if (coachRelations.isActiveClient(counterpartId, userId)) {
+        } else if (canTalk(counterpartId, userId)) {
             coachId = counterpartId;
             athleteId = userId;
         } else {
@@ -116,7 +121,7 @@ public class MessagingService {
     @Transactional
     public MessageResponse send(UUID conversationId, UUID userId, SendMessageRequest request) {
         Conversation conversation = participantConversation(conversationId, userId);
-        if (!coachRelations.isActiveClient(conversation.getCoachId(), conversation.getAthleteId())) {
+        if (!canTalk(conversation.getCoachId(), conversation.getAthleteId())) {
             throw new NotActiveRelationException();
         }
 
@@ -131,6 +136,11 @@ public class MessagingService {
     public void markRead(UUID conversationId, UUID userId) {
         Conversation conversation = participantConversation(conversationId, userId);
         messageRepository.markRead(conversation.getId(), userId, now());
+    }
+
+    /** Relation de coaching active, ou match FitMatch actif entre ce coach et cet athlete. */
+    private boolean canTalk(UUID coachId, UUID athleteId) {
+        return coachRelations.isActiveClient(coachId, athleteId) || matchRelations.isActiveMatch(coachId, athleteId);
     }
 
     private List<Message> olderThan(UUID conversationId, UUID before, Limit limit) {

@@ -228,6 +228,7 @@ com.fitcoach
 ├── coaching/      relation coach-athlete, suivi, notes
 ├── booking/       disponibilites et reservations
 ├── messaging/     conversations et messages
+├── matching/      FitMatch : profils de rencontre, swipes, matchs
 ├── gamification/  badges, experience, classements, defis
 ├── nutrition/     plans, journal alimentaire, recettes (bonus)
 ├── ai/            generation de programmes
@@ -283,3 +284,18 @@ frontend.
 - [x] Phase 12 — generation par IA
 - [ ] Phase 13 — nutrition (bonus)
 - [ ] Phase 14 — back-office, CI, deploiement
+- [x] FitMatch — rencontres sportives athletes / coachs (hors plan, migration V19)
+
+### FitMatch
+
+Page de rencontre entre athletes et coachs (icone coeur + haltere dans la
+barre laterale). L'inscription reprend prenom, taille, objectif et niveau du
+compte et ne demande que ce qui manque (date de naissance obligatoire,
+16 ans minimum). Un athlete ne voit que des coachs et inversement, tries par
+un score de compatibilite sportive sur 100 (sports 30, objectif 20, niveau 10,
+creneaux 15, lieu 15, budget 10). Deux likes reciproques creent un match qui
+ouvre la messagerie, sans creer de relation de coaching ; retirer le match
+ferme l'envoi de messages et garde l'historique.
+
+La migration est V19, a la suite de V16 a V18 (profil public du coach,
+nutrition) apportees par `release/v0.1.2`.

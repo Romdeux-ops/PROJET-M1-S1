@@ -55,7 +55,7 @@ src/
 │   ├── identity/     connexion, inscription, profil
 │   ├── training/     FEATURE DE REFERENCE, a copier (voir note ci-dessous)
 │   ├── dashboard/    tableau de bord (agrege stats et training)
-│   └── program/ planning/ stats/ coaching/ booking/ messaging/
+│   └── program/ planning/ stats/ coaching/ booking/ messaging/ matching/
 │       ai/ gamification/ nutrition/ catalog/ admin/
 ├── components/
 │   ├── ui/           composants shadcn (generes, modifiables)
@@ -245,12 +245,18 @@ Contrats consommes par le front a ce jour :
 | GET     | `/api/messaging/conversations`                               | `Conversation[]` (les plus recemment actives d'abord)                                                                                                  |
 | POST    | `/api/messaging/conversations`                               | `Conversation` (201 si creee, 200 si la paire existait)                                                                                                |
 | GET     | `/api/messaging/conversations/{id}/messages`                 | `{ items, nextCursor }` (plus recent d'abord, `before` = curseur)                                                                                      |
-| POST    | `/api/messaging/conversations/{id}/messages`                 | `Message` (201, relation coach / athlete active)                                                                                                       |
+| POST    | `/api/messaging/conversations/{id}/messages`                 | `Message` (201, relation coach / athlete active ou match FitMatch)                                                                                     |
 | PATCH   | `/api/messaging/conversations/{id}/read`                     | 204 (messages recus uniquement)                                                                                                                        |
 | GET     | `/api/gamification/me`                                       | `GamificationProfile` (XP, niveau, badges obtenus ou verrouilles)                                                                                      |
 | GET     | `/api/gamification/badges`                                   | `Badge[]` (catalogue, `awardedAt` nul)                                                                                                                 |
 | GET     | `/api/gamification/leaderboard`                              | `LeaderboardEntry[]` (top 20 + ligne de l'utilisateur, `you`)                                                                                          |
 | POST    | `/api/ai/program-generation`                                 | `GeneratedProgram` (brouillon sans ecriture en base ; `source` RULES ou CLAUDE, `variant` fait tourner les regles ; 503 si `strategy=claude` sans cle) |
+| GET     | `/api/matching/profile`                                      | `MyMatchProfile` (toujours 200, `profile` nul avant inscription)                                                                                       |
+| PUT     | `/api/matching/profile`                                      | `MyMatchProfile` (complete date de naissance et taille du compte)                                                                                      |
+| GET     | `/api/matching/feed?limit=`                                  | `Candidate[]` (camp oppose, par score ; 409 sans profil)                                                                                               |
+| POST    | `/api/matching/swipes`                                       | `SwipeResult` (`newMatch` vrai pour le swipe qui cree le match)                                                                                        |
+| GET     | `/api/matching/matches`                                      | `Match[]` (actifs, plus recents d'abord)                                                                                                               |
+| DELETE  | `/api/matching/matches/{matchId}`                            | 204 (ferme l'envoi de messages, garde l'historique)                                                                                                    |
 
 Les erreurs sont attendues au format `ProblemDetail` de Spring : `detail` est
 affiche tel quel a l'utilisateur.
