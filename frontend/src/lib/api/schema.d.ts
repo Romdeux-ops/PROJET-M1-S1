@@ -4,6 +4,22 @@
  */
 
 export interface paths {
+    "/api/users/me/profile/weight/{date}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["saveWeight"];
+        post?: never;
+        delete: operations["deleteWeight"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/training/sessions/{sessionId}": {
         parameters: {
             query?: never;
@@ -15,6 +31,70 @@ export interface paths {
         put: operations["updateSession"];
         post?: never;
         delete: operations["deleteSession"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recovery/training/workouts/{workoutSessionId}/details": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getDetails"];
+        put: operations["saveDetails"];
+        post?: never;
+        delete: operations["deleteDetails"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recovery/sleep/{sleepLogId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getSleepLog"];
+        put: operations["updateSleepLog"];
+        post?: never;
+        delete: operations["deleteSleepLog"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recovery/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getSettings"];
+        put: operations["updateSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recovery/checkins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCheckins"];
+        put: operations["saveCheckin"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -158,6 +238,70 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["addSet"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recovery/sleep": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getSleepLogs"];
+        put?: never;
+        post: operations["createSleepLog"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recovery/overview/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["refreshOverview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recovery/assessments/{date}/calculate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["calculateAssessment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recovery/assessments/recalculate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["recalculateRange"];
         delete?: never;
         options?: never;
         head?: never;
@@ -788,6 +932,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/users/me/profile/weight": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getWeightHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/training/personal-records": {
         parameters: {
             query?: never;
@@ -908,6 +1068,150 @@ export interface paths {
             cookie?: never;
         };
         get: operations["weeklyAdherence"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recovery/training/workouts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getWorkouts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recovery/training/workouts/{workoutSessionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getWorkout"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recovery/training/daily": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getDailySummaries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recovery/training/daily/{date}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getDailySummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recovery/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recovery/checkins/{date}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCheckin"];
+        put?: never;
+        post?: never;
+        delete: operations["deleteCheckin"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recovery/assessments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recovery/assessments/{date}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getAssessment"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recovery/assessments/today": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getToday"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1528,6 +1832,20 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        BodyWeightRequest: {
+            weightKg: number;
+            note?: string;
+        };
+        BodyWeightResponse: {
+            /** Format: uuid */
+            id?: string;
+            weightKg?: number;
+            /** Format: date */
+            measuredOn?: string;
+            note?: string;
+            /** Format: date-time */
+            createdAt?: string;
+        };
         SessionRequest: {
             title: string;
             /** Format: date-time */
@@ -1576,6 +1894,105 @@ export interface components {
             restSeconds?: number;
             volume?: number;
             isPersonalRecord?: boolean;
+        };
+        RecoveryWorkoutDetailsRequest: {
+            /** @enum {string} */
+            activityType?: "STRENGTH" | "CARDIO" | "HIIT" | "RUNNING" | "CYCLING" | "WALKING" | "SWIMMING" | "YOGA" | "STRETCHING" | "OTHER";
+            sessionRpe?: number;
+        };
+        RecoveryWorkoutDetailsResponse: {
+            /** Format: uuid */
+            workoutSessionId?: string;
+            /** @enum {string} */
+            activityType?: "STRENGTH" | "CARDIO" | "HIIT" | "RUNNING" | "CYCLING" | "WALKING" | "SWIMMING" | "YOGA" | "STRETCHING" | "OTHER";
+            sessionRpe?: number;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        SleepLogRequest: {
+            /** Format: date-time */
+            bedtime: string;
+            /** Format: date-time */
+            wakeTime: string;
+            /** Format: int32 */
+            awakeMinutes?: number;
+            /** Format: int32 */
+            sleepQuality: number;
+            /** Format: int32 */
+            nightAwakenings?: number;
+            notes?: string;
+        };
+        SleepLogResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: date */
+            sleepDate?: string;
+            /** Format: date-time */
+            bedtime?: string;
+            /** Format: date-time */
+            wakeTime?: string;
+            /** Format: int64 */
+            timeInBedMinutes?: number;
+            /** Format: int64 */
+            estimatedSleepMinutes?: number;
+            sleepDurationApproximate?: boolean;
+            /** Format: int32 */
+            awakeMinutes?: number;
+            /** Format: int32 */
+            sleepQuality?: number;
+            /** Format: int32 */
+            nightAwakenings?: number;
+            notes?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        RecoverySettingsRequest: {
+            /** Format: int32 */
+            sleepTargetMinutes: number;
+        };
+        RecoverySettingsResponse: {
+            /** Format: int32 */
+            sleepTargetMinutes?: number;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        RecoveryCheckinRequest: {
+            /** Format: date */
+            checkinDate: string;
+            /** Format: int32 */
+            energyLevel: number;
+            /** Format: int32 */
+            fatigueLevel: number;
+            /** Format: int32 */
+            stressLevel: number;
+            /** Format: int32 */
+            muscleSoreness: number;
+            notes?: string;
+        };
+        RecoveryCheckinResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: date */
+            checkinDate?: string;
+            /** Format: int32 */
+            energyLevel?: number;
+            /** Format: int32 */
+            fatigueLevel?: number;
+            /** Format: int32 */
+            stressLevel?: number;
+            /** Format: int32 */
+            muscleSoreness?: number;
+            notes?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
         };
         ProgramRequest: {
             title: string;
@@ -1805,6 +2222,225 @@ export interface components {
             rpe?: number;
             /** Format: int32 */
             restSeconds?: number;
+        };
+        RecoveryAssessmentResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: date */
+            assessmentDate?: string;
+            /** Format: int32 */
+            sleepScore?: number;
+            /** Format: int32 */
+            bodyBattery?: number;
+            /** Format: int32 */
+            trainingReadiness?: number;
+            trainingLoad?: number;
+            recentTrainingLoad?: number;
+            activeCaloriesKcal?: number;
+            previousBodyBattery?: number;
+            sleepRecharge?: number;
+            trainingDrain?: number;
+            stressDrain?: number;
+            dailyDrain?: number;
+            /** @enum {string} */
+            dataStatus?: "COMPLETE" | "PARTIAL" | "INSUFFICIENT";
+            /** @enum {string} */
+            recommendation?: "NORMAL_TRAINING" | "MODERATE_TRAINING" | "LIGHT_ACTIVITY" | "REST";
+            calculationDetails?: {
+                [key: string]: unknown;
+            };
+            algorithmVersion?: string;
+            /** Format: date-time */
+            calculatedAt?: string;
+        };
+        RecoveryDailyTrendResponse: {
+            /** Format: date */
+            date?: string;
+            /** Format: int32 */
+            sleepScore?: number;
+            /** Format: int32 */
+            bodyBattery?: number;
+            /** Format: int32 */
+            trainingReadiness?: number;
+            /** Format: int64 */
+            estimatedSleepMinutes?: number;
+            /** Format: int32 */
+            sleepQuality?: number;
+            sleepDurationApproximate?: boolean;
+            /** Format: int32 */
+            energyLevel?: number;
+            /** Format: int32 */
+            fatigueLevel?: number;
+            /** Format: int32 */
+            stressLevel?: number;
+            /** Format: int32 */
+            muscleSoreness?: number;
+            /** Format: int32 */
+            workoutCount?: number;
+            /** Format: int64 */
+            recordedDurationMinutes?: number;
+            trainingLoad?: number;
+            activeCaloriesKcal?: number;
+            /** @enum {string} */
+            dataStatus?: "COMPLETE" | "PARTIAL" | "INSUFFICIENT";
+        };
+        RecoveryOverviewResponse: {
+            /** Format: date */
+            date?: string;
+            /** Format: date-time */
+            generatedAt?: string;
+            timeZone?: string;
+            todayAssessment?: components["schemas"]["RecoveryAssessmentResponse"];
+            todaySleep?: components["schemas"]["SleepLogResponse"];
+            todayCheckin?: components["schemas"]["RecoveryCheckinResponse"];
+            todayTraining?: components["schemas"]["RecoveryTrainingSummaryResponse"];
+            settings?: components["schemas"]["RecoverySettingsResponse"];
+            weeklySummary?: components["schemas"]["RecoveryWeeklySummaryResponse"];
+            weightSummary?: components["schemas"]["RecoveryWeightSummaryResponse"];
+            dailyTrends?: components["schemas"]["RecoveryDailyTrendResponse"][];
+        };
+        RecoveryPlanningSummaryResponse: {
+            /** Format: int32 */
+            totalScheduledSessions?: number;
+            /** Format: int32 */
+            elapsedScheduledSessions?: number;
+            /** Format: int32 */
+            completedSessions?: number;
+            /** Format: int32 */
+            pendingValidationSessions?: number;
+            /** Format: int32 */
+            skippedSessions?: number;
+            /** Format: int32 */
+            unconfirmedSessions?: number;
+            /** Format: int32 */
+            futureScheduledSessions?: number;
+            /** Format: int32 */
+            declaredCompletedSessions?: number;
+            adherencePercentage?: number;
+        };
+        RecoveryTrainingSummaryResponse: {
+            /** Format: date */
+            date?: string;
+            /** Format: int32 */
+            totalSessions?: number;
+            /** Format: int32 */
+            sessionsWithDuration?: number;
+            /** Format: int32 */
+            sessionsWithTrainingLoad?: number;
+            /** Format: int32 */
+            sessionsWithCalories?: number;
+            /** Format: int32 */
+            sessionsWithEstimatedRpe?: number;
+            /** Format: int64 */
+            recordedDurationMinutes?: number;
+            trainingLoad?: number;
+            activeCaloriesKcal?: number;
+            knownTrainingLoad?: number;
+            knownActiveCaloriesKcal?: number;
+            /** @enum {string} */
+            dataStatus?: "COMPLETE" | "PARTIAL" | "INSUFFICIENT";
+            workouts?: components["schemas"]["RecoveryWorkoutResponse"][];
+        };
+        RecoveryWeeklySummaryResponse: {
+            /** Format: date */
+            weekStart?: string;
+            /** Format: date */
+            weekEnd?: string;
+            /** Format: date */
+            evaluatedThrough?: string;
+            /** Format: int32 */
+            elapsedDays?: number;
+            /** Format: int32 */
+            workoutCount?: number;
+            /** Format: int32 */
+            trainingDays?: number;
+            /** Format: int32 */
+            daysWithoutRecordedTraining?: number;
+            /** Format: int64 */
+            recordedDurationMinutes?: number;
+            totalTrainingLoad?: number;
+            totalActiveCaloriesKcal?: number;
+            knownTrainingLoad?: number;
+            knownActiveCaloriesKcal?: number;
+            /** Format: int32 */
+            sessionsWithDuration?: number;
+            /** Format: int32 */
+            sessionsWithTrainingLoad?: number;
+            /** Format: int32 */
+            sessionsWithCalories?: number;
+            /** Format: int32 */
+            sessionsWithEstimatedRpe?: number;
+            durationComplete?: boolean;
+            trainingLoadComplete?: boolean;
+            caloriesComplete?: boolean;
+            /** Format: int32 */
+            sleepLogsCount?: number;
+            /** Format: int32 */
+            approximateSleepLogsCount?: number;
+            averageSleepMinutes?: number;
+            averageSleepQuality?: number;
+            averageSleepScore?: number;
+            averageBodyBattery?: number;
+            averageTrainingReadiness?: number;
+            /** Format: int32 */
+            daysWithSleepScore?: number;
+            /** Format: int32 */
+            daysWithBodyBattery?: number;
+            /** Format: int32 */
+            daysWithTrainingReadiness?: number;
+            /** Format: int32 */
+            checkinsCount?: number;
+            averageEnergyLevel?: number;
+            averageFatigueLevel?: number;
+            averageStressLevel?: number;
+            averageMuscleSoreness?: number;
+            planning?: components["schemas"]["RecoveryPlanningSummaryResponse"];
+        };
+        RecoveryWeightSummaryResponse: {
+            currentWeightKg?: number;
+            /** Format: date */
+            currentWeightMeasuredOn?: string;
+            referenceWeightKg?: number;
+            /** Format: date */
+            referenceWeightMeasuredOn?: string;
+            weightChangeKg?: number;
+            weightChangePercentage?: number;
+            history?: components["schemas"]["WeightPoint"][];
+        };
+        RecoveryWorkoutResponse: {
+            /** Format: uuid */
+            workoutSessionId?: string;
+            title?: string;
+            /** Format: date-time */
+            performedAt?: string;
+            /** Format: int32 */
+            durationMinutes?: number;
+            /** @enum {string} */
+            activityType?: "STRENGTH" | "CARDIO" | "HIIT" | "RUNNING" | "CYCLING" | "WALKING" | "SWIMMING" | "YOGA" | "STRETCHING" | "OTHER";
+            sessionRpe?: number;
+            averageSetRpe?: number;
+            effectiveRpe?: number;
+            rpeSource?: string;
+            /** Format: int32 */
+            totalSets?: number;
+            /** Format: int32 */
+            setsWithRpe?: number;
+            weightKg?: number;
+            /** Format: date */
+            weightMeasuredOn?: string;
+            met?: number;
+            intensity?: string;
+            totalCaloriesKcal?: number;
+            activeCaloriesKcal?: number;
+            trainingLoad?: number;
+            /** @enum {string} */
+            dataStatus?: "COMPLETE" | "PARTIAL" | "INSUFFICIENT";
+            missingData?: string[];
+        };
+        WeightPoint: {
+            /** Format: date */
+            date?: string;
+            weightKg?: number;
         };
         RatingRequest: {
             /** Format: int32 */
@@ -2351,6 +2987,52 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    saveWeight: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                date: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BodyWeightRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BodyWeightResponse"];
+                };
+            };
+        };
+    };
+    deleteWeight: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                date: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     getSession: {
         parameters: {
             query?: never;
@@ -2416,6 +3098,233 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    getDetails: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workoutSessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RecoveryWorkoutDetailsResponse"];
+                };
+            };
+        };
+    };
+    saveDetails: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workoutSessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecoveryWorkoutDetailsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RecoveryWorkoutDetailsResponse"];
+                };
+            };
+        };
+    };
+    deleteDetails: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workoutSessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getSleepLog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sleepLogId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SleepLogResponse"];
+                };
+            };
+        };
+    };
+    updateSleepLog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sleepLogId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SleepLogRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SleepLogResponse"];
+                };
+            };
+        };
+    };
+    deleteSleepLog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sleepLogId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RecoverySettingsResponse"];
+                };
+            };
+        };
+    };
+    updateSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecoverySettingsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RecoverySettingsResponse"];
+                };
+            };
+        };
+    };
+    getCheckins: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RecoveryCheckinResponse"][];
+                };
+            };
+        };
+    };
+    saveCheckin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecoveryCheckinRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RecoveryCheckinResponse"];
+                };
             };
         };
     };
@@ -2861,6 +3770,118 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["SessionResponse"];
+                };
+            };
+        };
+    };
+    getSleepLogs: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SleepLogResponse"][];
+                };
+            };
+        };
+    };
+    createSleepLog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SleepLogRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SleepLogResponse"];
+                };
+            };
+        };
+    };
+    refreshOverview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RecoveryOverviewResponse"];
+                };
+            };
+        };
+    };
+    calculateAssessment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                date: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RecoveryAssessmentResponse"];
+                };
+            };
+        };
+    };
+    recalculateRange: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RecoveryAssessmentResponse"][];
                 };
             };
         };
@@ -4077,6 +5098,29 @@ export interface operations {
             };
         };
     };
+    getWeightHistory: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BodyWeightResponse"][];
+                };
+            };
+        };
+    };
     listPersonalRecords: {
         parameters: {
             query?: never;
@@ -4241,6 +5285,223 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["WeeklyAdherencePoint"][];
+                };
+            };
+        };
+    };
+    getWorkouts: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RecoveryWorkoutResponse"][];
+                };
+            };
+        };
+    };
+    getWorkout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workoutSessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RecoveryWorkoutResponse"];
+                };
+            };
+        };
+    };
+    getDailySummaries: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RecoveryTrainingSummaryResponse"][];
+                };
+            };
+        };
+    };
+    getDailySummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                date: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RecoveryTrainingSummaryResponse"];
+                };
+            };
+        };
+    };
+    getOverview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RecoveryOverviewResponse"];
+                };
+            };
+        };
+    };
+    getCheckin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                date: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RecoveryCheckinResponse"];
+                };
+            };
+        };
+    };
+    deleteCheckin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                date: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getHistory: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RecoveryAssessmentResponse"][];
+                };
+            };
+        };
+    };
+    getAssessment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                date: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RecoveryAssessmentResponse"];
+                };
+            };
+        };
+    };
+    getToday: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RecoveryAssessmentResponse"];
                 };
             };
         };

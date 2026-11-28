@@ -6,6 +6,7 @@ import {
   CalendarDays,
   CalendarClock,
   Dumbbell,
+  HeartPulse,
   LayoutDashboard,
   ListChecks,
   type LucideIcon,
@@ -30,6 +31,7 @@ export type ModuleKey =
   | 'ai'
   | 'gamification'
   | 'nutrition'
+  | 'recovery'
   | 'catalog'
   | 'admin'
 
@@ -142,6 +144,13 @@ export const NAVIGATION: NavGroup[] = [
         label: 'Nutrition',
         description: 'Suivi des repas, calories et macronutriments.',
         icon: Salad,
+      },
+      {
+        key: 'recovery',
+        to: '/recovery',
+        label: 'Recovery',
+        description: 'Suivi du sommeil, de la récupération et de la préparation sportive.',
+        icon: HeartPulse,
       },
       {
         key: 'catalog',

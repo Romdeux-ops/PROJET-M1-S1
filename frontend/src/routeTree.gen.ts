@@ -24,6 +24,7 @@ import { Route as AppNutritionRouteImport } from './routes/_app/nutrition'
 import { Route as AppPlanningRouteImport } from './routes/_app/planning'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
 import { Route as AppProgramRouteImport } from './routes/_app/program'
+import { Route as AppRecoveryRouteImport } from './routes/_app/recovery'
 import { Route as AppStatsRouteImport } from './routes/_app/stats'
 import { Route as AppTrainingRouteImport } from './routes/_app/training'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
@@ -103,6 +104,11 @@ const AppProgramRoute = AppProgramRouteImport.update({
   path: '/program',
   getParentRoute: () => AppRoute,
 } as any)
+const AppRecoveryRoute = AppRecoveryRouteImport.update({
+  id: '/recovery',
+  path: '/recovery',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppStatsRoute = AppStatsRouteImport.update({
   id: '/stats',
   path: '/stats',
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/planning': typeof AppPlanningRoute
   '/profile': typeof AppProfileRoute
   '/program': typeof AppProgramRoute
+  '/recovery': typeof AppRecoveryRoute
   '/stats': typeof AppStatsRoute
   '/training': typeof AppTrainingRoute
   '/login': typeof AuthLoginRoute
@@ -163,6 +170,7 @@ export interface FileRoutesByTo {
   '/planning': typeof AppPlanningRoute
   '/profile': typeof AppProfileRoute
   '/program': typeof AppProgramRoute
+  '/recovery': typeof AppRecoveryRoute
   '/stats': typeof AppStatsRoute
   '/training': typeof AppTrainingRoute
   '/login': typeof AuthLoginRoute
@@ -186,6 +194,7 @@ export interface FileRoutesById {
   '/_app/planning': typeof AppPlanningRoute
   '/_app/profile': typeof AppProfileRoute
   '/_app/program': typeof AppProgramRoute
+  '/_app/recovery': typeof AppRecoveryRoute
   '/_app/stats': typeof AppStatsRoute
   '/_app/training': typeof AppTrainingRoute
   '/_auth/login': typeof AuthLoginRoute
@@ -208,6 +217,7 @@ export interface FileRouteTypes {
     | '/planning'
     | '/profile'
     | '/program'
+    | '/recovery'
     | '/stats'
     | '/training'
     | '/login'
@@ -228,6 +238,7 @@ export interface FileRouteTypes {
     | '/planning'
     | '/profile'
     | '/program'
+    | '/recovery'
     | '/stats'
     | '/training'
     | '/login'
@@ -250,6 +261,7 @@ export interface FileRouteTypes {
     | '/_app/planning'
     | '/_app/profile'
     | '/_app/program'
+    | '/_app/recovery'
     | '/_app/stats'
     | '/_app/training'
     | '/_auth/login'
@@ -371,6 +383,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProgramRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/recovery': {
+      id: '/_app/recovery'
+      path: '/recovery'
+      fullPath: '/recovery'
+      preLoaderRoute: typeof AppRecoveryRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/stats': {
       id: '/_app/stats'
       path: '/stats'
@@ -422,6 +441,7 @@ interface AppRouteChildren {
   AppPlanningRoute: typeof AppPlanningRoute
   AppProfileRoute: typeof AppProfileRoute
   AppProgramRoute: typeof AppProgramRoute
+  AppRecoveryRoute: typeof AppRecoveryRoute
   AppStatsRoute: typeof AppStatsRoute
   AppTrainingRoute: typeof AppTrainingRoute
 }
@@ -439,6 +459,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppPlanningRoute: AppPlanningRoute,
   AppProfileRoute: AppProfileRoute,
   AppProgramRoute: AppProgramRoute,
+  AppRecoveryRoute: AppRecoveryRoute,
   AppStatsRoute: AppStatsRoute,
   AppTrainingRoute: AppTrainingRoute,
 }
